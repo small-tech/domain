@@ -99,4 +99,5 @@ _Note that the Vite dev server will not be run. If that’s what you want, pleas
 ## LICENSE
 
 Copyright ⓒ 2021-present [Aral Balkan](https://ar.al), [Small Technology Foundation](https://small-tech.org)
+
 Released under AGPL version 3.0.
