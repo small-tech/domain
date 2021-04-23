@@ -1,0 +1,42 @@
+{
+  "name": "@small-tech/basil",
+  "version": "1.0.0",
+  "description": "Basil: small web host",
+  "type": "module",
+  "scripts": {
+    "dev": "./dev.sh",
+    "kit": "svelte-kit dev",
+    "build": "svelte-kit build",
+    "serve": "npm run build && site"
+  },
+  "keywords": [
+    "Site.js",
+    "SvelteKit",
+    "Svelte",
+    "starter",
+    "template"
+  ],
+  "homepage": "https://github.com/small-tech/sitekit#readme",
+  "bugs": {
+    "url": "https://github.com/small-tech/sitekit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/small-tech/sitekit.git"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "next",
+    "@sveltejs/kit": "next",
+    "svelte": "^3.29.0",
+    "vite": "^2.1.0"
+  },
+  "funding": {
+    "type": "foundation",
+    "url": "https://small-tech.org/fund-us/"
+  },
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "dnsimple": "^4.4.0",
+    "node-fetch": "^2.6.1"
+  }
+}
