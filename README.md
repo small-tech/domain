@@ -1,14 +1,10 @@
-# SiteKit
+# Basil
 
-This template will help get you started developing with [SvelteKit](https://kit.svelte.dev) in [Site.js](https://sitejs.org).
+__Work-in-progress (not ready for use).__
 
-It’s based on the [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte) template.
+[Small Web](https://small-tech.org/research-and-development) host.
 
-__Note:__ if you want to use vanilla Vite + Svelte instead of SvelteKit, check out the [site-vite-svelte](https://github.com/small-tech/site-vite-svelte) template instead. This template also has the advantage, currently, of running the dev server on https://localhost:444 instead of http://localhost:3000. We can’t do that with SvelteKit’s dev server (yet?) as [it doesn’t currently run correctly with HMR over https](https://github.com/sveltejs/kit/issues/844) and [there isn’t a way to set the `server` property directly on its Vite instance](https://github.com/sveltejs/kit/issues/844#issuecomment-817287992).
-
-## Why?
-
-By using [Site.js](https://sitejs.org) you can extend your static SvelteKit clients using dynamic [DotJS](https://sitejs.org/#dynamic-sites) routes, [WebSockets](https://sitejs.org/#websockets), [a JavaScript database](https://sitejs.org/#database), etc., and easily deploy to your own server using the [built-in sync feature](https://github.com/small-tech/site.js#sync).
+This template will help get you started with running your own Small Web host.
 
 ## Install
 
@@ -17,16 +13,16 @@ By using [Site.js](https://sitejs.org) you can extend your static SvelteKit clie
     _Download the template:_
 
     ```shell
-    npm init using small-tech/sitekit my-project
+    npm init using small-tech/basil my-small-web-host.org
     ```
 
-    This will download this template using [create-using](https://github.com/aral/create-using/tree/create-using#readme) into a directory called `my-project`.
+    This will download this template using [create-using](https://github.com/aral/create-using/tree/create-using#readme) into a directory called `my-small-web-host.org`.
 
     ### __Or__:
 
     _Use the template on GitHub:_
 
-    Click the green “Use this template” button on [the GitHub page](https://github.com/small-tech/sitekit) to create your own repository using this template.
+    Click the green “Use this template” button on [the GitHub page](https://github.com/small-tech/basil) to create your own repository using this template.
 
     ### __Or__:
 
@@ -40,6 +36,10 @@ By using [Site.js](https://sitejs.org) you can extend your static SvelteKit clie
     cd my-project
     npm i
     ```
+
+## Configure
+
+Configure the details of your site by updating the `basil.config.js` file in the root directory of this project.
 
 ## Use
 
