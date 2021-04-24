@@ -21,10 +21,10 @@
 
     const result = await fetch(`https://${baseUrl}/domain/available/${domain}`)
 
-    console.log(result)
 
     if (result.status === 200) {
-      domainCheckResult = (await result.json()).available
+      domainCheckResult = await result.json()
+      console.log(domainCheckResult)
     } else {
       try {
         errorDetails = await result.json()
@@ -40,14 +40,22 @@
 
   <p>{@html config.description || 'Small Web hosting template.'}</p>
 
-  <form>
+  <form on:submit|preventDefault>
     <label for='domain'>Pick your domain</label>
     <input name='domain' type='text' bind:value={domain} on:input={handleInput}>
   </form>
 
-  <p>{domainCheckResult.domain} is {domainCheckResult.available ? 'available' : 'not available'}.</p>
+  {#if domainCheckResult.domain !== undefined}
+    <p>
+      <strong>{domainCheckResult.domain}.{config.domain}</strong> is
+      {@html domainCheckResult.available ? 'available' : '<strong>not</strong> available'}.</p>
+  {:else}
+    <p>Enter a domain to check if it’s available on <strong>{config.domain}</strong>.</p>
+  {/if}
 
-  <p>Error? {errorDetails}</p>
+  {#if errorDetails}
+    <p>Error? {errorDetails}</p>
+  {/if}
 </main>
 
 <style>
