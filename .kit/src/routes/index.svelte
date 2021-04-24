@@ -28,7 +28,7 @@
   let domainCheckError = false
   let domainCheckErrorMessage = null
 
-  $: if (domainStatusIsUnknown) {
+  $: if (domainStatusIsUnknown || domainToCheck.trim() === '') {
     checkedDomain = ''
     domainCheckErrorMessage = null
     domainIsAvailable = false
@@ -39,7 +39,15 @@
   //////////////////////////////////////////////////////////////////////
 
   const debouncedInputHandler = debounce(async () => {
+
+    // Client-side validation of valid domain names.
+    // Via https://github.com/miguelmota/is-valid-hostname/blob/a375657352475b03fbd118e3b46029aca952d816/index.js#L5 implementation of RFC 3696.
+    const validHostnameCharacters = /^([a-zA-Z0-9-.]+){1,253}$/g
     if (domainToCheck.trim() === '') return
+    if (!validHostnameCharacters.test(domainToCheck)) {
+      domainCheckErrorMessage = `Sorry, that’s not a valid domain name.`
+      return
+    }
 
     const result = await fetch(`https://${baseUrl}/domain/available/${domainToCheck}`)
 
