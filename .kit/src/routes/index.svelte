@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte'
+  import { SvelteToast, toast } from '@zerodevx/svelte-toast'
   import debounce from '../lib/debounce'
   import _config from '../../../basil.config'
 
@@ -12,27 +13,56 @@
     baseUrl = window.location.hostname
   })
 
-  let domain
-  let domainCheckResult = {}
-  let errorDetails
+  //////////////////////////////////////////////////////////////////////
+  //
+  // State
+  //
+  //////////////////////////////////////////////////////////////////////
 
-  const handleInput = debounce(async () => {
-    if (domain.trim() === '') return
+  let hostDomain = config.domain
 
-    const result = await fetch(`https://${baseUrl}/domain/available/${domain}`)
+  let domainToCheck = ''
+  let checkedDomain = ''
+  let domainIsAvailable = false
+  let domainStatusIsUnknown = true
+  let domainCheckError = false
+  let domainCheckErrorMessage = null
 
+  $: if (domainStatusIsUnknown) {
+    checkedDomain = ''
+    domainCheckErrorMessage = null
+    domainIsAvailable = false
+  }
+
+  $: domainCheckError = domainCheckErrorMessage !== null
+
+  //////////////////////////////////////////////////////////////////////
+
+  const debouncedInputHandler = debounce(async () => {
+    if (domainToCheck.trim() === '') return
+
+    const result = await fetch(`https://${baseUrl}/domain/available/${domainToCheck}`)
 
     if (result.status === 200) {
-      domainCheckResult = await result.json()
-      console.log(domainCheckResult)
+      const domainCheckResult = await result.json()
+      checkedDomain = domainCheckResult.domain
+      domainIsAvailable = domainCheckResult.available
+      domainStatusIsUnknown = false
     } else {
       try {
-        errorDetails = await result.json()
+        const errorDetails = await result.json()
+        domainCheckErrorMessage = `Error ${errorDetails.code}: ${errorDetails.message}`
       } catch (error) {
-        console.log('Other error', error)
+        domainCheckErrorMessage = error
       }
     }
   }, 300)
+
+  const inputHandler = () => {
+    // Signal that input is changing so domain state can be set to neutral.
+    domainStatusIsUnknown = true
+    debouncedInputHandler()
+  }
 </script>
 
 <main>
@@ -42,25 +72,47 @@
 
   <form on:submit|preventDefault>
     <label for='domain'>Pick your domain</label>
-    <input name='domain' type='text' bind:value={domain} on:input={handleInput}>
+    <input
+      name='domain'
+      type='text'
+      bind:value={domainToCheck}
+      on:input={inputHandler}
+      class:domain-is-available={!domainStatusIsUnknown && domainIsAvailable}
+      class:domain-is-not-available={!domainStatusIsUnknown && !domainIsAvailable}
+      autofocus
+    >
   </form>
 
-  {#if domainCheckResult.domain !== undefined}
-    <p>
-      <strong>{domainCheckResult.domain}.{config.domain}</strong> is
-      {@html domainCheckResult.available ? 'available' : '<strong>not</strong> available'}.</p>
+  {#if !domainStatusIsUnknown}
+    <p
+      class:domain-is-available={domainIsAvailable}
+      class:domain-is-not-available={!domainIsAvailable}
+    >
+      {domainIsAvailable ? '✔️' : '❌️' }
+      <strong>{checkedDomain}.{hostDomain}</strong> is
+      {@html domainIsAvailable ? '' : '<strong>not</strong>'} available.
+    </p>
   {:else}
-    <p>Enter a domain to check if it’s available on <strong>{config.domain}</strong>.</p>
-  {/if}
-
-  {#if errorDetails}
-    <p>Error? {errorDetails}</p>
+    {#if domainCheckError}
+      <p class=domain-check-error>❌️ {domainCheckErrorMessage}</p>
+    {:else}
+      <p>Enter a domain to check if it’s available on <strong>{hostDomain}</strong>.</p>
+    {/if}
   {/if}
 </main>
+<SvelteToast />
 
 <style>
   label {
     display: block;
     margin-bottom: 0.5em;
+  }
+
+  .domain-is-available {
+    color: green;
+  }
+
+  .domain-is-not-available, .domain-check-error {
+    color: red;
   }
 </style>
