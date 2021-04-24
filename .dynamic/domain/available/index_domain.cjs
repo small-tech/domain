@@ -80,8 +80,8 @@ module.exports = async (request, response) => {
     return error(response, 400, 1, 'Hostname cannot be empty. (RFC 3696)')
   }
 
-  // Via https://github.com/miguelmota/is-valid-hostname/blob/a375657352475b03fbd118e3b46029aca952d816/index.js#L5 implementation of RFC 3696.
-  const validHostnameCharacters = /^([a-zA-Z0-9-.]+){1,253}$/g
+  // Via https://github.com/miguelmota/is-valid-hostname/blob/a375657352475b03fbd118e3b46029aca952d816/index.js#L5 implementation of RFC 3696. (With removal of dots for our purposes as we are validating a subdomain.)
+  const validHostnameCharacters = /^([a-zA-Z0-9-]+){1,253}$/g
 
   if (!validHostnameCharacters.test(domain)) {
     return error(response, 400, 2, 'Requested hostname contains invalid characters. (RFC 3696)')

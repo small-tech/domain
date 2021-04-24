@@ -42,7 +42,7 @@
 
     // Client-side validation of valid domain names.
     // Via https://github.com/miguelmota/is-valid-hostname/blob/a375657352475b03fbd118e3b46029aca952d816/index.js#L5 implementation of RFC 3696.
-    const validHostnameCharacters = /^([a-zA-Z0-9-.]+){1,253}$/g
+    const validHostnameCharacters = /^([a-zA-Z0-9-]+){1,253}$/g
     if (domainToCheck.trim() === '') return
     if (!validHostnameCharacters.test(domainToCheck)) {
       domainCheckErrorMessage = `Sorry, that’s not a valid domain name.`
@@ -79,7 +79,7 @@
   <p>{@html config.description || 'Small Web hosting template.'}</p>
 
   <form on:submit|preventDefault>
-    <label for='domain'>Pick your domain</label>
+    <label for='domain'>Pick a domain on <strong>{hostDomain}</strong></label>
     <input
       name='domain'
       type='text'
@@ -89,9 +89,10 @@
       class:domain-is-not-available={!domainStatusIsUnknown && !domainIsAvailable}
       autofocus
     >
-  </form>
 
-  {#if !domainStatusIsUnknown}
+    <button>Sign up for {config.currency}{config.price} per month.</button>
+
+    {#if !domainStatusIsUnknown}
     <p
       class:domain-is-available={domainIsAvailable}
       class:domain-is-not-available={!domainIsAvailable}
@@ -103,11 +104,11 @@
   {:else}
     {#if domainCheckError}
       <p class=domain-check-error>❌️ {domainCheckErrorMessage}</p>
-    {:else}
-      <p>Enter a domain to check if it’s available on <strong>{hostDomain}</strong>.</p>
     {/if}
   {/if}
+  </form>
 </main>
+
 <SvelteToast />
 
 <style>
