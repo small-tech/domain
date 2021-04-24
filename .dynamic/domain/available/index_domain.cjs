@@ -93,8 +93,5 @@ module.exports = async (request, response) => {
   // const available = zoneRecords.data.length === 0
 
   const available = (db.domains[domain] === undefined)
-
-  console.log({domain, available})
-
   response.json({domain, available})
 }

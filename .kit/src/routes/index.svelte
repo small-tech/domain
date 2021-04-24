@@ -27,14 +27,15 @@
   let domainStatusIsUnknown = true
   let domainCheckError = false
   let domainCheckErrorMessage = null
+  let canSignUp = false
 
   $: if (domainStatusIsUnknown || domainToCheck.trim() === '') {
     checkedDomain = ''
     domainCheckErrorMessage = null
     domainIsAvailable = false
   }
-
   $: domainCheckError = domainCheckErrorMessage !== null
+  $: canSignUp = !domainStatusIsUnknown && domainIsAvailable
 
   //////////////////////////////////////////////////////////////////////
 
@@ -85,12 +86,17 @@
       type='text'
       bind:value={domainToCheck}
       on:input={inputHandler}
-      class:domain-is-available={!domainStatusIsUnknown && domainIsAvailable}
+      class:domain-is-available={canSignUp}
       class:domain-is-not-available={!domainStatusIsUnknown && !domainIsAvailable}
       autofocus
     >
 
-    <button>Sign up for {config.currency}{config.price} per month.</button>
+    <button
+      class:can-sign-up={canSignUp}
+      class:cannot-sign-up={!canSignUp}
+    >
+      Sign up for {config.currency}{config.price}/month.
+    </button>
 
     {#if !domainStatusIsUnknown}
     <p
@@ -115,6 +121,22 @@
   label {
     display: block;
     margin-bottom: 0.5em;
+  }
+
+  button {
+    border: 0;
+    color: white;
+    border-radius: 1.33em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+
+  .can-sign-up {
+    background-color: green;
+  }
+
+  .cannot-sign-up {
+    background-color: grey;
   }
 
   .domain-is-available {
