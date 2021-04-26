@@ -15,6 +15,8 @@
   let dnsZoneId
   let dnsAccessToken
 
+  let vpsApiToken
+
   // Dummy data for now.
   const hostDetails = {
     name: 'Small-Web.org',
@@ -28,6 +30,52 @@
       accountId: '000000',
       zoneId: '123456',
       accessToken: 'asecretaccesstoken'
+    },
+
+    vps: {
+      provider: 'Hetzner',
+      apiToken: 'thisisnotmyrealapitoken',
+      sshKeyName: '20201210-1',
+      serverType: 'cpx11',
+      location: 'hel1',
+      image: 'ubuntu-20.04',
+      cloudInit: `#cloud-config
+
+# Configures a basic Site.js server.
+write_files:
+  - path: /home/site/public/index.html
+    permissions: '0755'
+    content: |
+      <!DOCTYPE html>
+      <html lang='en'>
+      <title>Welcome to the Small Web!</title>
+      <h1>Welcome to your Small Web site powered by Site.js.</h1>
+
+users:
+  - name: site
+    gecos: Site.JS
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - {{sshKey}}
+    groups: sudo
+    shell: /bin/bash
+
+disable_root: true
+
+runcmd:
+  - ufw allow OpenSSH
+  - ufw enable
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - chown -R site:site /home/site
+  - hostnamectl set-hostname {{subdomain}}.small-web.org
+  - su site -c 'wget -qO- https://sitejs.org/install | bash'
+  - su site -c 'mkdir /home/site/public'
+  - su site -c 'site enable /home/site/public --skip-domain-reachability-check --ensure-can-sync'
+
+final_message: "Welcome to your Small Web site powered by Site.js. Setup took $UPTIME seconds."
+      `
     }
   }
 
@@ -134,6 +182,39 @@
     <input class='inline' name='dnsAccessToken' type='password' bind:value={hostDetails.dns.accessToken} bind:this={dnsAccessToken}/>
     <button on:click={toggle(dnsAccessToken, this)}>Show</button>
 
+    <hr>
+
+    <h2>VPS Host Settings</h2>
+
+    <label for='vpsProvider'>Provider</label>
+    <select name='vpsProvider'>
+      <option value='Hetzner'>Hetzner</option>
+    </select>
+
+    <label id='vpiApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
+    <input class='inline' name='vpsApiToken' type='password' bind:value={hostDetails.vps.apiToken} bind:this={vpsApiToken}/>
+    <button on:click={toggle(vpsApiToken, this)}>Show</button>
+
+    <h3>Server details</h3>
+    <p>These settings will be used when setting up people’s servers.</p>
+
+    <label for='vpsSshKeyName'>SSH Key Name</label>
+    <input name='vpsSshKeyName' type='text' bind:value={hostDetails.vps.sshKeyName}/>
+
+    <label for='vpsServerType'>Server Type</label>
+    <input name='vpsServerType' type='text' bind:value={hostDetails.vps.serverType}/>
+
+    <label for='vpsLocation'>Location</label>
+    <input name='vpsLocation' type='text' bind:value={hostDetails.vps.location}/>
+
+    <label for='vpsImage'>Image</label>
+    <input name='vpsImage' type='text' bind:value={hostDetails.vps.image}/>
+
+    <label for='vpsCloudInit'>Cloud Init</label>
+    <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={hostDetails.vps.cloudInit} />
+
+    <hr>
+
   </form>
 {/if}
 
@@ -149,7 +230,7 @@
     display: inline;
   }
 
-  button + label, #accountIdLabel {
+  button + label, #accountIdLabel, #vpiApiTokenLabel {
     display: block;
   }
 
@@ -160,6 +241,10 @@
   #currency, #price {
     display: inline;
     width: 2em;
+  }
+
+  #vpsCloudInit {
+    min-height: 300px;
   }
 
 </style>
