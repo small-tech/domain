@@ -1,14 +1,14 @@
 const crypto = require('crypto')
 
-if (db.admin === undefined) {
-  db.admin = {}
-  // Create a cryptographically-secure path for the admin route.
-  db.admin.route = crypto.randomBytes(16).toString('hex')
-}
-
-console.log(`   🔑️    ❨Basil❩ Admin page is at /${db.admin.route}`)
-
 module.exports = app => {
+  if (db.admin === undefined) {
+    db.admin = {}
+    // Create a cryptographically-secure path for the admin route.
+    db.admin.route = crypto.randomBytes(16).toString('hex')
+  }
+
+  const baseUrl = app.site.prettyLocation()
+  console.log(`   🔑️    ❨Basil❩ Admin page is at https://${baseUrl}/admin/${db.admin.route}`)
 
   // Add the admin route using the cryptographically-secure
   // path.
@@ -17,7 +17,7 @@ module.exports = app => {
     <h1>Admin page</h1>
     <p>Welcome to the admin page.</p>
     <hr>
-    <p><a href='https://${app.site.prettyLocation()}${app.site.stats.route}'>Site statistics.</a></p>
+    <p><a href='https://${baseUrl}${app.site.stats.route}'>Site statistics.</a></p>
   `)
   })
 }
