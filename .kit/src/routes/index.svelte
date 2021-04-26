@@ -2,10 +2,11 @@
   import { onMount } from 'svelte'
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
   import debounce from '../lib/debounce'
-  import _config from '../../../basil.config'
 
-  const config = _config.useDefaults ? {} : _config
-  config.domain = config.domain || 'small-web.org'
+  // TODO: Improve this so it works when basil.config doesn’t exist.
+  import _config from '../../../basil.config'
+  import _configDefaults from '../../../basil.config.defaults.js'
+  const config = _config.useDefaults ? _configDefaults : _config
 
   let baseUrl
 
@@ -110,12 +111,21 @@
   {:else}
     {#if domainCheckError}
       <p class=domain-check-error>❌️ {domainCheckErrorMessage}</p>
+    {:else}
+    <p>&nbsp;</p>
     {/if}
   {/if}
+
+  <!--
+  <hr>
+  <p>Advanced</p>
+  <p>TODO: client to install.</p>
+  -->
+
   </form>
 </main>
 
-<SvelteToast />
+<!-- <SvelteToast /> -->
 
 <style>
   label {

@@ -47,9 +47,9 @@ const selfDomain = config.domain
 
 console.log(`\n   🎈    ❨Basil❩ Configured to run on ${selfDomain}\n`)
 
-const configurationDirectory = path.join(os.homedir(), '.small-tech.org', 'place', selfDomain)
-const dnsimpleConfigurationFile = path.join(configurationDirectory, 'dnsimple.json')
-const domainsConfigurationFile = path.join(configurationDirectory, 'domains.json')
+const configurationDirectory = path.join(os.homedir(), 'basil')
+const dnsimpleConfigurationFile = path.join(configurationDirectory, 'dnsimple.cjs')
+const domainsConfigurationFile = path.join(configurationDirectory, 'domains.cjs')
 
 if (!fs.existsSync(dnsimpleConfigurationFile)) {
   console.error(`Panic: DNSimple configuration data not found in ${dnsimpleConfigurationFile}. Cannot continue.`)
@@ -60,9 +60,11 @@ const {accountId, zoneId, accessToken} = require(dnsimpleConfigurationFile)
 
 if (!db.domains) {
   // If there are domains that you have manually added to the DNS
-  // (or that you want to reserve), add them to a JSON array in a
-  // file called ~/.small-tech.org/<your domain>/domains.json.
-  db.domains = fs.existsSync(domainsConfigurationFile) ? JSON.parse(fs.readFileSync(domainsConfigurationFile, 'utf-8')) : []
+  // (or that you want to reserve), add them to an object in a
+  // file called ~/basil/domains.cjs. Note: this list is only populated
+  // on first start. If you want to update it, you must first delete
+  // your .db folder.
+  db.domains = fs.existsSync(domainsConfigurationFile) ? require(domainsConfigurationFile) : []
 }
 
 function error (response, statusCode, errorCode, message) {

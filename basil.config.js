@@ -3,6 +3,6 @@ export default {
   domain: 'small-web.org',
   description: `<a href='https://small-tech.org/research-and-development'>Small Web</a> host.`,
   currency: '€',
-  price: 10,
+  price: 15,
   useDefaults: false,
 }
