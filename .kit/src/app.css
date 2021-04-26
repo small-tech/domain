@@ -6,7 +6,7 @@ input, button, label, textarea, select {
   font-size: 1.25em;
 }
 
-input, button, textarea, select {
+input, button, textarea, select, fieldset {
   background: white;
   color: black;
   border: 2px solid grey;

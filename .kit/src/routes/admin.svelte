@@ -1,83 +1,20 @@
 <script>
   import { onMount } from 'svelte'
 
+  // Using Dummy data for now.
+  import { hostDetails } from '$lib/dummyData.js'
+
   let errorMessage = null
   let password = null
   let signingIn = false
   let signedIn = true
   let baseUrl
 
-  let dnsAccountIdIsShowing = false
-  let dnsZoneIdIsShowing = false
-  let dnsAccessTokenIsShowing = false
-
   let dnsAccountId
   let dnsZoneId
   let dnsAccessToken
 
   let vpsApiToken
-
-  // Dummy data for now.
-  const hostDetails = {
-    name: 'Small-Web.org',
-    domain: 'small-web.org',
-    description: `<a href='https://small-tech.org/research-and-development'>Small Web</a> host.`,
-    currency: '€',
-    price: 15,
-
-    dns: {
-      provider: 'DNSimple',
-      accountId: '000000',
-      zoneId: '123456',
-      accessToken: 'asecretaccesstoken'
-    },
-
-    vps: {
-      provider: 'Hetzner',
-      apiToken: 'thisisnotmyrealapitoken',
-      sshKeyName: '20201210-1',
-      serverType: 'cpx11',
-      location: 'hel1',
-      image: 'ubuntu-20.04',
-      cloudInit: `#cloud-config
-
-# Configures a basic Site.js server.
-write_files:
-  - path: /home/site/public/index.html
-    permissions: '0755'
-    content: |
-      <!DOCTYPE html>
-      <html lang='en'>
-      <title>Welcome to the Small Web!</title>
-      <h1>Welcome to your Small Web site powered by Site.js.</h1>
-
-users:
-  - name: site
-    gecos: Site.JS
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    lock_passwd: true
-    ssh_authorized_keys:
-      - {{sshKey}}
-    groups: sudo
-    shell: /bin/bash
-
-disable_root: true
-
-runcmd:
-  - ufw allow OpenSSH
-  - ufw enable
-  - ufw allow 80/tcp
-  - ufw allow 443/tcp
-  - chown -R site:site /home/site
-  - hostnamectl set-hostname {{subdomain}}.small-web.org
-  - su site -c 'wget -qO- https://sitejs.org/install | bash'
-  - su site -c 'mkdir /home/site/public'
-  - su site -c 'site enable /home/site/public --skip-domain-reachability-check --ensure-can-sync'
-
-final_message: "Welcome to your Small Web site powered by Site.js. Setup took $UPTIME seconds."
-      `
-    }
-  }
 
   $: if (signingIn) errorMessage = false
 
@@ -149,17 +86,51 @@ final_message: "Welcome to your Small Web site powered by Site.js. Setup took $U
     <label for='name'>Name</label>
     <input name='name' type='text' bind:value={hostDetails.name}/>
 
-    <label for='domain'>Domain</label>
-    <input name='domain' type='text' bind:value={hostDetails.domain}/>
-
     <label for='description'>Description</label>
     <textarea name='description' bind:value={hostDetails.description} />
+
+    <hr>
+
+    <h2>Payment Settings</h2>
+
+    <label for='paymentProvider'>Provider</label>
+    <select name='paymentProvider'>
+      <option value='Stripe'>Stripe</option>
+    </select>
 
     <label for='currency'>Currency</label> <span> & </span>
     <label id='priceLabel' for='price'>Price</label>
     <br>
-    <input id='currency' name='currency' type='text' bind:value={hostDetails.currency}/>
-    <input id='price' name='price' type='text' bind:value={hostDetails.price}/>
+    <input id='currency' name='currency' type='text' bind:value={hostDetails.payment.currency}/>
+    <input id='price' name='price' type='text' bind:value={hostDetails.payment.price}/>
+
+    <fieldset>
+      <legend>Mode</legend>
+
+      {#each hostDetails.payment.modes as mode}
+        <label>
+          <input class='inline' type=radio bind:group={hostDetails.payment.mode} value={mode}>
+          {mode}
+        </label>
+      {/each}
+
+    </fieldset>
+
+    {#each hostDetails.payment.modeDetails as mode}
+      <h3>{mode.title}</h3>
+      <label for={`${mode.id}PublishableKey`}>Publishable key</label>
+      <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey}/>
+
+      <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
+      <input class='inline' id={`${mode.id}SecretKey`} type='password' bind:value={mode.secretKey} bind:this={mode.input}/>
+      <button on:click={toggle(mode.input, this)}>Show</button>
+
+      <label for={`${mode.id}ProductId`}>Product ID</label>
+      <input id={`${mode.id}ProductId`} type='text' bind:value={mode.productId}/>
+
+      <label for={`${mode.id}PriceId`}>Price ID</label>
+      <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId}/>
+    {/each}
 
     <hr>
 
@@ -169,6 +140,9 @@ final_message: "Welcome to your Small Web site powered by Site.js. Setup took $U
     <select name='dnsProvider'>
       <option value='DNSimple'>DNSimple</option>
     </select>
+
+    <label for='domain'>Domain</label>
+    <input name='domain' type='text' bind:value={hostDetails.dns.domain}/>
 
     <label id='accountIdLabel' for='dnsAccountId'>Account ID</label>
     <input class='inline' name='dnsAccountId' type='password' bind:value={hostDetails.dns.accountId} bind:this={dnsAccountId}/>
@@ -230,6 +204,10 @@ final_message: "Welcome to your Small Web site powered by Site.js. Setup took $U
     display: inline;
   }
 
+  .block {
+    display: block;
+  }
+
   button + label, #accountIdLabel, #vpiApiTokenLabel {
     display: block;
   }
@@ -245,6 +223,10 @@ final_message: "Welcome to your Small Web site powered by Site.js. Setup took $U
 
   #vpsCloudInit {
     min-height: 300px;
+  }
+
+  fieldset {
+    max-width: 10em;
   }
 
 </style>
