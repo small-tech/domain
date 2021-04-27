@@ -2,13 +2,13 @@
   import { onMount } from 'svelte'
   import StatusMessage from '$lib/StatusMessage.svelte'
 
-  // Using Dummy data for now.
-  import { hostDetails } from '$lib/dummyData.js'
+  let settings = {
+  }
 
   let errorMessage = null
   let password = null
   let signingIn = false
-  let signedIn = true
+  let signedIn = false
   let baseUrl
 
   let dnsAccountId
@@ -16,6 +16,8 @@
   let dnsAccessToken
 
   let vpsApiToken
+
+  let socket
 
   const ok = {
     all: false,
@@ -43,31 +45,43 @@
 
   async function signIn () {
     signingIn = true
-    let response
     try {
-      response = await fetch(`https://${baseUrl}/admin/sign-in/${password}`)
+      socket = new WebSocket(`wss://${baseUrl}/admin/socket/${password}`)
     } catch (error) {
-      errorMessage = `Network error: ${error}`
+      errorMessage = `Socket connection error: ${error}`
       signingIn = false
       return
     }
-    if (response.status !== 200) {
-      errorMessage = `Network error (${response.status})`
+
+    socket.onopen = () => {
+      console.log('Socket open.')
+    }
+
+    socket.onerror = event => {
       signingIn = false
-      return
-    } else {
-      try {
-        signedIn = (await response.json()).ok
-      } catch (erorr) {
-        errorMesage = `Could not parse response (${error}).`
-        signingIn = false
-        return
-      }
-      if (!signedIn) {
-        errorMessage = 'Password is incorrect.'
+      errorMessage = `Websocket error: ${event}`
+      console.log(event)
+    }
+
+    socket.onclose = event => {
+      signingIn = false
+      signedIn = false
+      console.log('Socket closed.')
+    }
+
+    socket.onmessage = event => {
+      const message = JSON.parse(event.data)
+      switch (message.type) {
+        case 'settings':
+          settings = message.body
+          signingIn = false
+          signedIn = true
+        break
+
+        default:
+          console.error('Unknown message', message)
       }
     }
-    signingIn = false
   }
 </script>
 
@@ -105,10 +119,10 @@
   <form on:submit|preventDefault>
     <h2 id='general'>General settings</h2>
     <label for='name'>Name</label>
-    <input name='name' type='text' bind:value={hostDetails.name}/>
+    <input name='name' type='text' bind:value={settings.name}/>
 
     <label for='description'>Description</label>
-    <textarea name='description' bind:value={hostDetails.description} />
+    <textarea name='description' bind:value={settings.description} />
 
     <hr>
 
@@ -122,22 +136,22 @@
     <label for='currency'>Currency</label> <span> & </span>
     <label id='priceLabel' for='price'>Price</label>
     <br>
-    <input id='currency' name='currency' type='text' bind:value={hostDetails.payment.currency}/>
-    <input id='price' name='price' type='text' bind:value={hostDetails.payment.price}/>
+    <input id='currency' name='currency' type='text' bind:value={settings.payment.currency}/>
+    <input id='price' name='price' type='text' bind:value={settings.payment.price}/>
 
     <fieldset>
       <legend>Mode</legend>
 
-      {#each hostDetails.payment.modes as mode}
+      {#each settings.payment.modes as mode}
         <label>
-          <input class='inline' type=radio bind:group={hostDetails.payment.mode} value={mode}>
+          <input class='inline' type=radio bind:group={settings.payment.mode} value={mode}>
           {mode}
         </label>
       {/each}
 
     </fieldset>
 
-    {#each hostDetails.payment.modeDetails as mode}
+    {#each settings.payment.modeDetails as mode}
       <h3>{mode.title}</h3>
       <label for={`${mode.id}PublishableKey`}>Publishable key</label>
       <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey}/>
@@ -163,18 +177,18 @@
     </select>
 
     <label for='domain'>Domain</label>
-    <input name='domain' type='text' bind:value={hostDetails.dns.domain}/>
+    <input name='domain' type='text' bind:value={settings.dns.domain}/>
 
     <label id='accountIdLabel' for='dnsAccountId'>Account ID</label>
-    <input class='inline' name='dnsAccountId' type='password' bind:value={hostDetails.dns.accountId} bind:this={dnsAccountId}/>
+    <input class='inline' name='dnsAccountId' type='password' bind:value={settings.dns.accountId} bind:this={dnsAccountId}/>
     <button on:click={toggle(dnsAccountId, this)}>Show</button>
 
     <label for='dnsZoneId'>Zone ID</label>
-    <input class='inline' name='dnsZoneId' type='password' bind:value={hostDetails.dns.zoneId} bind:this={dnsZoneId}/>
+    <input class='inline' name='dnsZoneId' type='password' bind:value={settings.dns.zoneId} bind:this={dnsZoneId}/>
     <button on:click={toggle(dnsZoneId, this)}>Show</button>
 
     <label for='dnsAccessToken'>Access Token</label>
-    <input class='inline' name='dnsAccessToken' type='password' bind:value={hostDetails.dns.accessToken} bind:this={dnsAccessToken}/>
+    <input class='inline' name='dnsAccessToken' type='password' bind:value={settings.dns.accessToken} bind:this={dnsAccessToken}/>
     <button on:click={toggle(dnsAccessToken, this)}>Show</button>
 
     <hr>
@@ -187,26 +201,26 @@
     </select>
 
     <label id='vpiApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
-    <input class='inline' name='vpsApiToken' type='password' bind:value={hostDetails.vps.apiToken} bind:this={vpsApiToken}/>
+    <input class='inline' name='vpsApiToken' type='password' bind:value={settings.vps.apiToken} bind:this={vpsApiToken}/>
     <button on:click={toggle(vpsApiToken, this)}>Show</button>
 
     <h3>Server details</h3>
     <p>These settings will be used when setting up people’s servers.</p>
 
     <label for='vpsSshKeyName'>SSH Key Name</label>
-    <input name='vpsSshKeyName' type='text' bind:value={hostDetails.vps.sshKeyName}/>
+    <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
 
     <label for='vpsServerType'>Server Type</label>
-    <input name='vpsServerType' type='text' bind:value={hostDetails.vps.serverType}/>
+    <input name='vpsServerType' type='text' bind:value={settings.vps.serverType}/>
 
     <label for='vpsLocation'>Location</label>
-    <input name='vpsLocation' type='text' bind:value={hostDetails.vps.location}/>
+    <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>
 
     <label for='vpsImage'>Image</label>
-    <input name='vpsImage' type='text' bind:value={hostDetails.vps.image}/>
+    <input name='vpsImage' type='text' bind:value={settings.vps.image}/>
 
     <label for='vpsCloudInit'>Cloud Init</label>
-    <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={hostDetails.vps.cloudInit} />
+    <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
 
     <hr>
 
