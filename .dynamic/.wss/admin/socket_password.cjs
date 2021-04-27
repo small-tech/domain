@@ -1,16 +1,23 @@
 module.exports = function (client, request) {
   const password = request.params.password
+
   console.log(`   🔐️    ❨Basil❩ Socket connection request.`)
 
   // Set the client’s room to limit private broadcasts to people who are authenticated.
   client.room = this.setRoom({url: '/admin'})
+
+  client.on('message', data => {
+    const message = JSON.parse(data)
+    if (message.type === 'update') {
+      db.settings[message.key] = message.value
+    }
+  })
 
   if (password !== db.admin.password) {
     console.log(`   ⛔️    ❨Basil❩ Unauthorised password: ${password}`)
     client.send('Error: unauthorised.')
     client.close()
   } else {
-    // TODO: add client to room, etc., etc.
     console.log(`   🔓️    ❨Basil❩ Authorised password: ${password}`)
     client.send(JSON.stringify({
       type: 'settings',
@@ -109,5 +116,4 @@ if (db.settings === undefined) {
       `
     }
   }
-
 }

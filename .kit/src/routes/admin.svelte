@@ -1,9 +1,9 @@
 <script>
   import { onMount } from 'svelte'
   import StatusMessage from '$lib/StatusMessage.svelte'
+  import debounce from '$lib/debounce'
 
-  let settings = {
-  }
+  let settings = {}
 
   let errorMessage = null
   let password = null
@@ -42,6 +42,16 @@
       toggleButton.innerText = 'Show'
     }
   }
+
+  // name
+  const persist = debounce(event => {
+    console.log('Persisting', event)
+    socket.send(JSON.stringify({
+      type: 'update',
+      key: event.target.name,
+      value: event.target.value
+    }))
+  }, 1000)
 
   async function signIn () {
     signingIn = true
@@ -118,7 +128,7 @@
   <form on:submit|preventDefault>
     <h2 id='general'>General settings</h2>
     <label for='name'>Name</label>
-    <input name='name' type='text' bind:value={settings.name}/>
+    <input name='name' type='text' on:input={persist} bind:value={settings.name}/>
 
     <label for='description'>Description</label>
     <textarea name='description' bind:value={settings.description} />
