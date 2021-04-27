@@ -48,7 +48,7 @@
     try {
       socket = new WebSocket(`wss://${baseUrl}/admin/socket/${password}`)
     } catch (error) {
-      errorMessage = `Socket connection error: ${error}`
+      errorMessage = `WebSocket ${error}.`
       signingIn = false
       return
     }
@@ -58,15 +58,14 @@
     }
 
     socket.onerror = event => {
+      errorMessage = 'WebSocket connection failed (is the server running?)'
       signingIn = false
-      errorMessage = `Websocket error: ${event}`
-      console.log(event)
     }
 
     socket.onclose = event => {
       signingIn = false
       signedIn = false
-      console.log('Socket closed.')
+      console.log(`Socket closed.`)
     }
 
     socket.onmessage = event => {
