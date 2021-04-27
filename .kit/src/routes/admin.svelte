@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte'
+  import StatusMessage from '$lib/StatusMessage.svelte'
 
   // Using Dummy data for now.
   import { hostDetails } from '$lib/dummyData.js'
@@ -15,6 +16,14 @@
   let dnsAccessToken
 
   let vpsApiToken
+
+  const ok = {
+    all: false,
+    general: false,
+    payment: false,
+    dns: false,
+    vps: false
+  }
 
   $: if (signingIn) errorMessage = false
 
@@ -62,7 +71,7 @@
   }
 </script>
 
-<h1>Admin page</h1>
+<h1>Basil instance administration</h1>
 
 {#if !signedIn}
   <p>Please sign in to access this page.</p>
@@ -80,9 +89,21 @@
     <p style='color: red;'>❌️ {errorMessage}</p>
   {/if}
 {:else}
-  <p>Welcome to the admin page.</p>
+  <h2>Status</h2>
+
+  <p><strong><StatusMessage state={ok.all}>Your Small Web host {ok.all ? 'is fully configured and active' : 'needs configuration'}.</StatusMessage></strong></p>
+
+  <ul>
+    <li><StatusMessage state={ok.general}><a href='#general'>General</a></StatusMessage></li>
+    <li><StatusMessage state={ok.payment}><a href='#payment'>Payment</a></StatusMessage></li>
+    <li><StatusMessage state={ok.dns}><a href='#dns'>DNS</a></StatusMessage></li>
+    <li><StatusMessage state={ok.vps}><a href='#vps'>VPS</a></StatusMessage></li>
+  </ul>
+
+  <hr>
+
   <form on:submit|preventDefault>
-    <h2>General settings</h2>
+    <h2 id='general'>General settings</h2>
     <label for='name'>Name</label>
     <input name='name' type='text' bind:value={hostDetails.name}/>
 
@@ -91,7 +112,7 @@
 
     <hr>
 
-    <h2>Payment Settings</h2>
+    <h2 id='payment'>Payment Settings</h2>
 
     <label for='paymentProvider'>Provider</label>
     <select name='paymentProvider'>
@@ -134,7 +155,7 @@
 
     <hr>
 
-    <h2>DNS Settings</h2>
+    <h2 id='dns'>DNS Settings</h2>
 
     <label for='dnsProvider'>Provider</label>
     <select name='dnsProvider'>
@@ -158,7 +179,7 @@
 
     <hr>
 
-    <h2>VPS Host Settings</h2>
+    <h2 id='vps'>VPS Host Settings</h2>
 
     <label for='vpsProvider'>Provider</label>
     <select name='vpsProvider'>
@@ -216,6 +237,19 @@
     min-width: 4.5em;
   }
 
+  li {
+    list-style-type: none;
+    font-size: 1.5em;
+  }
+
+  fieldset {
+    max-width: 10em;
+  }
+
+  hr {
+    border: 0.5px solid black;
+  }
+
   #currency, #price {
     display: inline;
     width: 2em;
@@ -223,10 +257,6 @@
 
   #vpsCloudInit {
     min-height: 300px;
-  }
-
-  fieldset {
-    max-width: 10em;
   }
 
 </style>
