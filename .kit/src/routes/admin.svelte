@@ -151,8 +151,6 @@
 
     </fieldset>
 
-    <!-- bind:this={mode.input}-->
-
     {#each settings.payment.modeDetails as mode}
       <h3>{mode.title}</h3>
       <label for={`${mode.id}PublishableKey`}>Publishable key</label>
@@ -235,6 +233,10 @@
     display: block;
     margin-top: 0.5em;
     margin-bottom: 1em;
+  }
+
+  label {
+    margin-bottom: 0.5em;
   }
 
   .inline {
