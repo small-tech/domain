@@ -163,7 +163,6 @@
       <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey}/>
 
       <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
-
       <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} />
 
       <label for={`${mode.id}ProductId`}>Product ID</label>
@@ -186,16 +185,13 @@
     <input name='domain' type='text' bind:value={settings.dns.domain}/>
 
     <label id='accountIdLabel' for='dnsAccountId'>Account ID</label>
-    <input class='inline' name='dnsAccountId' type='password' bind:value={settings.dns.accountId} bind:this={dnsAccountId}/>
-    <button on:click={toggle(dnsAccountId, this)}>Show</button>
+    <SensitiveTextInput name='dnsAccountId' bind:value={settings.dns.accountId} />
 
-    <label for='dnsZoneId'>Zone ID</label>
-    <input class='inline' name='dnsZoneId' type='password' bind:value={settings.dns.zoneId} bind:this={dnsZoneId}/>
-    <button on:click={toggle(dnsZoneId, this)}>Show</button>
+    <label for='dnsZoneId' class='block'>Zone ID</label>
+    <SensitiveTextInput name='dnsZoneId' bind:value={settings.dns.zoneId} />
 
-    <label for='dnsAccessToken'>Access Token</label>
-    <input class='inline' name='dnsAccessToken' type='password' bind:value={settings.dns.accessToken} bind:this={dnsAccessToken}/>
-    <button on:click={toggle(dnsAccessToken, this)}>Show</button>
+    <label for='dnsAccessToken' class='block'>Access Token</label>
+    <SensitiveTextInput name='dnsAccessToken' bind:value={settings.dns.accessToken} />
 
     <hr>
 
@@ -207,8 +203,7 @@
     </select>
 
     <label id='vpiApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
-    <input class='inline' name='vpsApiToken' type='password' bind:value={settings.vps.apiToken} bind:this={vpsApiToken}/>
-    <button on:click={toggle(vpsApiToken, this)}>Show</button>
+    <SensitiveTextInput name='vpsApiToken' bind:value={settings.vps.apiToken}/>
 
     <h3>Server details</h3>
     <p>These settings will be used when setting up people’s servers.</p>
