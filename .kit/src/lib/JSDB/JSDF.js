@@ -52,7 +52,7 @@ export default class JSDF {
         // - Escape all backticks (why? See https://source.small-tech.org/site.js/lib/jsdb/-/issues/9#note_15848)
         // - Escape all dollar signs (why? See https://source.small-tech.org/site.js/lib/jsdb/-/issues/9)
         //
-        serialisedValue = `\`${value.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\``
+        serialisedValue = `${value.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}`
         break
       }
 
@@ -157,12 +157,18 @@ export default class JSDF {
     let serialisedStatement
     switch(parentType) {
       case null: {
-        serialisedStatement = `${key} = ${serialisedValue};\n`
+        serialisedStatement = {
+          keyPath: key,
+          value: serialisedValue
+        }
         break
       }
 
       case 'object': {
-        serialisedStatement = `${quoteKeyIfNotNumeric(key)}: ${serialisedValue}`
+        serialisedStatement = {
+          keyPath: quoteKeyIfNotNumeric(key),
+          value: serialisedValue
+        }
         break
       }
 

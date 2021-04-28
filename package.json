@@ -38,6 +38,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "dnsimple": "^4.4.0",
+    "keypather": "^3.1.0",
     "node-fetch": "^2.6.1"
   }
 }

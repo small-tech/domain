@@ -67,10 +67,11 @@
           settings = DataProxy.createDeepProxy(
             {
               persistChange: change => {
-                console.log(`Persisting change: ${change}`)
+                // console.log('Persist', change)
                 socket.send(JSON.stringify({
                   type: 'update',
-                  body: change
+                  keyPath: change.keyPath,
+                  value: change.value
                 }))
               }
           }, message.body, 'settings')

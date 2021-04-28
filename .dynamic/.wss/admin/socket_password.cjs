@@ -1,3 +1,5 @@
+const set = require('keypather/set')
+
 module.exports = function (client, request) {
   const password = request.params.password
 
@@ -9,9 +11,8 @@ module.exports = function (client, request) {
   client.on('message', data => {
     const message = JSON.parse(data)
     if (message.type === 'update') {
-      const update = `db.${message.body}`
-      console.log('Update', update)
-      eval(update)
+      // console.log('Update', message)
+      set(db, message.keyPath, message.value)
     }
   })
 
