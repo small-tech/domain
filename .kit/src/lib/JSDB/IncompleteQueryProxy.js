@@ -27,14 +27,19 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import QueryOperators from './QueryOperators.js'
-import QueryProxy from './QueryProxy.js'
 
 export default class IncompleteQueryProxy {
 
-  constructor (table, data, property) {
+  constructor (table, data, property, QueryProxy) {
     this.table = table
     this.data = data
     this.query = property
+
+    // Injecting a reference to the QueryProxy class
+    // since Vite (and thus SvelteKit) cannot handle
+    // circular references in SSR apps right now.
+    // (See https://github.com/vitejs/vite/issues/2491)
+    this.QueryProxy = QueryProxy
 
     // Note: we return a proxy instance; not an instance of DataProxy. Use accordingly.
     return new Proxy({}, { get: this.getHandler.bind(this) })
@@ -50,7 +55,7 @@ export default class IncompleteQueryProxy {
       return (function (value) {
         if (isNaN(value)) value = `'${value}'`
         const updatedQuery = `${this.query} ${QueryOperators.RELATIONAL_OPERATORS[property]} ${value}`
-        return new QueryProxy(this.table, this.data, updatedQuery)
+        return new this.QueryProxy(this.table, this.data, updatedQuery, IncompleteQueryProxy)
       }).bind(this)
     } else if (QueryOperators.FUNCTIONAL_OPERATORS.includes(property)) {
       return (function (value) {
@@ -66,7 +71,7 @@ export default class IncompleteQueryProxy {
         // so that it’s correct JavaScript.
         property = property.replace('CaseInsensitive', '')
         updatedQuery += `.${property}(${value})`
-        return new QueryProxy(this.table, this.data, updatedQuery)
+        return new this.QueryProxy(this.table, this.data, updatedQuery, IncompleteQueryProxy)
       }).bind(this)
     }
     else {

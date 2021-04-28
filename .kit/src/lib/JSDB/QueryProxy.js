@@ -18,15 +18,20 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import QuerySanitiser from './QuerySanitiser.js'
-import IncompleteQueryProxy from './IncompleteQueryProxy.js'
 
 export default class QueryProxy {
   cachedResult = null
 
-  constructor (table, data, query) {
+  constructor (table, data, query, IncompleteQueryProxy) {
     this.table = table
     this.data = data
     this.query = query
+
+    // Injecting a reference to the IncompleteQueryProxy class
+    // since Vite (and thus SvelteKit) cannot handle
+    // circular references in SSR apps right now.
+    // (See https://github.com/vitejs/vite/issues/2491)
+    this.IncompleteQueryProxy = IncompleteQueryProxy
 
     return new Proxy({}, {
       get: this.getHandler.bind(this),
@@ -71,12 +76,12 @@ export default class QueryProxy {
     //
     if (property === 'and') return (function (connectiveProperty) {
       const incompleteQuery = `${this.query} && valueOf.${connectiveProperty}`
-      return new IncompleteQueryProxy(this.table, this.data, incompleteQuery)
+      return new this.IncompleteQueryProxy(this.table, this.data, incompleteQuery)
     }).bind(this)
 
     if (property === 'or') return (function (connectiveProperty) {
       const incompleteQuery = `${this.query} || valueOf.${connectiveProperty}`
-      return new IncompleteQueryProxy(this.table, this.data, incompleteQuery)
+      return new this.IncompleteQueryProxy(this.table, this.data, incompleteQuery)
     }).bind(this)
 
     // If nothing else matches, just do the default.
