@@ -82,6 +82,10 @@
 
   <form on:submit|preventDefault>
     <label for='domain'>Pick a domain on <strong>{hostDomain}</strong></label>
+
+    <!-- This is the only field and always the next gesture
+         so, to remove on gesture for everyone on every use, we autofocus it. -->
+    <!-- svelte-ignore a11y-autofocus -->
     <input
       name='domain'
       type='text'

@@ -15,7 +15,10 @@ module.exports = function (client, request) {
 
   if (password !== db.admin.password) {
     console.log(`   ⛔️    ❨Basil❩ Unauthorised password: ${password}`)
-    client.send('Error: unauthorised.')
+    client.send(JSON.stringify({
+      type: 'error',
+      body: 'Error: unauthorised.'
+    }))
     client.close()
   } else {
     console.log(`   🔓️    ❨Basil❩ Authorised password: ${password}`)
@@ -23,7 +26,7 @@ module.exports = function (client, request) {
       type: 'settings',
       body: db.settings
     }))
-    this.broadcast(client, `There’s been a new login from ${request._remoteAddress}`)
+    // this.broadcast(client, `There’s been a new login from ${request._remoteAddress}`)
   }
 }
 

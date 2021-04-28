@@ -1,7 +1,9 @@
 <script>
   import { onMount } from 'svelte'
   import StatusMessage from '$lib/StatusMessage.svelte'
-  import debounce from '$lib/debounce'
+  import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
+  import DataProxy from '$lib/JSDB/DataProxy'
+  // import debounce from '$lib/debounce'
 
   let settings = {}
 
@@ -33,26 +35,6 @@
     baseUrl = document.location.hostname
   })
 
-  function toggle(element, toggleButton) {
-    if (element.type === 'password') {
-      element.type = 'text'
-      toggleButton.innerText = 'Hide'
-    } else {
-      element.type = 'password'
-      toggleButton.innerText = 'Show'
-    }
-  }
-
-  // name
-  const persist = debounce(event => {
-    console.log('Persisting', event)
-    socket.send(JSON.stringify({
-      type: 'update',
-      key: event.target.name,
-      value: event.target.value
-    }))
-  }, 1000)
-
   async function signIn () {
     signingIn = true
     try {
@@ -82,10 +64,19 @@
       const message = JSON.parse(event.data)
       switch (message.type) {
         case 'settings':
-          settings = message.body
+          settings = DataProxy.createDeepProxy(
+            {
+              persistChange: change => {
+                console.log(change)
+              }
+          }, message.body, 'settings')
           signingIn = false
           signedIn = true
         break
+
+        case 'error':
+          errorMessage = message.body
+          break
 
         default:
           console.error('Unknown message', message)
@@ -128,7 +119,7 @@
   <form on:submit|preventDefault>
     <h2 id='general'>General settings</h2>
     <label for='name'>Name</label>
-    <input name='name' type='text' on:input={persist} bind:value={settings.name}/>
+    <input name='name' type='text' bind:value={settings.name}/>
 
     <label for='description'>Description</label>
     <textarea name='description' bind:value={settings.description} />
@@ -160,14 +151,16 @@
 
     </fieldset>
 
+    <!-- bind:this={mode.input}-->
+
     {#each settings.payment.modeDetails as mode}
       <h3>{mode.title}</h3>
       <label for={`${mode.id}PublishableKey`}>Publishable key</label>
       <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey}/>
 
       <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
-      <input class='inline' id={`${mode.id}SecretKey`} type='password' bind:value={mode.secretKey} bind:this={mode.input}/>
-      <button on:click={toggle(mode.input, this)}>Show</button>
+
+      <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} />
 
       <label for={`${mode.id}ProductId`}>Product ID</label>
       <input id={`${mode.id}ProductId`} type='text' bind:value={mode.productId}/>
@@ -281,5 +274,4 @@
   #vpsCloudInit {
     min-height: 300px;
   }
-
 </style>
