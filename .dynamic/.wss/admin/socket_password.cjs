@@ -9,7 +9,9 @@ module.exports = function (client, request) {
   client.on('message', data => {
     const message = JSON.parse(data)
     if (message.type === 'update') {
-      db.settings[message.key] = message.value
+      const update = `db.${message.body}`
+      console.log('Update', update)
+      eval(update)
     }
   })
 

@@ -67,7 +67,11 @@
           settings = DataProxy.createDeepProxy(
             {
               persistChange: change => {
-                console.log(change)
+                console.log(`Persisting change: ${change}`)
+                socket.send(JSON.stringify({
+                  type: 'update',
+                  body: change
+                }))
               }
           }, message.body, 'settings')
           signingIn = false
@@ -76,10 +80,11 @@
 
         case 'error':
           errorMessage = message.body
-          break
+        break
 
         default:
           console.error('Unknown message', message)
+        break
       }
     }
   }
