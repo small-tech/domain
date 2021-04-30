@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte'
+  import { fade } from 'svelte/transition'
   import StatusMessage from '$lib/StatusMessage.svelte'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import DataProxy from '$lib/JSDB/DataProxy'
@@ -7,17 +8,13 @@
 
   let settings = {}
 
+  let shouldShowSavedMessage = false
+
   let errorMessage = null
   let password = null
   let signingIn = false
   let signedIn = false
   let baseUrl
-
-  let dnsAccountId
-  let dnsZoneId
-  let dnsAccessToken
-
-  let vpsApiToken
 
   let socket
 
@@ -34,6 +31,12 @@
   onMount(() => {
     baseUrl = document.location.hostname
   })
+
+  function showSavedMessage() {
+    if (shouldShowSavedMessage) return
+    shouldShowSavedMessage = true
+    setTimeout(() => shouldShowSavedMessage = false, 1500)
+  }
 
   async function signIn () {
     signingIn = true
@@ -68,6 +71,7 @@
             {
               persistChange: change => {
                 // console.log('Persist', change)
+                showSavedMessage()
                 socket.send(JSON.stringify({
                   type: 'update',
                   keyPath: change.keyPath,
@@ -228,6 +232,10 @@
     </form>
 
   </TabbedInterface>
+
+  {#if shouldShowSavedMessage}
+    <div id='saved' transition:fade={{duration: 500}} tabindex='-1'>Auto-saved</div>
+  {/if}
 {/if}
 
 
@@ -278,5 +286,17 @@
 
   #vpsCloudInit {
     min-height: 300px;
+  }
+
+  #saved {
+    position: fixed;
+    right: 1em;
+    top: 2em;
+    /* width: 6em; */
+    text-align: center;
+    padding: 0.15em 1em;
+    background-color: green;
+    border-radius: 1em;
+    color: white;
   }
 </style>
