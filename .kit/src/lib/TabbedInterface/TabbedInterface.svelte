@@ -26,7 +26,7 @@
 </div>
 
 <style>
-  :global(*) {
+  * {
     color: inherit;
     margin: 0;
   }

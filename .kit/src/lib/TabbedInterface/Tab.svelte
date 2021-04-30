@@ -89,6 +89,11 @@
 </li>
 
 <style>
+  * {
+    color: inherit;
+    margin: 0;
+  }
+
   :global([aria-selected]) {
     border: 2px solid;
     background: #fff;

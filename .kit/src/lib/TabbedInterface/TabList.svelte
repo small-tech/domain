@@ -26,6 +26,11 @@
     https://github.com/sveltejs/svelte/issues/6264
   */
 
+  * {
+    color: inherit;
+    margin: 0;
+  }
+
   :global([role="tablist"]) {
     padding: 0;
   }
