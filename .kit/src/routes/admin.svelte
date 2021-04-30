@@ -3,7 +3,7 @@
   import StatusMessage from '$lib/StatusMessage.svelte'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import DataProxy from '$lib/JSDB/DataProxy'
-  // import debounce from '$lib/debounce'
+  import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
 
   let settings = {}
 
@@ -113,119 +113,121 @@
 
   <p><strong><StatusMessage state={ok.all}>Your Small Web host {ok.all ? 'is fully configured and active' : 'needs configuration'}.</StatusMessage></strong></p>
 
-  <ul>
-    <li><StatusMessage state={ok.general}><a href='#general'>General</a></StatusMessage></li>
-    <li><StatusMessage state={ok.payment}><a href='#payment'>Payment</a></StatusMessage></li>
-    <li><StatusMessage state={ok.dns}><a href='#dns'>DNS</a></StatusMessage></li>
-    <li><StatusMessage state={ok.vps}><a href='#vps'>VPS</a></StatusMessage></li>
-  </ul>
+  <TabbedInterface>
+    <TabList>
+      <Tab><StatusMessage state={ok.general}>General</StatusMessage></Tab>
+      <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
+      <Tab><StatusMessage state={ok.dns}>DNS</StatusMessage></Tab>
+      <Tab><StatusMessage state={ok.vps}>VPS</StatusMessage></Tab>
+    </TabList>
 
-  <hr>
+    <form on:submit|preventDefault>
 
-  <form on:submit|preventDefault>
-    <h2 id='general'>General settings</h2>
-    <label for='name'>Name</label>
-    <input name='name' type='text' bind:value={settings.name}/>
+      <TabPanel>
+        <h2 id='general'>General settings</h2>
+        <label for='name'>Name</label>
+        <input name='name' type='text' bind:value={settings.name}/>
 
-    <label for='description'>Description</label>
-    <textarea name='description' bind:value={settings.description} />
+        <label for='description'>Description</label>
+        <textarea name='description' bind:value={settings.description} />
+      </TabPanel>
 
-    <hr>
+      <TabPanel>
+        <h2 id='payment'>Payment Settings</h2>
 
-    <h2 id='payment'>Payment Settings</h2>
+        <label for='paymentProvider'>Provider</label>
+        <select name='paymentProvider'>
+          <option value='Stripe'>Stripe</option>
+        </select>
 
-    <label for='paymentProvider'>Provider</label>
-    <select name='paymentProvider'>
-      <option value='Stripe'>Stripe</option>
-    </select>
+        <label for='currency'>Currency</label> <span> & </span>
+        <label id='priceLabel' for='price'>Price</label>
+        <br>
+        <input id='currency' name='currency' type='text' bind:value={settings.payment.currency}/>
+        <input id='price' name='price' type='text' bind:value={settings.payment.price}/>
 
-    <label for='currency'>Currency</label> <span> & </span>
-    <label id='priceLabel' for='price'>Price</label>
-    <br>
-    <input id='currency' name='currency' type='text' bind:value={settings.payment.currency}/>
-    <input id='price' name='price' type='text' bind:value={settings.payment.price}/>
+        <fieldset>
+          <legend>Mode</legend>
 
-    <fieldset>
-      <legend>Mode</legend>
+          {#each settings.payment.modes as mode}
+            <label>
+              <input class='inline' type=radio bind:group={settings.payment.mode} value={mode}>
+              {mode}
+            </label>
+          {/each}
 
-      {#each settings.payment.modes as mode}
-        <label>
-          <input class='inline' type=radio bind:group={settings.payment.mode} value={mode}>
-          {mode}
-        </label>
-      {/each}
+        </fieldset>
 
-    </fieldset>
+        {#each settings.payment.modeDetails as mode}
+          <h3>{mode.title}</h3>
+          <label for={`${mode.id}PublishableKey`}>Publishable key</label>
+          <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey}/>
 
-    {#each settings.payment.modeDetails as mode}
-      <h3>{mode.title}</h3>
-      <label for={`${mode.id}PublishableKey`}>Publishable key</label>
-      <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey}/>
+          <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
+          <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} />
 
-      <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
-      <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} />
+          <label for={`${mode.id}ProductId`}>Product ID</label>
+          <input id={`${mode.id}ProductId`} type='text' bind:value={mode.productId}/>
 
-      <label for={`${mode.id}ProductId`}>Product ID</label>
-      <input id={`${mode.id}ProductId`} type='text' bind:value={mode.productId}/>
+          <label for={`${mode.id}PriceId`}>Price ID</label>
+          <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId}/>
+        {/each}
+      </TabPanel>
 
-      <label for={`${mode.id}PriceId`}>Price ID</label>
-      <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId}/>
-    {/each}
+      <TabPanel>
+        <h2 id='dns'>DNS Settings</h2>
 
-    <hr>
+        <label for='dnsProvider'>Provider</label>
+        <select name='dnsProvider'>
+          <option value='DNSimple'>DNSimple</option>
+        </select>
 
-    <h2 id='dns'>DNS Settings</h2>
+        <label for='domain'>Domain</label>
+        <input name='domain' type='text' bind:value={settings.dns.domain}/>
 
-    <label for='dnsProvider'>Provider</label>
-    <select name='dnsProvider'>
-      <option value='DNSimple'>DNSimple</option>
-    </select>
+        <label id='accountIdLabel' for='dnsAccountId'>Account ID</label>
+        <SensitiveTextInput name='dnsAccountId' bind:value={settings.dns.accountId} />
 
-    <label for='domain'>Domain</label>
-    <input name='domain' type='text' bind:value={settings.dns.domain}/>
+        <label for='dnsZoneId' class='block'>Zone ID</label>
+        <SensitiveTextInput name='dnsZoneId' bind:value={settings.dns.zoneId} />
 
-    <label id='accountIdLabel' for='dnsAccountId'>Account ID</label>
-    <SensitiveTextInput name='dnsAccountId' bind:value={settings.dns.accountId} />
+        <label for='dnsAccessToken' class='block'>Access Token</label>
+        <SensitiveTextInput name='dnsAccessToken' bind:value={settings.dns.accessToken} />
+      </TabPanel>
 
-    <label for='dnsZoneId' class='block'>Zone ID</label>
-    <SensitiveTextInput name='dnsZoneId' bind:value={settings.dns.zoneId} />
+      <TabPanel>
+        <h2 id='vps'>VPS Host Settings</h2>
 
-    <label for='dnsAccessToken' class='block'>Access Token</label>
-    <SensitiveTextInput name='dnsAccessToken' bind:value={settings.dns.accessToken} />
+        <label for='vpsProvider'>Provider</label>
+        <select name='vpsProvider'>
+          <option value='Hetzner'>Hetzner</option>
+        </select>
 
-    <hr>
+        <label id='vpiApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
+        <SensitiveTextInput name='vpsApiToken' bind:value={settings.vps.apiToken}/>
 
-    <h2 id='vps'>VPS Host Settings</h2>
+        <h3>Server details</h3>
+        <p>These settings will be used when setting up people’s servers.</p>
 
-    <label for='vpsProvider'>Provider</label>
-    <select name='vpsProvider'>
-      <option value='Hetzner'>Hetzner</option>
-    </select>
+        <label for='vpsSshKeyName'>SSH Key Name</label>
+        <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
 
-    <label id='vpiApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
-    <SensitiveTextInput name='vpsApiToken' bind:value={settings.vps.apiToken}/>
+        <label for='vpsServerType'>Server Type</label>
+        <input name='vpsServerType' type='text' bind:value={settings.vps.serverType}/>
 
-    <h3>Server details</h3>
-    <p>These settings will be used when setting up people’s servers.</p>
+        <label for='vpsLocation'>Location</label>
+        <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>
 
-    <label for='vpsSshKeyName'>SSH Key Name</label>
-    <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
+        <label for='vpsImage'>Image</label>
+        <input name='vpsImage' type='text' bind:value={settings.vps.image}/>
 
-    <label for='vpsServerType'>Server Type</label>
-    <input name='vpsServerType' type='text' bind:value={settings.vps.serverType}/>
+        <label for='vpsCloudInit'>Cloud Init</label>
+        <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
+      </TabPanel>
 
-    <label for='vpsLocation'>Location</label>
-    <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>
+    </form>
 
-    <label for='vpsImage'>Image</label>
-    <input name='vpsImage' type='text' bind:value={settings.vps.image}/>
-
-    <label for='vpsCloudInit'>Cloud Init</label>
-    <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
-
-    <hr>
-
-  </form>
+  </TabbedInterface>
 {/if}
 
 
