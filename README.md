@@ -4,56 +4,27 @@ __Work-in-progress (not ready for use).__
 
 [Small Web](https://small-tech.org/research-and-development) host.
 
-This template will help get you started with running your own Small Web host.
+This will help get you started with running your own Small Web host.
 
 ## Install
 
-1. ### __Either:__
-
-    _Download the template:_
-
-    ```shell
-    npm init using small-tech/basil my-small-web-host.org
-    ```
-
-    This will download this template using [create-using](https://github.com/aral/create-using/tree/create-using#readme) into a directory called `my-small-web-host.org`.
-
-    ### __Or__:
-
-    _Use the template on GitHub:_
-
-    Click the green “Use this template” button on [the GitHub page](https://github.com/small-tech/basil) to create your own repository using this template.
-
-    ### __Or__:
-
-    _Do it old-skool:_
-
-    Just fork this repository and clone it as you normally do using `git`.
-
-2. ### __Install dependencies.__
-
-    ```shell
-    cd my-project
-    npm i
-    ```
+1. Install [Site.js](https://sitejs.org)
+2. Clone this repo.
+3. `npm install`
 
 ## Configure
 
-Configure the details of your site by updating the `basil.config.js` file in the root directory of this project.
+Configure the details of your site in the `/admin` route.
 
 ## Use
 
 ### Dev (Site.js + SvelteKit)
 
-```shell
-npm run dev
-```
+1. Run `site`
+2. Run `npm run build`
+3. Run `npm run kit`
 
-This will run the `dev.sh` script that:
-
-1. Will build the latest SvelteKit source using `npx svelte-kit build`
-2. Start the SvelteKit dev server in the background
-3. Start Site.js.
+(This process will be streamlined in the future.)
 
 Once the servers are running, you will have:
 
