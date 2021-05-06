@@ -1,12 +1,20 @@
+<script context='module'>
+  export async function load({page, fetch}) {
+    const response = await fetch('ssr/config')
+
+    const config = await (response).json()
+    return {
+      props: {
+        config
+      }
+    }
+  }
+</script>
+
 <script>
   import { onMount } from 'svelte'
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
-  import debounce from '../lib/debounce'
-
-  // TODO: Improve this so it works when basil.config doesn’t exist.
-  import _config from '../../../basil.config'
-  import _configDefaults from '../../../basil.config.defaults.js'
-  const config = _config.useDefaults ? _configDefaults : _config
+  import debounce from '$lib/debounce'
 
   let baseUrl
 
@@ -20,7 +28,9 @@
   //
   //////////////////////////////////////////////////////////////////////
 
-  let hostDomain = config.domain
+  export let config
+
+  let hostDomain = config.dns.domain
 
   let domainToCheck = ''
   let checkedDomain = ''
@@ -100,7 +110,7 @@
       class:can-sign-up={canSignUp}
       class:cannot-sign-up={!canSignUp}
     >
-      Sign up for {config.currency}{config.price}/month.
+      Sign up for {config.payment.currency}{config.payment.price}/month.
     </button>
 
     {#if !domainStatusIsUnknown}
