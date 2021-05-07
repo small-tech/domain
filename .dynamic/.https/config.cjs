@@ -1,8 +1,26 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Configuration (Site.js GET route)
+//
+// Returns PUBLIC configuration information. This should never
+// return any secret material.
+//
+// Copyright ⓒ 2021-present Aral Balkan, Small Technology Foundation.
+// License: AGPL version 3.
+//
+////////////////////////////////////////////////////////////////////////////////
+
 module.exports = (request, response) => {
 
   const defaultSettings = {
-    name: 'Your small web host',
-    description: `<a href='/admin'>Configure your host</a> to get started.`
+    site: {
+      name: 'Your small web host',
+      header: `[Configure your host](/admin) to get started.`,
+      footer: `---
+               Add your organisation details, terms of service, and privacy policy here.`
+    },
+    payment: {},
+    dns: {}
   }
 
   let settings
