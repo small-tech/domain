@@ -259,10 +259,9 @@
   }
 
   textarea {
-    /* min-width: 460px; */
     width: 100%;
-    min-height: 100px;
-    max-width: 100%;
+    box-sizing: border-box;
+    min-height: 200px;
   }
 
   textarea + small {
@@ -328,6 +327,7 @@
   #preview {
     border: 1px solid black;
     padding: 1em;
+    margin-top: 1.5em;
   }
 
   #preview h3 {
