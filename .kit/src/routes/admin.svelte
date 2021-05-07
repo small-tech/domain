@@ -59,7 +59,7 @@
     }
 
     socket.onerror = event => {
-      errorMessage = 'WebSocket connection failed (is the server running?)'
+      errorMessage = 'WebSocket connection failed (<strong>is Site.js running?</strong>)'
       signingIn = false
     }
 
@@ -116,7 +116,7 @@
   {/if}
 
   {#if errorMessage}
-    <p style='color: red;'>❌️ {errorMessage}</p>
+    <p style='color: red;'>❌️ {@html errorMessage}</p>
   {/if}
 {:else}
   <h2>Status</h2>
