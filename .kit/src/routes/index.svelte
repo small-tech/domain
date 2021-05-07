@@ -28,7 +28,11 @@
   import { onMount } from 'svelte'
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
   import debounce from '$lib/debounce'
-  import { Converter } from 'showdown'
+
+  // Doing this in two-steps to the SvelteKit static adapter
+  // doesn’t choke on it.
+  import showdown from 'showdown'
+  const { Converter } = showdown
 
   let baseUrl
 

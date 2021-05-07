@@ -3,11 +3,15 @@
 
   import { onMount } from 'svelte'
   import { fade } from 'svelte/transition'
-  import { Converter } from 'showdown'
   import StatusMessage from '$lib/StatusMessage.svelte'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import DataProxy from '$lib/JSDB/DataProxy'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
+
+  // Doing this in two-steps to the SvelteKit static adapter
+  // doesn’t choke on it.
+  import showdown from 'showdown'
+  const { Converter } = showdown
 
   let settings = {}
 
