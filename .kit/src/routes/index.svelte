@@ -2,8 +2,20 @@
   export async function load({page, fetch}) {
     const response = await fetch('ssr/config')
 
-    const config = await (response).json()
+    if (response.status !== 200) {
+      const details = await response.text()
 
+      return {
+        props: {
+          serverError: {
+            details
+          },
+          config: {dns: {}, payment: {}}
+        }
+      }
+    }
+
+    const config = await (response).json()
     return {
       props: {
         config
@@ -33,6 +45,7 @@
   //////////////////////////////////////////////////////////////////////
 
   export let config
+  export let serverError
 
   let hostDomain = config.dns.domain
 
@@ -91,56 +104,65 @@
 
 <main>
   <h1>{config.name || 'Basil'}</h1>
+  {#if !serverError}
+    {@html converter.makeHtml(config.description) || '<p>Small Web hosting template.</p>'}
 
-  {@html converter.makeHtml(config.description) || '<p>Small Web hosting template.</p>'}
+    <form on:submit|preventDefault>
+      <label for='domain'>Pick a domain on <strong>{hostDomain}</strong></label>
 
-  <form on:submit|preventDefault>
-    <label for='domain'>Pick a domain on <strong>{hostDomain}</strong></label>
+      <!-- This is the only field and always the next gesture
+          so, to remove on gesture for everyone on every use, we autofocus it. -->
+      <!-- svelte-ignore a11y-autofocus -->
+      <input
+        name='domain'
+        type='text'
+        bind:value={domainToCheck}
+        on:input={inputHandler}
+        class:domain-is-available={canSignUp}
+        class:domain-is-not-available={!domainStatusIsUnknown && !domainIsAvailable}
+        autofocus
+      >
 
-    <!-- This is the only field and always the next gesture
-         so, to remove on gesture for everyone on every use, we autofocus it. -->
-    <!-- svelte-ignore a11y-autofocus -->
-    <input
-      name='domain'
-      type='text'
-      bind:value={domainToCheck}
-      on:input={inputHandler}
-      class:domain-is-available={canSignUp}
-      class:domain-is-not-available={!domainStatusIsUnknown && !domainIsAvailable}
-      autofocus
-    >
+      <button
+        class:can-sign-up={canSignUp}
+        class:cannot-sign-up={!canSignUp}
+      >
+        Sign up for {config.payment.currency}{config.payment.price}/month.
+      </button>
 
-    <button
-      class:can-sign-up={canSignUp}
-      class:cannot-sign-up={!canSignUp}
-    >
-      Sign up for {config.payment.currency}{config.payment.price}/month.
-    </button>
-
-    {#if !domainStatusIsUnknown}
-    <p
-      class:domain-is-available={domainIsAvailable}
-      class:domain-is-not-available={!domainIsAvailable}
-    >
-      {domainIsAvailable ? '✔️' : '❌️' }
-      <strong>{checkedDomain}.{hostDomain}</strong> is
-      {@html domainIsAvailable ? '' : '<strong>not</strong>'} available.
-    </p>
-  {:else}
-    {#if domainCheckError}
-      <p class=domain-check-error>❌️ {domainCheckErrorMessage}</p>
+      {#if !domainStatusIsUnknown}
+      <p
+        class:domain-is-available={domainIsAvailable}
+        class:domain-is-not-available={!domainIsAvailable}
+      >
+        {domainIsAvailable ? '✔️' : '❌️' }
+        <strong>{checkedDomain}.{hostDomain}</strong> is
+        {@html domainIsAvailable ? '' : '<strong>not</strong>'} available.
+      </p>
     {:else}
-    <p>&nbsp;</p>
+      {#if domainCheckError}
+        <p class=domain-check-error>❌️ {domainCheckErrorMessage}</p>
+      {:else}
+      <p>&nbsp;</p>
+      {/if}
     {/if}
+
+    <!--
+    <hr>
+    <p>Advanced</p>
+    <p>TODO: client to install.</p>
+    -->
+
+    </form>
+  {:else}
+    <section id=server-error>
+      <h2>Server error</h2>
+      <pre>{serverError.details}</pre>
+      {#if serverError.details.includes('ECONNREFUSED')}
+        <p><strong>This is likely because Site.js is not running.</strong></p>
+      {/if}
+    </section>
   {/if}
-
-  <!--
-  <hr>
-  <p>Advanced</p>
-  <p>TODO: client to install.</p>
-  -->
-
-  </form>
 </main>
 
 <!-- <SvelteToast /> -->
@@ -174,4 +196,20 @@
   .domain-is-not-available, .domain-check-error {
     color: red;
   }
+
+  #server-error h2 {
+    background: red;
+    color: white;
+    padding: 0.6em; /* optically adjusted as the error title always begin with an “s” */
+  }
+
+  #server-error pre {
+    box-sizing: border-box;
+    margin-top: -1.75em;
+    padding: 1em;
+    width: 100%;
+    white-space: pre-wrap;
+    border: 4px solid red;
+  }
+
 </style>
