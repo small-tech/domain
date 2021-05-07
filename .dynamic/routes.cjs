@@ -1,6 +1,11 @@
 const crypto = require('crypto')
 
 module.exports = app => {
+
+  //
+  // Global initialisation.
+  //
+
   if (db.admin === undefined) {
     db.admin = {}
     // Create a cryptographically-secure path for the admin route.
