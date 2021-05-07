@@ -36,8 +36,11 @@ module.exports = function (client, request) {
 if (db.settings === undefined) {
   // Dummy data for now.
   db.settings = {
-    name: 'Small-Web.org',
-    description: `<a href='https://small-tech.org/research-and-development'>Small Web</a> host.`,
+    site: {
+      name: 'Small-Web.org',
+      header: `<a href='https://small-tech.org/research-and-development'>Small Web</a> host.`,
+      footer: `Your organisation. Privacy Policy. etc.`
+    },
 
     // Note: these will be arrays later on to accommodate other providers.
     payment: {

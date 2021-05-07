@@ -1,5 +1,6 @@
 <script>
   // @hmr:keep-all
+
   import { onMount } from 'svelte'
   import { fade } from 'svelte/transition'
   import { Converter } from 'showdown'
@@ -134,17 +135,24 @@
     <form on:submit|preventDefault>
 
       <TabPanel>
-        <h2 id='general'>General settings</h2>
-        <label for='name'>Name</label>
-        <input name='name' type='text' bind:value={settings.name}/>
+        <h2 id='site'>Site settings</h2>
+        <label for='siteName'>Name</label>
+        <input name='siteName' type='text' bind:value={settings.site.name}/>
 
-        <label for='description'>Description</label>
-        <textarea name='description' bind:value={settings.description}/>
+        <label for='siteHeader'>Header</label>
+        <textarea name='siteHeader' bind:value={settings.site.header}/>
         <small>You can use Markdown and HTML.</small>
-        <div id='preview'>
+
+        <label for='siteFooter'>Footer</label>
+        <textarea name='siteFooter' bind:value={settings.site.footer}/>
+        <small>You can use Markdown and HTML.</small>
+
+        <div id='preview' class='site'>
           <h3>Preview</h3>
-          <h1>{settings.name}</h1>
-          {@html converter.makeHtml(settings.description)}
+          <h1>{settings.site.name}</h1>
+          {@html converter.makeHtml(settings.site.header)}
+          <strong>Payment Module Mock</strong>
+          {@html converter.makeHtml(settings.site.footer)}
         </div>
       </TabPanel>
 

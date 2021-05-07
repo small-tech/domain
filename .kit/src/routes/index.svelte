@@ -10,7 +10,7 @@
           serverError: {
             details
           },
-          config: {dns: {}, payment: {}}
+          config: {site: {}, dns: {}, payment: {}}
         }
       }
     }
@@ -102,10 +102,10 @@
   }
 </script>
 
-<main>
-  <h1>{config.name || 'Basil'}</h1>
+<main class='site'>
+  <h1>{config.site.name || 'Basil'}</h1>
   {#if !serverError}
-    {@html converter.makeHtml(config.description) || '<p>Small Web hosting template.</p>'}
+    {@html converter.makeHtml(config.site.header) || '<p>Small Web hosting template.</p>'}
 
     <form on:submit|preventDefault>
       <label for='domain'>Pick a domain on <strong>{hostDomain}</strong></label>
@@ -152,6 +152,8 @@
     <p>Advanced</p>
     <p>TODO: client to install.</p>
     -->
+
+    {@html converter.makeHtml(config.site.footer) || '<p>Site footer goes here.</p>'}
 
     </form>
   {:else}

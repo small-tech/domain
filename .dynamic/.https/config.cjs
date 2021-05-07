@@ -10,8 +10,11 @@ module.exports = (request, response) => {
     settings = defaultSettings
   } else {
     settings = {
-      name: db.settings.name,
-      description: db.settings.description,
+      site: {
+        name: db.settings.site.name,
+        header: db.settings.site.header,
+        footer: db.settings.site.footer
+      },
       payment: {
         provider: db.settings.payment.provider,
         mode: db.settings.payment.mode,
