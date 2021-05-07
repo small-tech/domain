@@ -3,6 +3,7 @@
     const response = await fetch('ssr/config')
 
     const config = await (response).json()
+
     return {
       props: {
         config
@@ -15,8 +16,11 @@
   import { onMount } from 'svelte'
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
   import debounce from '$lib/debounce'
+  import { Converter } from 'showdown'
 
   let baseUrl
+
+  const converter = new Converter()
 
   onMount(() => {
     baseUrl = window.location.hostname
@@ -88,7 +92,7 @@
 <main>
   <h1>{config.name || 'Basil'}</h1>
 
-  <p>{@html config.description || 'Small Web hosting template.'}</p>
+  {@html converter.makeHtml(config.description) || '<p>Small Web hosting template.</p>'}
 
   <form on:submit|preventDefault>
     <label for='domain'>Pick a domain on <strong>{hostDomain}</strong></label>

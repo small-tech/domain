@@ -22,7 +22,7 @@
 
   let socket
 
-  const convertMarkdown = new Converter()
+  const converter = new Converter()
 
   const ok = {
     all: false,
@@ -144,7 +144,7 @@
         <div id='preview'>
           <h3>Preview</h3>
           <h1>{settings.name}</h1>
-          {@html convertMarkdown.makeHtml(settings.description)}
+          {@html converter.makeHtml(settings.description)}
         </div>
       </TabPanel>
 
@@ -256,6 +256,13 @@
     display: block;
     margin-top: 0.5em;
     margin-bottom: 1em;
+  }
+
+  textarea {
+    /* min-width: 460px; */
+    width: 100%;
+    min-height: 100px;
+    max-width: 100%;
   }
 
   textarea + small {

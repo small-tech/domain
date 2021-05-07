@@ -94,7 +94,7 @@
     margin: 0;
   }
 
-  :global([aria-selected]) {
+  *:global([aria-selected]) {
     border: 2px solid;
     background: #fff;
     border-bottom: 0;
@@ -103,11 +103,11 @@
   }
 
   @media (max-width: 550px) {
-    :global([role="tablist"] [aria-selected]) {
+    *:global([aria-selected]) {
       position: static;
     }
 
-    :global([role="tablist"] [aria-selected]::after) {
+    *:global([aria-selected]::after) {
       content: '\0020⬅';
     }
   }

@@ -14,11 +14,6 @@ input, button, textarea, select, fieldset {
   padding: 0.5em;
 }
 
-textarea {
-  min-width: 460px;
-  min-height: 100px;
-  max-width: 100%;
-}
 
 input:focus, button:focus, textarea:focus, select:focus {
   outline: none;

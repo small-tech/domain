@@ -38,17 +38,17 @@
 </section>
 
 <style>
-  :global([role="tabpanel"]) {
+  *:global([role="tabpanel"]) {
     border: 2px solid;
     padding: 1.5rem;
   }
 
-  :global([role="tabpanel"] * + *) {
+  *:global([role="tabpanel"] * + *) {
     margin-top: 0.75rem;
   }
 
   @media (max-width: 550px) {
-    :global([role="tabpanel"]) {
+    *:global([role="tabpanel"]) {
       border-top: 0;
     }
   }
