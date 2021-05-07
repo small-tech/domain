@@ -1,6 +1,8 @@
 <script>
+  // @hmr:keep-all
   import { onMount } from 'svelte'
   import { fade } from 'svelte/transition'
+  import { Converter } from 'showdown'
   import StatusMessage from '$lib/StatusMessage.svelte'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import DataProxy from '$lib/JSDB/DataProxy'
@@ -13,10 +15,14 @@
   let errorMessage = null
   let password = null
   let signingIn = false
+
   let signedIn = false
+
   let baseUrl
 
   let socket
+
+  const convertMarkdown = new Converter()
 
   const ok = {
     all: false,
@@ -133,7 +139,13 @@
         <input name='name' type='text' bind:value={settings.name}/>
 
         <label for='description'>Description</label>
-        <textarea name='description' bind:value={settings.description} />
+        <textarea name='description' bind:value={settings.description}/>
+        <small>You can use Markdown and HTML.</small>
+        <div id='preview'>
+          <h3>Preview</h3>
+          <h1>{settings.name}</h1>
+          {@html convertMarkdown.makeHtml(settings.description)}
+        </div>
       </TabPanel>
 
       <TabPanel>
@@ -246,6 +258,12 @@
     margin-bottom: 1em;
   }
 
+  textarea + small {
+    display: block;
+    margin-top: -0.5em;
+    font-style: italic;
+  }
+
   label {
     margin-bottom: 0.5em;
   }
@@ -298,5 +316,20 @@
     background-color: green;
     border-radius: 1em;
     color: white;
+  }
+
+  #preview {
+    border: 1px solid black;
+    padding: 1em;
+  }
+
+  #preview h3 {
+    margin-top: 0;
+    background-color: black;
+    color: white;
+    padding-left: 0.9em;
+    margin-top: -0.9em;
+    margin-left: -0.9em;
+    margin-right: -0.9em;
   }
 </style>

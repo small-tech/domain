@@ -1,13 +1,13 @@
-const static = require('@sveltejs/adapter-static');
-const pkg = require('./package.json');
+import adapterStatic from '@sveltejs/adapter-static'
+// import pkg from './package.json';
 
 /** @type {import('@sveltejs/kit').Config} */
-module.exports = {
+const config = {
   kit: {
     // By default, `npm run build` will create a standard static app.
     // You can create optimized builds for different platforms by
     // specifying a different adapter
-    adapter: static({pages: '.generated', assets: '.generated'}),
+    adapter: adapterStatic({pages: '.generated', assets: '.generated'}),
 
     // hydrate the <div id="svelte"> element in src/app.html
     target: '#svelte',
@@ -19,10 +19,12 @@ module.exports = {
       template: '.kit/src/app.html'
     },
 
-    vite: {
-      ssr: {
-        noExternal: Object.keys(pkg.dependencies || {})
-      }
-    }
+    // vite: {
+    //   ssr: {
+    //     noExternal: Object.keys(pkg.dependencies || {})
+    //   }
+    // }
   }
 }
+
+export default config

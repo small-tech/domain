@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "./dev.sh",
-    "kit": "svelte-kit dev",
+    "kit": "NODE_TLS_REJECT_UNAUTHORIZED=0 svelte-kit dev",
     "build": "svelte-kit build",
     "serve": "npm run build && site"
   },
@@ -25,10 +25,10 @@
     "url": "https://github.com/small-tech/sitekit.git"
   },
   "devDependencies": {
-    "@sveltejs/adapter-static": "next",
-    "@sveltejs/kit": "next",
+    "@sveltejs/adapter-static": "^1.0.0-next.8",
+    "@sveltejs/kit": "^1.0.0-next.101",
     "@zerodevx/svelte-toast": "^0.2.2",
-    "svelte": "^3.29.0",
+    "svelte": "^3.38.2",
     "vite": "^2.1.0"
   },
   "funding": {
@@ -39,6 +39,7 @@
   "dependencies": {
     "dnsimple": "^4.4.0",
     "keypather": "^3.1.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "showdown": "^1.9.1"
   }
 }
