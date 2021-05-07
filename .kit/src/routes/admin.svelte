@@ -21,6 +21,7 @@
   let errorMessage = null
   let password = null
   let signingIn = false
+  let rebuildingSite = false
 
   let signedIn = false
 
@@ -39,6 +40,7 @@
   }
 
   $: if (signingIn) errorMessage = false
+  $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
 
   onMount(() => {
     baseUrl = document.location.hostname
@@ -161,8 +163,17 @@
 
         <p><em>Your changes are automatically saved in the database but the static site is not automatically rebuilt for you. Either run <code>npm run build</code> from the command-line manually or use the button below to regenerate your site to match the above preview.</em></p>
 
-        <button id='rebuildSite' on:click|preventDefault={socket.send(JSON.stringify({type: 'rebuild'}))}>Rebuild site <Jumper size='30'/></button>
+        <button
+          id='rebuildSiteButton'
+          disabled={rebuildingSite}
+          on:click|preventDefault={() => rebuildingSite = true}
+        >
+            Rebuild site
+        </button>
 
+        {#if rebuildingSite}
+          <div id='rebuildSiteProgressIndicator'><Jumper size=1.5 unit=em color=green/> Rebuilding site…</div>
+        {/if}
       </TabPanel>
 
       <TabPanel>
@@ -299,7 +310,7 @@
     display: block;
   }
 
-  button + label, #accountIdLabel, #vpiApiTokenLabel {
+  #accountIdLabel, #vpiApiTokenLabel {
     display: block;
   }
 
@@ -307,24 +318,30 @@
     min-width: 4.5em;
   }
 
-  li {
-    list-style-type: none;
-    font-size: 1.5em;
-  }
-
   fieldset {
     max-width: 10em;
   }
 
-  hr {
-    border: 0.5px solid black;
-  }
-
-  #rebuildSite {
+  #rebuildSiteButton {
     display: block;
     min-width: 10em;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  *:global(#rebuildSiteButton:disabled) {
+    background: lightgray;
+    color: gray;
+  }
+
+  #rebuildSiteProgressIndicator {
+    position: fixed;
+    right: 1em;
+    top: 0.5em;
+    background: lightgray;
+    padding: 1em;
+    border-radius: 3em;
+    box-shadow: grey 1px 1px 4px;
   }
 
   #currency, #price {

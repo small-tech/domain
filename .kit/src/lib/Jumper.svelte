@@ -12,6 +12,8 @@
   .wrapper {
     width: var(--size);
     height: var(--size);
+    display: inline-block;
+    vertical-align: bottom;
   }
   .circle {
     border-radius: 100%;

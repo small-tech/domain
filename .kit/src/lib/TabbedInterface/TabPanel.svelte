@@ -43,7 +43,7 @@
     padding: 1.5rem;
   }
 
-  *:global([role="tabpanel"] * + *) {
+  *:global([role="tabpanel"] > *) {
     margin-top: 0.75rem;
   }
 

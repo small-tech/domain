@@ -105,10 +105,7 @@
   @media (max-width: 550px) {
     *:global([aria-selected]) {
       position: static;
-    }
-
-    *:global([aria-selected]::after) {
-      content: '\0020⬅';
+      font-weight: bold;
     }
   }
 </style>
