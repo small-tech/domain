@@ -1,4 +1,6 @@
 const set = require('keypather/set')
+const exec = require('child_process').exec
+const process = require('process')
 
 module.exports = function (client, request) {
   const password = request.params.password
@@ -13,6 +15,16 @@ module.exports = function (client, request) {
     if (message.type === 'update') {
       // console.log('Update', message)
       set(db, message.keyPath, message.value)
+    } else if (message.type === 'rebuild') {
+      console.log('Rebuilding…')
+      exec('NODE_TLS_REJECT_UNAUTHORIZED=0 svelte-kit build', {env: process.env, cwd: process.cwd()}, (error, stdout, stderr) => {
+        if (error) {
+          console.log('ERROR', stderr)
+        } else {
+          console.log(stdout)
+          console.log('Done.')
+        }
+      })
     }
   })
 

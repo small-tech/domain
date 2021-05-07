@@ -145,11 +145,12 @@
 
         <label for='siteHeader'>Header</label>
         <textarea name='siteHeader' bind:value={settings.site.header}/>
-        <small>You can use Markdown and HTML.</small>
 
         <label for='siteFooter'>Footer</label>
         <textarea name='siteFooter' bind:value={settings.site.footer}/>
         <small>You can use Markdown and HTML.</small>
+
+        <button on:click|preventDefault={socket.send(JSON.stringify({type: 'rebuild'}))}>Rebuild site</button>
 
         <div id='preview' class='site'>
           <h3>Preview</h3>
