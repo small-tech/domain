@@ -1,9 +1,9 @@
-import { dev } from '$app/env'
-
-const baseUrl = dev ? 'https://localhost' : ''
-
 export async function get() {
-  const config = await (await fetch(`${baseUrl}/config`)).json()
+  // Get the configuration from Site.js.
+  // Since this is only ever relevant during development, not production
+  // (where we deploy the generated index page as a static page),
+  // we hardcode the URL.
+  const config = await (await fetch(`https://localhost/config`)).json()
 
   return {
     body: config
