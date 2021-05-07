@@ -7,6 +7,7 @@
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import DataProxy from '$lib/JSDB/DataProxy'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
+  import Jumper from '$lib/Jumper.svelte'
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -150,15 +151,18 @@
         <textarea name='siteFooter' bind:value={settings.site.footer}/>
         <small>You can use Markdown and HTML.</small>
 
-        <button on:click|preventDefault={socket.send(JSON.stringify({type: 'rebuild'}))}>Rebuild site</button>
-
         <div id='preview' class='site'>
           <h3>Preview</h3>
           <h1>{settings.site.name}</h1>
           {@html converter.makeHtml(settings.site.header)}
-          <strong>Payment Module Mock</strong>
+          <strong>[Sign-Up Module Goes Here]</strong>
           {@html converter.makeHtml(settings.site.footer)}
         </div>
+
+        <p><em>Your changes are automatically saved in the database but the static site is not automatically rebuilt for you. Either run <code>npm run build</code> from the command-line manually or use the button below to regenerate your site to match the above preview.</em></p>
+
+        <button id='rebuildSite' on:click|preventDefault={socket.send(JSON.stringify({type: 'rebuild'}))}>Rebuild site <Jumper size='30'/></button>
+
       </TabPanel>
 
       <TabPanel>
@@ -314,6 +318,13 @@
 
   hr {
     border: 0.5px solid black;
+  }
+
+  #rebuildSite {
+    display: block;
+    min-width: 10em;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   #currency, #price {
