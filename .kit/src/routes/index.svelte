@@ -107,7 +107,7 @@
 </script>
 
 <main class='site'>
-  <h1>{config.site.name || 'Basil'}</h1>
+  <!-- <h1>{config.site.name || 'Basil'}</h1> -->
   {#if !serverError}
     {@html converter.makeHtml(config.site.header) || '<p>Small Web hosting template.</p>'}
 

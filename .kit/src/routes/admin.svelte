@@ -155,7 +155,7 @@
 
         <div id='preview' class='site'>
           <h3>Preview</h3>
-          <h1>{settings.site.name}</h1>
+          <!-- <h1>{settings.site.name}</h1> -->
           {@html converter.makeHtml(settings.site.header)}
           <strong>[Sign-Up Module Goes Here]</strong>
           {@html converter.makeHtml(settings.site.footer)}
