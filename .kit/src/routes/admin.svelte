@@ -34,7 +34,7 @@
 
   const ok = {
     all: false,
-    general: false,
+    site: false,
     payment: false,
     dns: false,
     vps: false
@@ -42,6 +42,8 @@
 
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
+
+  $: ok.site = settings.site === undefined ? false : settings.site.name !== '' && settings.site.header !== '' && settings.site.footer !== ''
 
   onMount(() => {
     baseUrl = document.location.hostname
@@ -134,7 +136,7 @@
 
   <TabbedInterface>
     <TabList>
-      <Tab><StatusMessage state={ok.general}>General</StatusMessage></Tab>
+      <Tab><StatusMessage state={ok.site}>Site</StatusMessage></Tab>
       <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
       <Tab><StatusMessage state={ok.dns}>DNS</StatusMessage></Tab>
       <Tab><StatusMessage state={ok.vps}>VPS</StatusMessage></Tab>
