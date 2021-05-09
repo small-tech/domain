@@ -184,6 +184,19 @@
           <option value='Stripe'>Stripe</option>
         </select>
 
+        <!-- Stripe (currently the only implemented provider)-->
+
+        <h3>Instructions</h3>
+
+        <ol>
+          <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
+          <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
+          <li>Enter the API ID of its price and other the details below.</li>
+        </ol>
+
+        <p>(Repeat the above instructions once for Test Mode and once for Live Mode.)</p>
+
+        <!-- Note: this will be automatically received via the Stripe API. -->
         <label for='currency'>Currency</label> <span> & </span>
         <label id='priceLabel' for='price'>Price</label>
         <br>
@@ -210,10 +223,7 @@
           <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
           <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} />
 
-          <label for={`${mode.id}ProductId`}>Product ID</label>
-          <input id={`${mode.id}ProductId`} type='text' bind:value={mode.productId}/>
-
-          <label for={`${mode.id}PriceId`}>Price ID</label>
+          <label for={`${mode.id}PriceId`}>Price (API ID)</label>
           <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId}/>
         {/each}
       </TabPanel>
