@@ -13,6 +13,7 @@
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
   import showdown from 'showdown'
+import Index from './index.svelte'
   const { Converter } = showdown
 
   let settings = {}
@@ -23,6 +24,15 @@
   let password = null
   let signingIn = false
   let rebuildingSite = false
+
+  const gotPrice = {
+    test: false,
+    live: false
+  }
+  const priceError = {
+    test: null,
+    live: null
+  }
 
   let signedIn = false
 
@@ -45,9 +55,40 @@
 
   $: ok.site = settings.site === undefined ? false : settings.site.name !== '' && settings.site.header !== '' && settings.site.footer !== ''
 
+  // Todo: include full list.
+  const currencies = {
+    'eur': '€',
+    'gbp': '₤',
+    'usd': '$'
+  }
+
   onMount(() => {
     baseUrl = document.location.hostname
   })
+
+  function getPrice(modeId) {
+    gotPrice[modeId] = false
+    priceError[modeId] = null
+
+    const priceId = settings.payment.modeDetails[modeId === 'test' ? 0 : 1].priceId
+
+    if (priceId === '') {
+      return
+    }
+
+    if (!priceId.startsWith('p') || !priceId.startsWith('pr') || !priceId.startsWith('pri') || !priceId.startsWith('pric') || !priceId.startsWith('price') || !priceId.startsWith('price_')) {
+      priceError[modeId] = 'That is not a valid price ID. It must start with price_'
+      gotPrice[modeId] = true
+      return
+    }
+
+    console.log('Getting price…')
+    socket.send(JSON.stringify({
+      type: 'get-price',
+      mode: modeId
+    }))
+    console.log(gotPrice, priceError)
+  }
 
   function showSavedMessage() {
     if (shouldShowSavedMessage) return
@@ -98,10 +139,30 @@
           }, message.body, 'settings')
           signingIn = false
           signedIn = true
+          getPrice('test')
+          getPrice('live')
+        break
+
+        case 'price':
+          console.log(`Price: ${message.amount}, ${message.currency}`)
+          console.log(message)
+          settings.payment.modeDetails[message.mode === 'test' ? 0 : 1].currency = currencies[message.currency]
+          settings.payment.modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
+          gotPrice[message.mode] = true
+          console.log(gotPrice)
         break
 
         case 'error':
           errorMessage = message.body
+        break
+
+        case 'price-error':
+          if (message.error.param === 'price' && message.error.type === 'invalid_request_error') {
+            priceError[message.mode] = 'No price exists with that API ID.'
+          } else {
+            priceError[message.mode] = `${message.error.message} (${message.error.type})`
+          }
+          gotPrice[message.mode] = true
         break
 
         default:
@@ -230,7 +291,13 @@
               <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} />
 
               <label for={`${mode.id}PriceId`}>Price (API ID)</label>
-              <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId}/>
+              <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={getPrice(mode.id)}/>
+
+              {#if gotPrice[mode.id] && priceError[mode.id] !== null}
+                <p style='color: red;'>❌️ {priceError[mode.id]}</p>
+              {:else if gotPrice[mode.id]}
+                <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
+              {/if}
             </TabPanel>
           {/each}
           </TabbedInterface>
