@@ -8,6 +8,7 @@
   import DataProxy from '$lib/JSDB/DataProxy'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
   import Jumper from '$lib/Jumper.svelte'
+  import Switch from 'svelte-switch'
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -186,46 +187,51 @@
 
         <!-- Stripe (currently the only implemented provider)-->
 
-        <h3>Instructions</h3>
+        <section id='stripeInstructions'>
+          <h3>Instructions</h3>
 
-        <ol>
-          <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
-          <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
-          <li>Enter the API ID of its price and other the details below.</li>
-        </ol>
+          <ol>
+            <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
+            <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
+            <li>Enter the API ID of its price and other the details below.</li>
+          </ol>
 
-        <p>(Repeat the above instructions once for Test Mode and once for Live Mode.)</p>
+          <p>(Repeat the above instructions once for Test Mode and once for Live Mode.)</p>
+        </section>
 
         <!-- Note: this will be automatically received via the Stripe API. -->
-        <label for='currency'>Currency</label> <span> & </span>
+        <!-- <label for='currency'>Currency</label> <span> & </span>
         <label id='priceLabel' for='price'>Price</label>
         <br>
         <input id='currency' name='currency' type='text' bind:value={settings.payment.currency}/>
-        <input id='price' name='price' type='text' bind:value={settings.payment.price}/>
+        <input id='price' name='price' type='text' bind:value={settings.payment.price}/> -->
 
-        <fieldset>
-          <legend>Mode</legend>
+        <label for='mode'>Mode</label>
+        <Switch id='mode' on:change={event => settings.payment.mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.mode === 'live'} width=75>
+          <span class='live' slot='checkedIcon'>Live</span>
+          <span class='test' slot='unCheckedIcon'>Test</span>
+        </Switch>
 
-          {#each settings.payment.modes as mode}
-            <label>
-              <input class='inline' type=radio bind:group={settings.payment.mode} value={mode}>
-              {mode}
-            </label>
+        <TabbedInterface>
+          <TabList>
+            {#each settings.payment.modeDetails as mode}
+              <Tab>{mode.title}</Tab>
+            {/each}
+          </TabList>
+          {#each settings.payment.modeDetails as mode}
+            <TabPanel>
+              <h3>{mode.title}</h3>
+              <label for={`${mode.id}PublishableKey`}>Publishable key</label>
+              <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey}/>
+
+              <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
+              <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} />
+
+              <label for={`${mode.id}PriceId`}>Price (API ID)</label>
+              <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId}/>
+            </TabPanel>
           {/each}
-
-        </fieldset>
-
-        {#each settings.payment.modeDetails as mode}
-          <h3>{mode.title}</h3>
-          <label for={`${mode.id}PublishableKey`}>Publishable key</label>
-          <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey}/>
-
-          <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
-          <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} />
-
-          <label for={`${mode.id}PriceId`}>Price (API ID)</label>
-          <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId}/>
-        {/each}
+          </TabbedInterface>
       </TabPanel>
 
       <TabPanel>
@@ -312,6 +318,15 @@
     margin-bottom: 0.5em;
   }
 
+  label[for=mode] {
+    display: block;
+    margin-bottom: 0;
+  }
+
+  :global(label[for=mode] + div) {
+    margin-bottom: 1em;
+  }
+
   .inline {
     display: inline;
   }
@@ -319,6 +334,16 @@
   .block {
     display: block;
   }
+
+  .live, .test {
+		color: white;
+		display: inline-block;
+		margin-top: 0.1em;
+	}
+
+	.live {
+		margin-left: 0.75em;
+	}
 
   #accountIdLabel, #vpiApiTokenLabel {
     display: block;
@@ -354,6 +379,17 @@
     box-shadow: grey 1px 1px 4px;
   }
 
+  #stripeInstructions {
+    background-color: #eee;
+    margin-left: -1em;
+    padding-left: 1em;
+    margin-right: -1em;
+    padding-right: 1em;
+    padding-top: 0.25em;
+    padding-bottom: 0.5em;
+    border-radius: 1em;
+  }
+
   #currency, #price {
     display: inline;
     width: 2em;
@@ -366,8 +402,7 @@
   #saved {
     position: fixed;
     right: 1em;
-    top: 2em;
-    /* width: 6em; */
+    top: 1em;
     text-align: center;
     padding: 0.15em 1em;
     background-color: green;

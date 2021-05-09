@@ -40,6 +40,7 @@
     "dnsimple": "^4.4.0",
     "keypather": "^3.1.0",
     "node-fetch": "^2.6.1",
-    "showdown": "^1.9.1"
+    "showdown": "^1.9.1",
+    "svelte-switch": "^0.0.4"
   }
 }
