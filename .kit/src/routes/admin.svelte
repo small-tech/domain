@@ -196,7 +196,7 @@
             <li>Enter the API ID of its price and other the details below.</li>
           </ol>
 
-          <p>(Repeat the above instructions once for Test Mode and once for Live Mode.)</p>
+          <p><em>(Repeat Steps 2 and 3 once for Test Mode and once for Live Mode.)</em></p>
         </section>
 
         <!-- Note: this will be automatically received via the Stripe API. -->
