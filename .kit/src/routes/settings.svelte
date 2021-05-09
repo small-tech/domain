@@ -70,15 +70,30 @@ import Index from './index.svelte'
     gotPrice[modeId] = false
     priceError[modeId] = null
 
-    const priceId = settings.payment.modeDetails[modeId === 'test' ? 0 : 1].priceId
+    const priceId = (settings.payment.modeDetails[modeId === 'test' ? 0 : 1].priceId).trim()
 
     if (priceId === '') {
       return
     }
 
-    if (!priceId.startsWith('p') || !priceId.startsWith('pr') || !priceId.startsWith('pri') || !priceId.startsWith('pric') || !priceId.startsWith('price') || !priceId.startsWith('price_')) {
+    if (
+      !(
+        (priceId.length === 1 && priceId === 'p') ||
+        (priceId.length === 2 && priceId === 'pr') ||
+        (priceId.length === 3 && priceId === 'pri') ||
+        (priceId.length === 4 && priceId === 'pric') ||
+        (priceId.length === 5 && priceId === 'price') ||
+        (priceId.length >= 6 && priceId.startsWith('price_'))
+      )
+    ) {
       priceError[modeId] = 'That is not a valid price ID. It must start with price_'
       gotPrice[modeId] = true
+      return
+    }
+
+    if (priceId.length !== 30) {
+      priceError[modeId] = null
+      gotPrice[modeId] = false
       return
     }
 
@@ -144,12 +159,10 @@ import Index from './index.svelte'
         break
 
         case 'price':
-          console.log(`Price: ${message.amount}, ${message.currency}`)
-          console.log(message)
           settings.payment.modeDetails[message.mode === 'test' ? 0 : 1].currency = currencies[message.currency]
           settings.payment.modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
           gotPrice[message.mode] = true
-          console.log(gotPrice)
+          priceError[message.mode] = null
         break
 
         case 'error':
@@ -286,10 +299,11 @@ import Index from './index.svelte'
               <TabPanel>
                 <h3>{mode.title}</h3>
                 <label for={`${mode.id}PublishableKey`}>Publishable key</label>
-                <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey}/>
+                <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={getPrice(mode.id)}/>
 
                 <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
-                <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} />
+                <!-- TODO: Implement input event on SensitiveTextInput component. -->
+                <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={getPrice(mode.id)}/>
 
                 <label for={`${mode.id}PriceId`}>Price (API ID)</label>
                 <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={getPrice(mode.id)}/>
@@ -298,6 +312,8 @@ import Index from './index.svelte'
                   <p style='color: red;'>❌️ {priceError[mode.id]}</p>
                 {:else if gotPrice[mode.id]}
                   <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
+                {:else}
+                  <p>ℹ️ <em>Waiting for a valid Stripe price API ID in the form <code>price_[24 chars]</code> before validating these details.</em></p>
                 {/if}
               </TabPanel>
             {/each}
