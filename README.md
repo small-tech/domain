@@ -44,12 +44,7 @@ Traditional/token payment doesn’t have to be mutually exclusive. The municipal
 2. Clone this repo.
 3. `npm install`
 
-## Configure
-
-Once you have signed up for accounts with the [supported service providers](#supported-service-providers), you can enter their details at `/admin` route.
-
-
-## Use
+## Run
 
 ### Dev (Site.js + SvelteKit)
 
@@ -63,6 +58,11 @@ Once the servers are running, you will have:
   - __Site.js:__ Running at `https://localhost` and serving the backend.
 
 Note: the dev task will only run on Linux-esque systems. If you’re on Windows, please run `site` in one terminal tab and `npm run kit` in another manually to start both servers. Pull requests are welcome for a `dev-windows` task that runs a PowerShell script to do the same thing.
+
+## Configure
+
+Once you have signed up for accounts with the [supported service providers](#supported-service-providers) and are running Basil, you can configure your account at http://localhost:3000/settings.
+
 
 ### SvelteKit only
 

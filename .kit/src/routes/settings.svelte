@@ -112,7 +112,7 @@
   }
 </script>
 
-<h1>Basil instance administration</h1>
+<h1>Basil Settings</h1>
 
 {#if !signedIn}
   <p>Please sign in to access this page.</p>
