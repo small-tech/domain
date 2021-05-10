@@ -13,7 +13,7 @@
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
   import showdown from 'showdown'
-import Index from './index.svelte'
+
   const { Converter } = showdown
 
   let settings = {}
@@ -187,7 +187,7 @@ import Index from './index.svelte'
 </script>
 
 <main>
-  <h1>Basil Settings</h1>
+  <h1>Basil Administration</h1>
 
   {#if !signedIn}
     <p>Please sign in to access this page.</p>
@@ -207,174 +207,193 @@ import Index from './index.svelte'
   {:else}
     <h2>Status</h2>
 
-    <p><strong><StatusMessage state={ok.all}>Your Small Web host {ok.all ? 'is fully configured and active' : 'needs configuration'}.</StatusMessage></strong></p>
-
     <TabbedInterface>
       <TabList>
-        <Tab><StatusMessage state={ok.site}>Site</StatusMessage></Tab>
-        <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
-        <Tab><StatusMessage state={ok.dns}>DNS</StatusMessage></Tab>
-        <Tab><StatusMessage state={ok.vps}>VPS</StatusMessage></Tab>
+        <Tab><StatusMessage state={ok.all}>Setup</StatusMessage></Tab>
+        <Tab>Places</Tab>
       </TabList>
 
-      <form on:submit|preventDefault>
+      <TabPanel>
+        <h2>Setup</h2>
+        <p><strong><StatusMessage state={ok.all}>Your Small Web host {ok.all ? 'is fully configured and active' : 'needs configuration'}.</StatusMessage></strong></p>
 
-        <TabPanel>
-          <h2 id='site'>Site settings</h2>
-          <label for='siteName'>Name</label>
-          <input name='siteName' type='text' bind:value={settings.site.name}/>
+        <TabbedInterface>
+          <TabList>
+            <Tab><StatusMessage state={ok.site}>Site</StatusMessage></Tab>
+            <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
+            <Tab><StatusMessage state={ok.dns}>DNS</StatusMessage></Tab>
+            <Tab><StatusMessage state={ok.vps}>VPS</StatusMessage></Tab>
+          </TabList>
 
-          <label for='siteHeader'>Header</label>
-          <textarea name='siteHeader' bind:value={settings.site.header}/>
+          <form on:submit|preventDefault>
 
-          <label for='siteFooter'>Footer</label>
-          <textarea name='siteFooter' bind:value={settings.site.footer}/>
-          <small>You can use Markdown and HTML.</small>
+            <TabPanel>
+              <h3 id='site'>Site settings</h3>
+              <p>The details here are used to render the page that people use to sign up to your hosting service.</p>
+              <label for='siteName'>Name</label>
+              <input name='siteName' type='text' bind:value={settings.site.name}/>
 
-          <div id='preview' class='site'>
-            <h3>Preview</h3>
-            <!-- <h1>{settings.site.name}</h1> -->
-            {@html converter.makeHtml(settings.site.header)}
-            <strong>[Sign-Up Module Goes Here]</strong>
-            {@html converter.makeHtml(settings.site.footer)}
-          </div>
+              <label for='siteHeader'>Header</label>
+              <textarea name='siteHeader' bind:value={settings.site.header}/>
 
-          <p><em>Your changes are automatically saved in the database but the static site is not automatically rebuilt for you. Either run <code>npm run build</code> from the command-line manually or use the button below to regenerate your site to match the above preview.</em></p>
+              <label for='siteFooter'>Footer</label>
+              <textarea name='siteFooter' bind:value={settings.site.footer}/>
+              <small>You can use Markdown and HTML.</small>
 
-          <button
-            id='rebuildSiteButton'
-            disabled={rebuildingSite}
-            on:click|preventDefault={() => rebuildingSite = true}
-          >
-              Rebuild site
-          </button>
+              <div id='preview' class='site'>
+                <h3>Preview</h3>
+                <!-- <h1>{settings.site.name}</h1> -->
+                {@html converter.makeHtml(settings.site.header)}
+                <strong>[Sign-Up Module Goes Here]</strong>
+                {@html converter.makeHtml(settings.site.footer)}
+              </div>
 
-          {#if rebuildingSite}
-            <div id='rebuildSiteProgressIndicator'><Jumper size=1.5 unit=em color=green/> Rebuilding site…</div>
-          {/if}
-        </TabPanel>
+              <p><em>Your changes are automatically saved in the database but the static site is not automatically rebuilt for you. Either run <code>npm run build</code> from the command-line manually or use the button below to regenerate your site to match the above preview.</em></p>
 
-        <TabPanel>
-          <h2 id='payment'>Payment Settings</h2>
+              <button
+                id='rebuildSiteButton'
+                disabled={rebuildingSite}
+                on:click|preventDefault={() => rebuildingSite = true}
+              >
+                  Rebuild site
+              </button>
 
-          <label for='paymentProvider'>Provider</label>
-          <select name='paymentProvider'>
-            <option value='Stripe'>Stripe</option>
-          </select>
+              {#if rebuildingSite}
+                <div id='rebuildSiteProgressIndicator'><Jumper size=1.5 unit=em color=green/> Rebuilding site…</div>
+              {/if}
+            </TabPanel>
 
-          <!-- Stripe (currently the only implemented provider)-->
+            <TabPanel>
+              <h2 id='payment'>Payment Settings</h2>
 
-          <section id='stripeInstructions'>
-            <h3>Instructions</h3>
+              <label for='paymentProvider'>Provider</label>
+              <select name='paymentProvider'>
+                <option value='Stripe'>Stripe</option>
+              </select>
 
-            <ol>
-              <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
-              <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
-              <li>Enter the API ID of its price and other the details below.</li>
-            </ol>
+              <!-- Stripe (currently the only implemented provider)-->
 
-            <p><em>(Repeat Steps 2 and 3 once for Test Mode and once for Live Mode.)</em></p>
-          </section>
+              <section id='stripeInstructions'>
+                <h3>Instructions</h3>
 
-          <!-- Note: this will be automatically received via the Stripe API. -->
-          <!-- <label for='currency'>Currency</label> <span> & </span>
-          <label id='priceLabel' for='price'>Price</label>
-          <br>
-          <input id='currency' name='currency' type='text' bind:value={settings.payment.currency}/>
-          <input id='price' name='price' type='text' bind:value={settings.payment.price}/> -->
+                <ol>
+                  <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
+                  <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
+                  <li>Enter the API ID of its price and other the details below.</li>
+                </ol>
 
-          <label for='mode'>Mode</label>
-          <Switch id='mode' on:change={event => settings.payment.mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.mode === 'live'} width=75>
-            <span class='live' slot='checkedIcon'>Live</span>
-            <span class='test' slot='unCheckedIcon'>Test</span>
-          </Switch>
+                <p><em>(Repeat Steps 2 and 3 once for Test Mode and once for Live Mode.)</em></p>
+              </section>
 
-          <TabbedInterface>
-            <TabList>
-              {#each settings.payment.modeDetails as mode}
-                <Tab>{mode.title}</Tab>
-              {/each}
-            </TabList>
-            {#each settings.payment.modeDetails as mode}
-              <TabPanel>
-                <h3>{mode.title}</h3>
-                <label for={`${mode.id}PublishableKey`}>Publishable key</label>
-                <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={getPrice(mode.id)}/>
+              <!-- Note: this will be automatically received via the Stripe API. -->
+              <!-- <label for='currency'>Currency</label> <span> & </span>
+              <label id='priceLabel' for='price'>Price</label>
+              <br>
+              <input id='currency' name='currency' type='text' bind:value={settings.payment.currency}/>
+              <input id='price' name='price' type='text' bind:value={settings.payment.price}/> -->
 
-                <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
-                <!-- TODO: Implement input event on SensitiveTextInput component. -->
-                <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={getPrice(mode.id)}/>
+              <label for='mode'>Mode</label>
+              <Switch id='mode' on:change={event => settings.payment.mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.mode === 'live'} width=75>
+                <span class='live' slot='checkedIcon'>Live</span>
+                <span class='test' slot='unCheckedIcon'>Test</span>
+              </Switch>
 
-                <label for={`${mode.id}PriceId`}>Price (API ID)</label>
-                <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={getPrice(mode.id)}/>
+              <TabbedInterface>
+                <TabList>
+                  {#each settings.payment.modeDetails as mode}
+                    <Tab>{mode.title}</Tab>
+                  {/each}
+                </TabList>
+                {#each settings.payment.modeDetails as mode}
+                  <TabPanel>
+                    <h3>{mode.title}</h3>
+                    <label for={`${mode.id}PublishableKey`}>Publishable key</label>
+                    <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={getPrice(mode.id)}/>
 
-                {#if gotPrice[mode.id] && priceError[mode.id] !== null}
-                  <p style='color: red;'>❌️ {priceError[mode.id]}</p>
-                {:else if gotPrice[mode.id]}
-                  <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
-                {:else}
-                  <p>ℹ️ <em>Waiting for a valid Stripe price API ID in the form <code>price_[24 chars]</code> before validating these details.</em></p>
-                {/if}
-              </TabPanel>
-            {/each}
-            </TabbedInterface>
-        </TabPanel>
+                    <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
+                    <!-- TODO: Implement input event on SensitiveTextInput component. -->
+                    <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={getPrice(mode.id)}/>
 
-        <TabPanel>
-          <h2 id='dns'>DNS Settings</h2>
+                    <label for={`${mode.id}PriceId`}>Price (API ID)</label>
+                    <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={getPrice(mode.id)}/>
 
-          <label for='dnsProvider'>Provider</label>
-          <select name='dnsProvider'>
-            <option value='DNSimple'>DNSimple</option>
-          </select>
+                    {#if gotPrice[mode.id] && priceError[mode.id] !== null}
+                      <p style='color: red;'>❌️ {priceError[mode.id]}</p>
+                    {:else if gotPrice[mode.id]}
+                      <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
+                    {:else}
+                      <p>ℹ️ <em>Waiting for a valid Stripe price API ID in the form <code>price_[24 chars]</code> before validating these details.</em></p>
+                    {/if}
+                  </TabPanel>
+                {/each}
+                </TabbedInterface>
+            </TabPanel>
 
-          <label for='domain'>Domain</label>
-          <input name='domain' type='text' bind:value={settings.dns.domain}/>
+            <TabPanel>
+              <h2 id='dns'>DNS Settings</h2>
 
-          <label id='accountIdLabel' for='dnsAccountId'>Account ID</label>
-          <SensitiveTextInput name='dnsAccountId' bind:value={settings.dns.accountId} />
+              <label for='dnsProvider'>Provider</label>
+              <select name='dnsProvider'>
+                <option value='DNSimple'>DNSimple</option>
+              </select>
 
-          <label for='dnsZoneId' class='block'>Zone ID</label>
-          <SensitiveTextInput name='dnsZoneId' bind:value={settings.dns.zoneId} />
+              <label for='domain'>Domain</label>
+              <input name='domain' type='text' bind:value={settings.dns.domain}/>
 
-          <label for='dnsAccessToken' class='block'>Access Token</label>
-          <SensitiveTextInput name='dnsAccessToken' bind:value={settings.dns.accessToken} />
-        </TabPanel>
+              <label id='accountIdLabel' for='dnsAccountId'>Account ID</label>
+              <SensitiveTextInput name='dnsAccountId' bind:value={settings.dns.accountId} />
 
-        <TabPanel>
-          <h2 id='vps'>VPS Host Settings</h2>
+              <label for='dnsZoneId' class='block'>Zone ID</label>
+              <SensitiveTextInput name='dnsZoneId' bind:value={settings.dns.zoneId} />
 
-          <label for='vpsProvider'>Provider</label>
-          <select name='vpsProvider'>
-            <option value='Hetzner'>Hetzner</option>
-          </select>
+              <label for='dnsAccessToken' class='block'>Access Token</label>
+              <SensitiveTextInput name='dnsAccessToken' bind:value={settings.dns.accessToken} />
+            </TabPanel>
 
-          <label id='vpiApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
-          <SensitiveTextInput name='vpsApiToken' bind:value={settings.vps.apiToken}/>
+            <TabPanel>
+              <h2 id='vps'>VPS Host Settings</h2>
 
-          <h3>Server details</h3>
-          <p>These settings will be used when setting up people’s servers.</p>
+              <label for='vpsProvider'>Provider</label>
+              <select name='vpsProvider'>
+                <option value='Hetzner'>Hetzner</option>
+              </select>
 
-          <label for='vpsSshKeyName'>SSH Key Name</label>
-          <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
+              <label id='vpiApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
+              <SensitiveTextInput name='vpsApiToken' bind:value={settings.vps.apiToken}/>
 
-          <label for='vpsServerType'>Server Type</label>
-          <input name='vpsServerType' type='text' bind:value={settings.vps.serverType}/>
+              <h3>Server details</h3>
+              <p>These settings will be used when setting up people’s servers.</p>
 
-          <label for='vpsLocation'>Location</label>
-          <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>
+              <label for='vpsSshKeyName'>SSH Key Name</label>
+              <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
 
-          <label for='vpsImage'>Image</label>
-          <input name='vpsImage' type='text' bind:value={settings.vps.image}/>
+              <label for='vpsServerType'>Server Type</label>
+              <input name='vpsServerType' type='text' bind:value={settings.vps.serverType}/>
 
-          <label for='vpsCloudInit'>Cloud Init</label>
-          <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
-        </TabPanel>
+              <label for='vpsLocation'>Location</label>
+              <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>
 
-      </form>
+              <label for='vpsImage'>Image</label>
+              <input name='vpsImage' type='text' bind:value={settings.vps.image}/>
 
+              <label for='vpsCloudInit'>Cloud Init</label>
+              <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
+            </TabPanel>
+
+          </form>
+
+        </TabbedInterface>
+      </TabPanel>
+
+      <TabPanel>
+        <h2>Places</h2>
+        <h3>Create a new Small Web place</h3>
+        <p>You can create a new site without requiring payment details from here (e.g., for your own organisation).</p>
+
+        <h3>Hosted places</h3>
+        <p>This is the list of Small Web places that are currently being hosted by you.</p>
+      </TabPanel>
     </TabbedInterface>
-
     {#if shouldShowSavedMessage}
       <div id='saved' transition:fade={{duration: 500}} tabindex='-1'>Auto-saved</div>
     {/if}
