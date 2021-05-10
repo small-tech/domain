@@ -15,6 +15,7 @@
   //////////////////////////////////////////////////////////////////////
 
   export let config
+  export let buttonLabel
 
   let hostDomain = config.dns.domain
 
@@ -91,7 +92,7 @@
     class:can-sign-up={canSignUp}
     class:cannot-sign-up={!canSignUp}
   >
-    Sign up for {config.payment.currency}{config.payment.price}/month.
+    {buttonLabel || `Sign up for ${config.payment.currency}${config.payment.price}/month.`}
   </button>
 
   {#if !domainStatusIsUnknown}

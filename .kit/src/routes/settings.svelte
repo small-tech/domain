@@ -206,8 +206,6 @@
       <p style='color: red;'>❌️ {@html errorMessage}</p>
     {/if}
   {:else}
-    <h2>Status</h2>
-
     <TabbedInterface>
       <TabList>
         <Tab><StatusMessage state={ok.all}>Setup</StatusMessage></Tab>
@@ -389,11 +387,12 @@
       <TabPanel>
         <h2>Places</h2>
         <h3>Create a new Small Web place</h3>
-        <p>You can create a new site without requiring payment details from here (e.g., for your own organisation).</p>
-        <DomainChecker config={settings} />
+        <p>You can create a new site without requiring payment details from here (e.g., for your own organisation, for friends, etc.)</p>
+        <DomainChecker config={settings} buttonLabel='Create server'/>
 
         <h3>Hosted places</h3>
         <p>This is the list of Small Web places that are currently being hosted by you.</p>
+        <p><strong>Nothing yet.</strong></p>
       </TabPanel>
     </TabbedInterface>
     {#if shouldShowSavedMessage}
