@@ -8,6 +8,7 @@
   import DataProxy from '$lib/JSDB/DataProxy'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
   import Jumper from '$lib/Jumper.svelte'
+  import DomainChecker from '$lib/DomainChecker.svelte'
   import Switch from 'svelte-switch'
 
   // Doing this in two-steps to the SvelteKit static adapter
@@ -389,6 +390,7 @@
         <h2>Places</h2>
         <h3>Create a new Small Web place</h3>
         <p>You can create a new site without requiring payment details from here (e.g., for your own organisation).</p>
+        <DomainChecker config={settings} />
 
         <h3>Hosted places</h3>
         <p>This is the list of Small Web places that are currently being hosted by you.</p>
