@@ -34,6 +34,9 @@
   let validateDnsError = null
   let validateVpsError = null
 
+  let vpsDetails = {}
+  let vpsServerType = {}
+
   const gotPrice = {
     test: false,
     live: false
@@ -137,6 +140,12 @@
     console.log(gotPrice, priceError)
   }
 
+  function serverTypeChange(value) {
+    console.log('<<<serverTypeChange>>>', value)
+    // settings.vps.serverType = value
+    vpsServerType = vpsDetails.serverTypes.find(serverType => serverType.id === settings.vps.serverType)
+  }
+
   function showSavedMessage() {
     if (shouldShowSavedMessage) return
     shouldShowSavedMessage = true
@@ -230,6 +239,7 @@
 
         case 'validate-vps':
           validateVpsError = null
+          vpsDetails = message.details
           ok.vps = true
         break
 
@@ -459,6 +469,13 @@
 
                 <label for='vpsServerType'>Server Type</label>
                 <input name='vpsServerType' type='text' bind:value={settings.vps.serverType}/>
+
+                <!-- svelte-ignore a11y-no-onchange -->
+                <select on:change={serverTypeChange}>
+                  {#each vpsDetails.serverTypes as serverType}
+                    <option value={serverType.name}>{serverType.description}</option>
+                  {/each}
+                </select>
 
                 <label for='vpsLocation'>Location</label>
                 <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>
