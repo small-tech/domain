@@ -63,6 +63,35 @@ module.exports = function (client, request) {
         }
       break;
 
+      case 'validate-vps':
+        console.log('Validating VPS…')
+
+        // Get server types. (In this first call we’ll know if the
+        // authorisation token is correct or not.)
+        const serverTypes = await (await fetch('https://api.hetzner.cloud/v1/server_types', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${db.settings.vps.apiToken}`
+          }
+        })).json()
+
+        if (serverTypes.error) {
+          client.send(JSON.stringify({
+            type: 'validate-vps-error',
+            error: `${serverTypes.error.code}: ${serverTypes.error.message}`
+          }))
+        } else {
+          client.send(JSON.stringify({
+            type: 'validate-vps',
+            details: {
+              serverTypes: serverTypes.server_types
+            }
+          }))
+        }
+
+        console.log(serverTypes)
+      break
+
       case 'validate-dns':
         console.log('Validating DNS details')
         const retrieveDomainUrl = `https://api.dnsimple.com/v2/${db.settings.dns.accountId}/domains/${db.settings.dns.domain}`
@@ -87,7 +116,7 @@ module.exports = function (client, request) {
         }
 
         console.log(dnsAccountDetails)
-      break;
+      break
 
       default:
         console.log(`Warning: received unexpected message type: ${message.type}`)

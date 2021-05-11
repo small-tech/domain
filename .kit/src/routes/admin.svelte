@@ -32,6 +32,7 @@
   let dnsAccessTokenInput
 
   let validateDnsError = null
+  let validateVpsError = null
 
   const gotPrice = {
     test: false,
@@ -74,6 +75,15 @@
     baseUrl = document.location.hostname
   })
 
+  function validateVps() {
+    validateVpsError = null
+    if (settings.vps.apiToken.length === 64) {
+      socket.send(JSON.stringify({
+        type: 'validate-vps'
+      }))
+    }
+  }
+
   function validateDns() {
     validateDnsError = null
     if (
@@ -88,7 +98,7 @@
     }
   }
 
-  function getPrice(modeId) {
+  function validatePayment(modeId) {
     gotPrice[modeId] = false
     priceError[modeId] = null
 
@@ -176,9 +186,10 @@
           }, message.body, 'settings')
           signingIn = false
           signedIn = true
-          getPrice('test')
-          getPrice('live')
+          validatePayment('test')
+          validatePayment('live')
           validateDns()
+          validateVps()
         break
 
         case 'price':
@@ -186,6 +197,7 @@
           settings.payment.modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
           gotPrice[message.mode] = true
           priceError[message.mode] = null
+          ok.payment = true
         break
 
         case 'error':
@@ -209,6 +221,16 @@
         case 'validate-dns':
           validateDnsError = null
           ok.dns = true
+        break
+
+        case 'validate-vps-error':
+          validateVpsError = message.error
+          ok.vps = false
+        break
+
+        case 'validate-vps':
+          validateVpsError = null
+          ok.vps = true
         break
 
         default:
@@ -339,14 +361,14 @@
                   <TabPanel>
                     <h3>{mode.title}</h3>
                     <label for={`${mode.id}PublishableKey`}>Publishable key</label>
-                    <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={getPrice(mode.id)}/>
+                    <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePayment(mode.id)}/>
 
                     <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
                     <!-- TODO: Implement input event on SensitiveTextInput component. -->
-                    <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={getPrice(mode.id)}/>
+                    <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validatePayment(mode.id)}/>
 
                     <label for={`${mode.id}PriceId`}>Price (API ID)</label>
-                    <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={getPrice(mode.id)}/>
+                    <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={validatePayment(mode.id)}/>
 
                     {#if gotPrice[mode.id] && priceError[mode.id] !== null}
                       <p style='color: red;'>❌️ {priceError[mode.id]}</p>
@@ -413,26 +435,40 @@
                 <option value='Hetzner'>Hetzner</option>
               </select>
 
+              {#if validateDnsError}
+                <p style='color: red;'>❌️ {validateVpsError}</p>
+              {:else if ok.vps}
+                <p>✔️ Your VPS settings are correct.</p>
+              {:else}
+                <p>You’ll be informed once you have the correct details set.</p>
+              {/if}
+
               <label id='vpiApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
-              <SensitiveTextInput name='vpsApiToken' bind:value={settings.vps.apiToken}/>
+              <SensitiveTextInput
+                name='vpsApiToken'
+                bind:value={settings.vps.apiToken}
+                on:input={validateVps}
+              />
 
-              <h3>Server details</h3>
-              <p>These settings will be used when setting up people’s servers.</p>
+              {#if ok.vps}
+                <h3>Server details</h3>
+                <p>These settings will be used when setting up people’s servers.</p>
 
-              <label for='vpsSshKeyName'>SSH Key Name</label>
-              <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
+                <label for='vpsSshKeyName'>SSH Key Name</label>
+                <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
 
-              <label for='vpsServerType'>Server Type</label>
-              <input name='vpsServerType' type='text' bind:value={settings.vps.serverType}/>
+                <label for='vpsServerType'>Server Type</label>
+                <input name='vpsServerType' type='text' bind:value={settings.vps.serverType}/>
 
-              <label for='vpsLocation'>Location</label>
-              <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>
+                <label for='vpsLocation'>Location</label>
+                <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>
 
-              <label for='vpsImage'>Image</label>
-              <input name='vpsImage' type='text' bind:value={settings.vps.image}/>
+                <label for='vpsImage'>Image</label>
+                <input name='vpsImage' type='text' bind:value={settings.vps.image}/>
 
-              <label for='vpsCloudInit'>Cloud Init</label>
-              <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
+                <label for='vpsCloudInit'>Cloud Init</label>
+                <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
+              {/if}
             </TabPanel>
 
           </form>
