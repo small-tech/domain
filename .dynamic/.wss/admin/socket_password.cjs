@@ -61,7 +61,32 @@ module.exports = function (client, request) {
             amount: priceDetails.unit_amount / 100
           }))
         }
+      break;
 
+      case 'validate-dns':
+        console.log('Validating DNS details')
+        const retrieveDomainUrl = `https://api.dnsimple.com/v2/${db.settings.dns.accountId}/domains/${db.settings.dns.domain}`
+        const dnsAccountDetails = await (await fetch(retrieveDomainUrl, {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${db.settings.dns.accessToken}`
+          }
+        })).json()
+
+        if (dnsAccountDetails.message) {
+          // Something went wrong (most likely an authentication failure)
+          client.send(JSON.stringify({
+            type: 'validate-dns-error',
+            error: dnsAccountDetails.message
+          }))
+        } else {
+          // Send the account details.
+          client.send(JSON.stringify({
+            type: 'validate-dns'
+          }))
+        }
+
+        console.log(dnsAccountDetails)
       break;
 
       default:
@@ -128,7 +153,6 @@ if (db.settings === undefined) {
       domain: 'small-web.org',
       provider: 'DNSimple',
       accountId: '000000',
-      zoneId: '123456',
       accessToken: 'asecretaccesstoken'
     },
 

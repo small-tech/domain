@@ -1,3 +1,4 @@
+<svelte:options accessors={true}/>
 <script>
   export let name
   export let value

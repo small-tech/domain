@@ -26,6 +26,13 @@
   let signingIn = false
   let rebuildingSite = false
 
+  // Outlets: DNSimple DNS settings
+  let dnsDomainInput
+  let dnsAccountIdInput
+  let dnsAccessTokenInput
+
+  let validateDnsError = null
+
   const gotPrice = {
     test: false,
     live: false
@@ -66,6 +73,20 @@
   onMount(() => {
     baseUrl = document.location.hostname
   })
+
+  function validateDns() {
+    validateDnsError = null
+    if (
+      settings.dns.domain !== ''
+      && parseInt(settings.dns.accountId) !== NaN
+      && settings.dns.accessToken !== ''
+    ) {
+      console.log('Validating DNS details…')
+      socket.send(JSON.stringify({
+        type: 'validate-dns'
+      }))
+    }
+  }
 
   function getPrice(modeId) {
     gotPrice[modeId] = false
@@ -157,6 +178,7 @@
           signedIn = true
           getPrice('test')
           getPrice('live')
+          validateDns()
         break
 
         case 'price':
@@ -177,6 +199,16 @@
             priceError[message.mode] = `${message.error.message} (${message.error.type})`
           }
           gotPrice[message.mode] = true
+        break
+
+        case 'validate-dns-error':
+          validateDnsError = message.error
+          ok.dns = false
+        break
+
+        case 'validate-dns':
+          validateDnsError = null
+          ok.dns = true
         break
 
         default:
@@ -336,17 +368,41 @@
                 <option value='DNSimple'>DNSimple</option>
               </select>
 
+              <p>Find the information required below on your <a href='https://dnsimple.com'>DNSimple</a> dashboard under Account → Automation.</p>
+
+              {#if validateDnsError}
+                <p style='color: red;'>❌️ {validateDnsError}</p>
+              {:else if ok.dns}
+                <p>✔️ Your DNS settings are correct.</p>
+              {:else}
+                <p>You’ll be informed once you have the correct details set.</p>
+              {/if}
+
               <label for='domain'>Domain</label>
-              <input name='domain' type='text' bind:value={settings.dns.domain}/>
+              <input
+                id='domain'
+                name='domain'
+                type='text'
+                bind:value={settings.dns.domain}
+                bind:this={dnsDomainInput}
+                on:input={validateDns}
+              />
 
               <label id='accountIdLabel' for='dnsAccountId'>Account ID</label>
-              <SensitiveTextInput name='dnsAccountId' bind:value={settings.dns.accountId} />
-
-              <label for='dnsZoneId' class='block'>Zone ID</label>
-              <SensitiveTextInput name='dnsZoneId' bind:value={settings.dns.zoneId} />
+              <SensitiveTextInput
+                name='dnsAccountId'
+                bind:value={settings.dns.accountId}
+                bind:this={dnsAccountIdInput}
+                on:input={validateDns}
+              />
 
               <label for='dnsAccessToken' class='block'>Access Token</label>
-              <SensitiveTextInput name='dnsAccessToken' bind:value={settings.dns.accessToken} />
+              <SensitiveTextInput
+                name='dnsAccessToken'
+                bind:value={settings.dns.accessToken}
+                bind:this={dnsAccessTokenInput}
+                on:input={validateDns}
+              />
             </TabPanel>
 
             <TabPanel>
@@ -387,7 +443,7 @@
       <TabPanel>
         <h2>Places</h2>
         <h3>Create a new Small Web place</h3>
-        <p>You can create a new site without requiring payment details from here (e.g., for your own organisation, for friends, etc.)</p>
+        <p>You can create a new place without requiring payment details from here (e.g., for your own organisation, for friends, etc.)</p>
         <DomainChecker config={settings} buttonLabel='Create server'/>
 
         <h3>Hosted places</h3>
