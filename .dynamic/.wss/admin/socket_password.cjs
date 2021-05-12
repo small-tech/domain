@@ -88,15 +88,49 @@ module.exports = function (client, request) {
 
             return Boolean(serverType.deprecated) === false && parseInt(serverType.cores) > 1 && serverType.storage_type === 'local'
           })
+
+          // Get locations
+          const locations = (await (await fetch('https://api.hetzner.cloud/v1/locations?per_page=50', {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${db.settings.vps.apiToken}`
+            }
+          })).json()).locations
+          // TODO: Handle error here also.
+
+          // Get images
+          const images = (await (await fetch('https://api.hetzner.cloud/v1/images?per_page=50', {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${db.settings.vps.apiToken}`
+            }
+          })).json()).images
+          // TODO: Handle error here also.
+
+          // Get SSH keys
+          const sshKeys = (await (await fetch('https://api.hetzner.cloud/v1/ssh_keys?per_page=50', {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${db.settings.vps.apiToken}`
+            }
+          })).json()).ssh_keys
+          // TODO: Handle error here also.
+
+          const details = {
+            serverTypes: relevantServerTypes,
+            locations,
+            images,
+            sshKeys
+          }
+
+          console.log(details)
+
           client.send(JSON.stringify({
             type: 'validate-vps',
-            details: {
-              serverTypes: relevantServerTypes
-            }
+            details
           }))
         }
 
-        console.log(serverTypes)
       break
 
       case 'validate-dns':
