@@ -44,8 +44,7 @@ module.exports = function (client, request) {
           }
         })).json()
 
-        console.log('Getting price for mode: ', message.mode)
-        console.log(priceDetails)
+        console.log(`   📡️    ❨Basil❩ Validating Payment Provider settings (${message.mode} mode).`)
 
         if (priceDetails.error) {
           client.send(JSON.stringify({
@@ -64,7 +63,7 @@ module.exports = function (client, request) {
       break;
 
       case 'validate-vps':
-        console.log('Validating VPS…')
+        console.log('   📡️    ❨Basil❩ Validating VPS Provider settings.')
 
         // Get server types. (In this first call we’ll know if the
         // authorisation token is correct or not.)
@@ -132,8 +131,6 @@ module.exports = function (client, request) {
             sshKeys
           }
 
-          console.log(details)
-
           client.send(JSON.stringify({
             type: 'validate-vps',
             details
@@ -143,7 +140,7 @@ module.exports = function (client, request) {
       break
 
       case 'validate-dns':
-        console.log('Validating DNS details')
+        console.log('   📡️    ❨Basil❩ Validating DNS Provider settings.')
         const retrieveDomainUrl = `https://api.dnsimple.com/v2/${db.settings.dns.accountId}/domains/${db.settings.dns.domain}`
         const dnsAccountDetails = await (await fetch(retrieveDomainUrl, {
           headers: {
@@ -164,8 +161,6 @@ module.exports = function (client, request) {
             type: 'validate-dns'
           }))
         }
-
-        console.log(dnsAccountDetails)
       break
 
       default:
