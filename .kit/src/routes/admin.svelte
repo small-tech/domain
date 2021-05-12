@@ -39,6 +39,7 @@
   let vpsServerType
   let vpsLocation
   let vpsImage
+  let vpsSshKey
 
   const gotPrice = {
     test: false,
@@ -155,6 +156,10 @@
     settings.vps.image = vpsImage.name
   }
 
+  function vpsSshKeyChange () {
+    settings.vps.sshKey = vpsSshKey.name
+  }
+
   function showSavedMessage() {
     if (shouldShowSavedMessage) return
     shouldShowSavedMessage = true
@@ -253,6 +258,7 @@
           const serverTypes = vpsDetails.serverTypes
           const locations = vpsDetails.locations
           const images = vpsDetails.images
+          const sshKeys = vpsDetails.sshKeys
 
           vpsServerType = serverTypes.find(serverType => {
             return serverType.name === settings.vps.serverType
@@ -264,6 +270,14 @@
 
           vpsImage = images.find(image => {
             return image.name === settings.vps.image
+          })
+
+          // FIX-ME: Unlike the others, initially this will be unset
+          // ======= so we have to handle this differently. Test
+          //         by removing SSH keys from Hetzner and starting
+          //         with a blank slate.
+          vpsSshKey = sshKeys.find(sshKey => {
+            return sshKey.name === settings.vps.sshKey
           })
 
           ok.vps = true
@@ -487,8 +501,19 @@
               />
 
               {#if ok.vps}
-                <label for='vpsSshKeyName'>SSH Key Name</label>
-                <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
+                <!-- SSH keys -->
+                <label for='vpsSshKey'>SSH Key Name</label>
+                <!-- svelte-ignore a11y-no-onchange -->
+                <select id='vpsSshKey' bind:value={vpsSshKey} on:change={vpsSshKeyChange}>
+                  {#each vpsDetails.sshKeys as sshKey}
+                    <option value={sshKey}>{sshKey.name}</option>
+                  {/each}
+                </select>
+                <ul class='vpsItemDetails'>
+                  <li>Created: {vpsSshKey.created}</li>
+                  <li>Fingerprint: {vpsSshKey.fingerprint}</li>
+                  <li>Public Key: <code>{vpsSshKey.public_key}</code></li>
+                </ul>
 
                 <Accordion>
                   <AccordionItem title='Advanced'>
@@ -708,6 +733,7 @@
     padding: 0;
     padding-bottom: 0.75em;
     border-radius: 0;
+    margin-top: 0.25em;
     border-bottom: 2px dashed grey;
   }
 
