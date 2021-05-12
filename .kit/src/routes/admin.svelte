@@ -14,6 +14,7 @@
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
   import showdown from 'showdown'
+import { debug } from 'svelte/internal'
 
   const { Converter } = showdown
 
@@ -35,7 +36,7 @@
   let validateVpsError = null
 
   let vpsDetails = {}
-  let vpsServerType = {}
+  let vpsServerType
 
   const gotPrice = {
     test: false,
@@ -140,10 +141,8 @@
     console.log(gotPrice, priceError)
   }
 
-  function serverTypeChange(value) {
-    console.log('<<<serverTypeChange>>>', value)
-    // settings.vps.serverType = value
-    vpsServerType = vpsDetails.serverTypes.find(serverType => serverType.id === settings.vps.serverType)
+  function serverTypeChange(event) {
+    settings.vps.serverType = vpsServerType.name
   }
 
   function showSavedMessage() {
@@ -240,6 +239,12 @@
         case 'validate-vps':
           validateVpsError = null
           vpsDetails = message.details
+
+          const serverTypes = vpsDetails.serverTypes
+
+          vpsServerType = serverTypes.find(serverType => {
+            return serverType.name === settings.vps.serverType
+          })
           ok.vps = true
         break
 
@@ -467,15 +472,14 @@
                 <label for='vpsSshKeyName'>SSH Key Name</label>
                 <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
 
-                <label for='vpsServerType'>Server Type</label>
-                <input name='vpsServerType' type='text' bind:value={settings.vps.serverType}/>
-
                 <!-- svelte-ignore a11y-no-onchange -->
-                <select on:change={serverTypeChange}>
+                <select bind:value={vpsServerType} on:change={serverTypeChange}>
                   {#each vpsDetails.serverTypes as serverType}
-                    <option value={serverType.name}>{serverType.description}</option>
+                    <option value={serverType}>{serverType.description}</option>
                   {/each}
                 </select>
+
+                <p><strong>Server details:</strong> {vpsServerType.cores} cores, {vpsServerType.memory}GB memory, {vpsServerType.disk}GB disk. Cost: €{parseFloat(vpsServerType.prices[0].price_monthly.net).toFixed(2)}/month (exc. VAT).</p>
 
                 <label for='vpsLocation'>Location</label>
                 <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>

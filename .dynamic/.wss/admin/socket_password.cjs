@@ -68,7 +68,7 @@ module.exports = function (client, request) {
 
         // Get server types. (In this first call we’ll know if the
         // authorisation token is correct or not.)
-        const serverTypes = await (await fetch('https://api.hetzner.cloud/v1/server_types', {
+        const serverTypes = await (await fetch('https://api.hetzner.cloud/v1/server_types?per_page=50', {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${db.settings.vps.apiToken}`
@@ -81,10 +81,17 @@ module.exports = function (client, request) {
             error: `${serverTypes.error.code}: ${serverTypes.error.message}`
           }))
         } else {
+          // Filter down to relevant server types
+          const relevantServerTypes = serverTypes.server_types.filter(serverType => {
+            // Flag the recommended server.
+            if (serverType.name === 'cpx11') serverType.description = 'CPX 11 (recommended)'
+
+            return Boolean(serverType.deprecated) === false && parseInt(serverType.cores) > 1 && serverType.storage_type === 'local'
+          })
           client.send(JSON.stringify({
             type: 'validate-vps',
             details: {
-              serverTypes: serverTypes.server_types
+              serverTypes: relevantServerTypes
             }
           }))
         }
