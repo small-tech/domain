@@ -99,13 +99,22 @@ module.exports = function (client, request) {
           // TODO: Handle error here also.
 
           // Get images
-          const images = (await (await fetch('https://api.hetzner.cloud/v1/images?per_page=50', {
+          const _images = (await (await fetch('https://api.hetzner.cloud/v1/images?type=system&status=available&include_deprecated=false&per_page=50', {
             headers: {
               Accept: 'application/json',
               Authorization: `Bearer ${db.settings.vps.apiToken}`
             }
           })).json()).images
           // TODO: Handle error here also.
+
+          const images = _images.filter(image => {
+            if (image.name === 'ubuntu-20.04') {
+              image.description = 'Ubuntu 20.04 (recommended)'
+            }
+
+            // All system images appear to be rapid deploy at the moment, but just in case.
+            return image.rapid_deploy === true
+          })
 
           // Get SSH keys
           const sshKeys = (await (await fetch('https://api.hetzner.cloud/v1/ssh_keys?per_page=50', {
