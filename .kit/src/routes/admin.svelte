@@ -66,6 +66,8 @@
     vps: false
   }
 
+  $: ok.all = ok.site && ok.payment && ok.dns && ok.vps
+
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
 
