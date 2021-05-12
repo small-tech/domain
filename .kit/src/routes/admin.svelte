@@ -14,7 +14,6 @@
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
   import showdown from 'showdown'
-import { debug } from 'svelte/internal'
 
   const { Converter } = showdown
 
@@ -37,6 +36,7 @@ import { debug } from 'svelte/internal'
 
   let vpsDetails = {}
   let vpsServerType
+  let vpsLocation
 
   const gotPrice = {
     test: false,
@@ -141,8 +141,12 @@ import { debug } from 'svelte/internal'
     console.log(gotPrice, priceError)
   }
 
-  function serverTypeChange(event) {
+  function serverTypeChange (event) {
     settings.vps.serverType = vpsServerType.name
+  }
+
+  function vpsLocationChange (event) {
+    settings.vps.location = vpsLocation.name
   }
 
   function showSavedMessage() {
@@ -241,10 +245,16 @@ import { debug } from 'svelte/internal'
           vpsDetails = message.details
 
           const serverTypes = vpsDetails.serverTypes
+          const locations = vpsDetails.locations
 
           vpsServerType = serverTypes.find(serverType => {
             return serverType.name === settings.vps.serverType
           })
+
+          vpsLocation = locations.find(location => {
+            return location.name === settings.vps.location
+          })
+
           ok.vps = true
         break
 
@@ -472,17 +482,25 @@ import { debug } from 'svelte/internal'
                 <label for='vpsSshKeyName'>SSH Key Name</label>
                 <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
 
+                <!-- VPS Server Type -->
+                <label for='vpsServerType'>Server type</label>
                 <!-- svelte-ignore a11y-no-onchange -->
-                <select bind:value={vpsServerType} on:change={serverTypeChange}>
+                <select id='vpsServerType' bind:value={vpsServerType} on:change={serverTypeChange}>
                   {#each vpsDetails.serverTypes as serverType}
                     <option value={serverType}>{serverType.description}</option>
                   {/each}
                 </select>
+                <p class='vpsItemDetails'>({vpsServerType.cores} cores, {vpsServerType.memory}GB memory, {vpsServerType.disk}GB disk. Cost: €{parseFloat(vpsServerType.prices[0].price_monthly.net).toFixed(2)}/month (exc. VAT).)</p>
 
-                <p><strong>Server details:</strong> {vpsServerType.cores} cores, {vpsServerType.memory}GB memory, {vpsServerType.disk}GB disk. Cost: €{parseFloat(vpsServerType.prices[0].price_monthly.net).toFixed(2)}/month (exc. VAT).</p>
-
+                <!-- VPS Location -->
                 <label for='vpsLocation'>Location</label>
-                <input name='vpsLocation' type='text' bind:value={settings.vps.location}/>
+                <!-- svelte-ignore a11y-no-onchange -->
+                <select id='vpsLocation' bind:value={vpsLocation} on:change={vpsLocationChange}>
+                  {#each vpsDetails.locations as location}
+                    <option value={location}>{location.description.replace('DC', 'Data Centre')}</option>
+                  {/each}
+                </select>
+                <p class='vpsItemDetails'>({vpsLocation.city} ({vpsLocation.country}), {vpsLocation.network_zone.replace('eu-central', 'central EU')} network zone.)</p>
 
                 <label for='vpsImage'>Image</label>
                 <input name='vpsImage' type='text' bind:value={settings.vps.image}/>
@@ -570,6 +588,12 @@ import { debug } from 'svelte/internal'
 	.live {
 		margin-left: 0.75em;
 	}
+
+  .vpsItemDetails {
+    margin-top: -0.75em;
+    font-size: smaller;
+    font-style: italic;
+  }
 
   #accountIdLabel, #vpiApiTokenLabel {
     display: block;
