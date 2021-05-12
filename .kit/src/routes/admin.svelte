@@ -331,7 +331,7 @@
           <form on:submit|preventDefault>
 
             <TabPanel>
-              <h3 id='site'>Site settings</h3>
+              <h2 id='site'>Site settings</h2>
               <p>The details here are used to render the page that people use to sign up to your hosting service.</p>
               <label for='siteName'>Name</label>
               <input name='siteName' type='text' bind:value={settings.site.name}/>
@@ -376,16 +376,17 @@
 
               <!-- Stripe (currently the only implemented provider)-->
 
-              <section id='stripeInstructions'>
+              <section class='instructions'>
                 <h3>Instructions</h3>
 
                 <ol>
                   <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
+                  <li>Accept your <a href='https://stripe.com/dpa/legal'>Data Processing Addendum</a> (GDPR). Download and print a copy, sign it and keep it safe.</li>
                   <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
                   <li>Enter the API ID of its price and other the details below.</li>
                 </ol>
 
-                <p><em>(Repeat Steps 2 and 3 once for Test Mode and once for Live Mode.)</em></p>
+                <p><em>(Repeat Steps 3 and 4 once for Test Mode and once for Live Mode.)</em></p>
               </section>
 
               <!-- Note: this will be automatically received via the Stripe API. -->
@@ -440,7 +441,14 @@
                 <option value='DNSimple'>DNSimple</option>
               </select>
 
-              <p>Find the information required below on your <a href='https://dnsimple.com'>DNSimple</a> dashboard under Account → Automation.</p>
+              <section class='instructions'>
+                <h3>Instructions</h3>
+                <ol>
+                  <li>Get a <a href=''>DNSimple</a> account.</li>
+                  <li><a href='https://dnsimple.com/contact'>Write to DNSimple</a> to ask for a GDPR Data Protection Agreement (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
+                  <li>Find the details required below on your DNSimple dashboard under <strong>Account → Automation</strong>.</li>
+                </ol>
+              </section>
 
               {#if validateDnsError}
                 <p style='color: red;'>❌️ {validateDnsError}</p>
@@ -485,7 +493,17 @@
                 <option value='Hetzner'>Hetzner</option>
               </select>
 
-              {#if validateDnsError}
+              <section class='instructions'>
+                <h3>Instructions</h3>
+                <ol>
+                  <li>Create a <a href='https://www.hetzner.com/cloud'>Hetzner Cloud</a> account.</li>
+                  <li><a href='https://accounts.hetzner.com/account/dpa'>Create a GDPR Data Protection Agreement</a>, accept it, download a copy, sign it, and keep it somewhere safe. (See <a href='https://docs.hetzner.com/general/general-terms-and-conditions/data-privacy-faq/'>Hetzner Data Privacy FAQ</a>)</li>
+                  <li><a href='https://console.hetzner.cloud/projects'>Create a new project</a> to hold the sites you will be hosting.</li>
+                  <li>Generate an API Token from <strong><em>your-project</em> → Security → API Tokens</strong> in your Hetzner dashboard and copy it below.</li>
+                </ol>
+              </section>
+
+              {#if validateVpsError}
                 <p style='color: red;'>❌️ {validateVpsError}</p>
               {:else if ok.vps}
                 <p>✔️ Your VPS settings are correct.</p>
@@ -656,6 +674,23 @@
 		margin-left: 0.75em;
 	}
 
+  .instructions {
+    background-color: #eee;
+    margin-left: -1em;
+    padding-left: 1em;
+    margin-right: -1em;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    padding-right: 1em;
+    padding-top: 0.25em;
+    padding-bottom: 0.5em;
+    border-radius: 1em;
+  }
+
+  .instructions li {
+    margin-top: 0.5em;
+  }
+
   .vpsItemDetails {
     margin-top: -0.75em;
     font-size: smaller;
@@ -694,17 +729,6 @@
     padding: 1em;
     border-radius: 3em;
     box-shadow: grey 1px 1px 4px;
-  }
-
-  #stripeInstructions {
-    background-color: #eee;
-    margin-left: -1em;
-    padding-left: 1em;
-    margin-right: -1em;
-    padding-right: 1em;
-    padding-top: 0.25em;
-    padding-bottom: 0.5em;
-    border-radius: 1em;
   }
 
   #currency, #price {
