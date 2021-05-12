@@ -10,6 +10,7 @@
   import Jumper from '$lib/Jumper.svelte'
   import DomainChecker from '$lib/DomainChecker.svelte'
   import Switch from 'svelte-switch'
+  import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -37,6 +38,7 @@
   let vpsDetails = {}
   let vpsServerType
   let vpsLocation
+  let vpsImage
 
   const gotPrice = {
     test: false,
@@ -141,12 +143,16 @@
     console.log(gotPrice, priceError)
   }
 
-  function serverTypeChange (event) {
+  function serverTypeChange () {
     settings.vps.serverType = vpsServerType.name
   }
 
-  function vpsLocationChange (event) {
+  function vpsLocationChange () {
     settings.vps.location = vpsLocation.name
+  }
+
+  function vpsImageChange () {
+    settings.vps.image = vpsImage.name
   }
 
   function showSavedMessage() {
@@ -246,6 +252,7 @@
 
           const serverTypes = vpsDetails.serverTypes
           const locations = vpsDetails.locations
+          const images = vpsDetails.images
 
           vpsServerType = serverTypes.find(serverType => {
             return serverType.name === settings.vps.serverType
@@ -253,6 +260,10 @@
 
           vpsLocation = locations.find(location => {
             return location.name === settings.vps.location
+          })
+
+          vpsImage = images.find(image => {
+            return image.name === settings.vps.image
           })
 
           ok.vps = true
@@ -476,37 +487,56 @@
               />
 
               {#if ok.vps}
-                <h3>Server details</h3>
-                <p>These settings will be used when setting up people’s servers.</p>
-
                 <label for='vpsSshKeyName'>SSH Key Name</label>
                 <input name='vpsSshKeyName' type='text' bind:value={settings.vps.sshKeyName}/>
 
-                <!-- VPS Server Type -->
-                <label for='vpsServerType'>Server type</label>
-                <!-- svelte-ignore a11y-no-onchange -->
-                <select id='vpsServerType' bind:value={vpsServerType} on:change={serverTypeChange}>
-                  {#each vpsDetails.serverTypes as serverType}
-                    <option value={serverType}>{serverType.description}</option>
-                  {/each}
-                </select>
-                <p class='vpsItemDetails'>({vpsServerType.cores} cores, {vpsServerType.memory}GB memory, {vpsServerType.disk}GB disk. Cost: €{parseFloat(vpsServerType.prices[0].price_monthly.net).toFixed(2)}/month (exc. VAT).)</p>
+                <Accordion>
+                  <AccordionItem title='Advanced'>
+                    <h3>Server details</h3>
+                    <p>These settings will be used when setting up servers.</p>
 
-                <!-- VPS Location -->
-                <label for='vpsLocation'>Location</label>
-                <!-- svelte-ignore a11y-no-onchange -->
-                <select id='vpsLocation' bind:value={vpsLocation} on:change={vpsLocationChange}>
-                  {#each vpsDetails.locations as location}
-                    <option value={location}>{location.description.replace('DC', 'Data Centre')}</option>
-                  {/each}
-                </select>
-                <p class='vpsItemDetails'>({vpsLocation.city} ({vpsLocation.country}), {vpsLocation.network_zone.replace('eu-central', 'central EU')} network zone.)</p>
+                    <!-- VPS Server Types -->
+                    <label for='vpsServerType'>Server type</label>
+                    <!-- svelte-ignore a11y-no-onchange -->
+                    <select id='vpsServerType' bind:value={vpsServerType} on:change={serverTypeChange}>
+                      {#each vpsDetails.serverTypes as serverType}
+                        <option value={serverType}>{serverType.description}</option>
+                      {/each}
+                    </select>
+                    <p class='vpsItemDetails'>{vpsServerType.cores} cores, {vpsServerType.memory}GB memory, {vpsServerType.disk}GB disk. Cost: €{parseFloat(vpsServerType.prices[0].price_monthly.net).toFixed(2)}/month (exc. VAT).</p>
 
-                <label for='vpsImage'>Image</label>
-                <input name='vpsImage' type='text' bind:value={settings.vps.image}/>
+                    <!-- VPS Locations -->
+                    <label for='vpsLocation'>Location</label>
+                    <!-- svelte-ignore a11y-no-onchange -->
+                    <select id='vpsLocation' bind:value={vpsLocation} on:change={vpsLocationChange}>
+                      {#each vpsDetails.locations as location}
+                        <option value={location}>{location.description.replace('DC', 'Data Centre')}</option>
+                      {/each}
+                    </select>
+                    <p class='vpsItemDetails'>{vpsLocation.city} ({vpsLocation.country}), {vpsLocation.network_zone.replace('eu-central', 'central EU')} network zone.</p>
 
-                <label for='vpsCloudInit'>Cloud Init</label>
-                <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
+                    <!-- VPS Images -->
+                    <label for='vpsImage'>Image</label>
+                    <!-- svelte-ignore a11y-no-onchange -->
+                    <select id='vpsImage' bind:value={vpsImage} on:change={vpsImageChange}>
+                      {#each vpsDetails.images as image}
+                        <option value={image}>{image.description}</option>
+                      {/each}
+                    </select>
+                    <p class='vpsItemDetails'>
+                      {#if vpsImage.name === 'ubuntu-20.04'}
+                        <strong class='positive'>This is currently the only supported system for Small Web deployments.</strong>
+                      {:else}
+                        <strong class='warning'>This is an unsupported system for Small Web deployments.</strong>
+                      {/if}
+                        Any Linux with systemd should work but you might have to adjust the Cloud Init script, below.
+                    </p>
+
+                    <label for='vpsCloudInit'>Cloud Init</label>
+                    <p>Please only change the Cloud Init configuration if you know what you’re doing.</p>
+                    <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
+                  </AccordionItem>
+                </Accordion>
               {/if}
             </TabPanel>
 
@@ -579,6 +609,18 @@
     display: block;
   }
 
+  .positive {
+    color: green;
+  }
+
+  .warning {
+    color: orange;
+  }
+
+  .negative {
+    color: red;
+  }
+
   .live, .test {
 		color: white;
 		display: inline-block;
@@ -644,6 +686,44 @@
     display: inline;
     width: 2em;
   }
+
+  :global([data-accordion]) {
+    list-style: none;
+    margin:0;
+    padding: 0;
+  }
+
+  :global([data-accordion-item] button) {
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 1.25em;
+    font-weight: bold;
+    line-height: inherit;
+    color: inherit;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 0.75em;
+    border-radius: 0;
+    border-bottom: 2px dashed grey;
+  }
+
+  :global([data-accordion-item] button[aria-expanded='false']::before) {
+    content: ' ⯈ '
+  }
+
+  :global([data-accordion-item] button[aria-expanded='true']::before) {
+    content: ' ⯆ '
+  }
+
+  :global([data-accordion-item] [role="region"]) {
+    /* background-color: #eee; */
+    /* margin: -0.25em -1em; */
+    /* padding: 0.25em 1em; */
+	}
 
   #vpsCloudInit {
     min-height: 300px;
