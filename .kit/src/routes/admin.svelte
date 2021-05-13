@@ -446,9 +446,9 @@
               <section class='instructions'>
                 <h3>Instructions</h3>
                 <ol>
-                  <li>Get a <a href=''>DNSimple</a> account.</li>
-                  <li><a href='https://dnsimple.com/contact'>Write to DNSimple</a> to ask for a GDPR Data Protection Agreement (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
-                  <li>Find the details required below on your DNSimple dashboard under <strong>Account → Automation</strong>.</li>
+                  <li>Get a <a href=''>DNSimple</a> account (a personal account should suffice as you only need to add subdomains to one domain).</li>
+                  <li><strong>DNSimple does not provide GDPR Data Protection Agreements for anything less than their $300/mo business accounts.</strong> They say one is not necessary for hosting subdomains. (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
+                  <li>Add your domain to your DNSimple dashboard and find the details required on it under <strong>Account → Automation</strong>.</li>
                 </ol>
               </section>
 
