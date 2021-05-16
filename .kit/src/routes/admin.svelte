@@ -60,6 +60,7 @@
 
   const ok = {
     all: false,
+    org: false,
     site: false,
     payment: false,
     dns: false,
@@ -324,6 +325,7 @@
 
         <TabbedInterface>
           <TabList>
+            <Tab><StatusMessage state={ok.org}>Organisation</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.site}>Site</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.dns}>DNS</StatusMessage></Tab>
@@ -333,17 +335,45 @@
           <form on:submit|preventDefault>
 
             <TabPanel>
+              <h2 id='site'>Organisation settings</h2>
+              <p>These details are used to populate the legal matter in the privacy policy and terms and conditions, etc. See Site.</p>
+
+              <label for='orgName'>Name</label>
+              <input name='orgName' type='text' bind:value={settings.org.name}/>
+
+              <label for='orgName'>Official Address</label>
+              <input name='orgName' type='text' bind:value={settings.org.address}/>
+
+              <label for='orgSite'>Web site</label>
+              <input name='orgSite' type='text' bind:value={settings.org.site}/>
+
+              <label for='orgEmail'>Support email</label>
+              <input name='orgEmail' type='text' bind:value={settings.org.email}/>
+
+            </TabPanel>
+
+            <TabPanel>
               <h2 id='site'>Site settings</h2>
               <p>The details here are used to render the page that people use to sign up to your hosting service.</p>
-              <label for='siteName'>Name</label>
-              <input name='siteName' type='text' bind:value={settings.site.name}/>
 
-              <label for='siteHeader'>Header</label>
-              <textarea name='siteHeader' bind:value={settings.site.header}/>
-
-              <label for='siteFooter'>Footer</label>
-              <textarea name='siteFooter' bind:value={settings.site.footer}/>
-              <small>You can use Markdown and HTML.</small>
+              <TabbedInterface>
+                <TabList>
+                  <Tab>Header</Tab>
+                  <Tab>Footer</Tab>
+                  <Tab>Privacy Policy</Tab>
+                  <Tab>Terms and Conditions</Tab>
+                </TabList>
+                <TabPanel>
+                  <label for='siteHeader'>Header</label>
+                  <textarea name='siteHeader' bind:value={settings.site.header}/>
+                  <small>You can use Markdown and HTML.</small>
+                </TabPanel>
+                <TabPanel>
+                  <label for='siteFooter'>Footer</label>
+                  <textarea name='siteFooter' bind:value={settings.site.footer}/>
+                  <small>You can use Markdown and HTML.</small>
+                </TabPanel>
+              </TabbedInterface>
 
               <div id='preview' class='site'>
                 <h3>Preview</h3>
