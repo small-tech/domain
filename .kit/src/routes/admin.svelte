@@ -112,7 +112,7 @@
     gotPrice[modeId] = false
     priceError[modeId] = null
 
-    const priceId = (settings.payment.modeDetails[modeId === 'test' ? 0 : 1].priceId).trim()
+    const priceId = (settings.payment.providers[2].modeDetails[modeId === 'test' ? 0 : 1].priceId).trim()
 
     if (priceId === '') {
       return
@@ -219,8 +219,8 @@
         break
 
         case 'price':
-          settings.payment.modeDetails[message.mode === 'test' ? 0 : 1].currency = currencies[message.currency]
-          settings.payment.modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
+          settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].currency = currencies[message.currency]
+          settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
           gotPrice[message.mode] = true
           priceError[message.mode] = null
           ok.payment = true
@@ -402,67 +402,79 @@
               <h2 id='payment'>Payment Settings</h2>
 
               <label for='paymentProvider'>Provider</label>
-              <select name='paymentProvider'>
-                <option value='Stripe'>Stripe</option>
+              <select name='paymentProvider' bind:value={settings.payment.provider}>
+                {#each settings.payment.providers as provider, index}
+                  <option value={index}>{provider.name}</option>
+                {/each}
               </select>
 
-              <!-- Stripe (currently the only implemented provider)-->
+              {#if settings.payment.provider === 0}
+                <!-- None: no payment provider. All server setups must be done via the admin. -->
+                <section class='instructions'>
+                  <h3>Instructions </h3>
+                  <p>You do not need to set up a payment method to use Basil. When no payment method is set, all server deployments must be done here, from the administrator. You still need to set up the DNS and VPS settings. This is a good option if you just want to set up servers for yourself or for you and your family and friends, for example.</p>
+                </section>
+              {/if}
 
-              <section class='instructions'>
-                <h3>Instructions</h3>
+              {#if settings.payment.provider === 1}
+                <!-- Tokens -->
+                <section class='instructions'>
+                  <h3>Instructions </h3>
+                  <p><strong>Not implemented yet:</strong> Tokens are an alternative to using regular currency, credit/debit card transactions to provide access to servers. A munipicality, for example, might decide that it is a human right for every one of its citizens to have their own place on the Small Web. In this case, a munipicality might decide to issue tokens to every resident that they can use when setting up their place. The same municipality may also activate Stripe payments for those who want more than one site, etc.</p>
+                </section>
+              {/if}
 
-                <ol>
-                  <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
-                  <li>Accept your <a href='https://stripe.com/dpa/legal'>Data Processing Addendum</a> (GDPR). Download and print a copy, sign it and keep it safe.</li>
-                  <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
-                  <li>Enter the API ID of its price and other the details below.</li>
-                </ol>
+              {#if settings.payment.provider === 2}
+                <!-- Stripe. -->
+                <section class='instructions'>
+                  <h3>Instructions</h3>
 
-                <p><em>(Repeat Steps 3 and 4 once for Test Mode and once for Live Mode.)</em></p>
-              </section>
+                  <ol>
+                    <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
+                    <li>Accept your <a href='https://stripe.com/dpa/legal'>Data Processing Addendum</a> (GDPR). Download and print a copy, sign it and keep it safe.</li>
+                    <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
+                    <li>Enter the API ID of its price and other the details below.</li>
+                  </ol>
 
-              <!-- Note: this will be automatically received via the Stripe API. -->
-              <!-- <label for='currency'>Currency</label> <span> & </span>
-              <label id='priceLabel' for='price'>Price</label>
-              <br>
-              <input id='currency' name='currency' type='text' bind:value={settings.payment.currency}/>
-              <input id='price' name='price' type='text' bind:value={settings.payment.price}/> -->
+                  <p><em>(Repeat Steps 3 and 4 once for Test Mode and once for Live Mode.)</em></p>
+                </section>
 
-              <label for='mode'>Mode</label>
-              <Switch id='mode' on:change={event => settings.payment.mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.mode === 'live'} width=75>
-                <span class='live' slot='checkedIcon'>Live</span>
-                <span class='test' slot='unCheckedIcon'>Test</span>
-              </Switch>
+                <label for='mode'>Mode</label>
+                <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} width=75>
+                  <span class='live' slot='checkedIcon'>Live</span>
+                  <span class='test' slot='unCheckedIcon'>Test</span>
+                </Switch>
 
-              <TabbedInterface>
-                <TabList>
-                  {#each settings.payment.modeDetails as mode}
-                    <Tab>{mode.title}</Tab>
+                <TabbedInterface>
+                  <TabList>
+                    {#each settings.payment.providers[2].modeDetails as mode}
+                      <Tab>{mode.title}</Tab>
+                    {/each}
+                  </TabList>
+                  {#each settings.payment.providers[2].modeDetails as mode}
+                    <TabPanel>
+                      <h3>{mode.title}</h3>
+                      <label for={`${mode.id}PublishableKey`}>Publishable key</label>
+                      <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePayment(mode.id)}/>
+
+                      <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
+                      <!-- TODO: Implement input event on SensitiveTextInput component. -->
+                      <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validatePayment(mode.id)}/>
+
+                      <label for={`${mode.id}PriceId`}>Price (API ID)</label>
+                      <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={validatePayment(mode.id)}/>
+
+                      {#if gotPrice[mode.id] && priceError[mode.id] !== null}
+                        <p style='color: red;'>❌️ {priceError[mode.id]}</p>
+                      {:else if gotPrice[mode.id]}
+                        <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
+                      {:else}
+                        <p>ℹ️ <em>Waiting for a valid Stripe price API ID in the form <code>price_[24 chars]</code> before validating these details.</em></p>
+                      {/if}
+                    </TabPanel>
                   {/each}
-                </TabList>
-                {#each settings.payment.modeDetails as mode}
-                  <TabPanel>
-                    <h3>{mode.title}</h3>
-                    <label for={`${mode.id}PublishableKey`}>Publishable key</label>
-                    <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePayment(mode.id)}/>
-
-                    <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
-                    <!-- TODO: Implement input event on SensitiveTextInput component. -->
-                    <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validatePayment(mode.id)}/>
-
-                    <label for={`${mode.id}PriceId`}>Price (API ID)</label>
-                    <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={validatePayment(mode.id)}/>
-
-                    {#if gotPrice[mode.id] && priceError[mode.id] !== null}
-                      <p style='color: red;'>❌️ {priceError[mode.id]}</p>
-                    {:else if gotPrice[mode.id]}
-                      <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
-                    {:else}
-                      <p>ℹ️ <em>Waiting for a valid Stripe price API ID in the form <code>price_[24 chars]</code> before validating these details.</em></p>
-                    {/if}
-                  </TabPanel>
-                {/each}
                 </TabbedInterface>
+              {/if}
             </TabPanel>
 
             <TabPanel>

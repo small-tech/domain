@@ -196,31 +196,45 @@ if (db.settings === undefined) {
 
     // Note: these will be arrays later on to accommodate other providers.
     payment: {
-      provider: 'Stripe',
-      modes: ['test', 'live'],
-      mode: 'test',
-      modeDetails: [
+      provider: 0,
+      providers: [
         {
-          id: 'test',
-          title: 'Test settings',
-          publishableKey: 'pk_test_mLQRpGuO7qq3XMfSgwmt4n8U00FSZOIY1h',
-          secretKey: 'notreallymysecretstripetestingkey',
-          productId: 'notarealtestproductid',
-          priceId: 'notarealtestpriceid'
+          name: 'None',
+          modes: null
         },
         {
-          id: 'live',
-          title: 'Live settings',
-          publishableKey: 'pk_live_CYYwSVoh2kC4XcTPCudVIocg005StHQ47e',
-          secretKey: 'notreallymysecretstripelivekey',
-          productId: 'notarealliveproductid',
-          priceId: 'notareallivepriceid'
+          name: 'Access Codes',
+          modes: null,
+          codes: []
+        },
+        {
+          name: 'Stripe',
+          modes: ['test', 'live'],
+          mode: 'test',
+          modeDetails: [
+            {
+              id: 'test',
+              title: 'Test settings',
+              publishableKey: 'pk_test_mLQRpGuO7qq3XMfSgwmt4n8U00FSZOIY1h',
+              secretKey: 'notreallymysecretstripetestingkey',
+              productId: 'notarealtestproductid',
+              priceId: 'notarealtestpriceid'
+            },
+            {
+              id: 'live',
+              title: 'Live settings',
+              publishableKey: 'pk_live_CYYwSVoh2kC4XcTPCudVIocg005StHQ47e',
+              secretKey: 'notreallymysecretstripelivekey',
+              productId: 'notarealliveproductid',
+              priceId: 'notareallivepriceid'
+            }
+          ],
+          // Note: as we progress, we will likely get this from the Stripe API
+          // instead of redundantly declaring it here.
+          currency: '€',
+          price: 15,
         }
-      ],
-      // Note: as we progress, we will likely get this from the Stripe API
-      // instead of redundantly declaring it here.
-      currency: '€',
-      price: 15,
+      ]
     },
 
     dns: {
