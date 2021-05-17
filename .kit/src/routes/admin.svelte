@@ -41,6 +41,12 @@
   let vpsImage
   let vpsSshKey
 
+  const PAYMENT_PROVIDERS = {
+    none: 0,
+    token: 1,
+    stripe: 2
+  }
+
   const gotPrice = {
     test: false,
     live: false
@@ -109,42 +115,58 @@
   }
 
   function validatePayment(modeId) {
-    gotPrice[modeId] = false
-    priceError[modeId] = null
 
-    const priceId = (settings.payment.providers[2].modeDetails[modeId === 'test' ? 0 : 1].priceId).trim()
+    switch (settings.payment.provider) {
+      case PAYMENT_PROVIDERS.none:
+        // The None payment provider doesn’t have any
+        // settings so it’s always valid.
+        ok.payment = true
+      break
 
-    if (priceId === '') {
-      return
+      case PAYMENT_PROVIDERS.token:
+        // TODO: Token payment type not implemented yet.
+        ok.payment = false
+      break
+
+      case PAYMENT_PROVIDERS.stripe:
+        gotPrice[modeId] = false
+        priceError[modeId] = null
+
+        const priceId = (settings.payment.providers[2].modeDetails[modeId === 'test' ? 0 : 1].priceId).trim()
+
+        if (priceId === '') {
+          return
+        }
+
+        if (
+          !(
+            (priceId.length === 1 && priceId === 'p') ||
+            (priceId.length === 2 && priceId === 'pr') ||
+            (priceId.length === 3 && priceId === 'pri') ||
+            (priceId.length === 4 && priceId === 'pric') ||
+            (priceId.length === 5 && priceId === 'price') ||
+            (priceId.length >= 6 && priceId.startsWith('price_'))
+          )
+        ) {
+          priceError[modeId] = 'That is not a valid price ID. It must start with price_'
+          gotPrice[modeId] = true
+          return
+        }
+
+        if (priceId.length !== 30) {
+          priceError[modeId] = null
+          gotPrice[modeId] = false
+          return
+        }
+
+        console.log('Getting price…')
+        socket.send(JSON.stringify({
+          type: 'get-price',
+          mode: modeId
+        }))
+        console.log(gotPrice, priceError)
+      break
     }
-
-    if (
-      !(
-        (priceId.length === 1 && priceId === 'p') ||
-        (priceId.length === 2 && priceId === 'pr') ||
-        (priceId.length === 3 && priceId === 'pri') ||
-        (priceId.length === 4 && priceId === 'pric') ||
-        (priceId.length === 5 && priceId === 'price') ||
-        (priceId.length >= 6 && priceId.startsWith('price_'))
-      )
-    ) {
-      priceError[modeId] = 'That is not a valid price ID. It must start with price_'
-      gotPrice[modeId] = true
-      return
-    }
-
-    if (priceId.length !== 30) {
-      priceError[modeId] = null
-      gotPrice[modeId] = false
-      return
-    }
-
-    console.log('Getting price…')
-    socket.send(JSON.stringify({
-      type: 'get-price',
-      mode: modeId
-    }))
-    console.log(gotPrice, priceError)
   }
 
   function serverTypeChange () {
@@ -212,8 +234,7 @@
           }, message.body, 'settings')
           signingIn = false
           signedIn = true
-          validatePayment('test')
-          validatePayment('live')
+          validatePayment()
           validateDns()
           validateVps()
         break
@@ -402,7 +423,8 @@
               <h2 id='payment'>Payment Settings</h2>
 
               <label for='paymentProvider'>Provider</label>
-              <select name='paymentProvider' bind:value={settings.payment.provider}>
+              <!-- svelte-ignore a11y-no-onchange -->
+              <select name='paymentProvider' bind:value={settings.payment.provider} on:change={validatePayment}>
                 {#each settings.payment.providers as provider, index}
                   <option value={index}>{provider.name}</option>
                 {/each}
