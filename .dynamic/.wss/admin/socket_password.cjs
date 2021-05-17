@@ -3,6 +3,9 @@ const exec = require('child_process').exec
 const process = require('process')
 const fetch = require('node-fetch')
 
+const dnsimple = require('dnsimple')
+const HetznerCloud = require('hcloud-js')
+
 module.exports = function (client, request) {
   const password = request.params.password
 
@@ -163,6 +166,92 @@ module.exports = function (client, request) {
         }
       break
 
+      case 'create-server':
+        console.log('=====================================================================')
+        console.log('Creating server…')
+
+        // TODO: Handle errors in VPS / DNS service constructors.
+        const webHost = new HetznerCloud.Client(db.settings.vps.apiToken)
+        const dnsHost = dnsimple({
+          accessToken: db.settings.dns.accessToken
+        })
+
+        const subdomain = message.domain
+        let cloudInit = db.settings.vps.cloudInit
+        cloudInit = cloudInit.replace('{{SSH_KEY}}', db.settings.vps.sshKey)
+        cloudInit = cloudInit.replace('{{SUBDOMAIN}}', subdomain)
+        console.log(cloudInit)
+
+        // 1. Check that the subdomain doesn’t already exist on the DNS.
+        // TODO
+
+        // 2. Create the server and store the returned IP address.
+        let serverBuildResult
+        try {
+          serverBuildResult = await webHost.servers.build()
+          .name(`${subdomain}.small-web.org`)
+          .serverType(db.settings.vps.serverType)
+          .location(db.settings.vps.location)
+          .image(db.settings.vps.image)
+          .sshKey(db.settings.vps.sshKeyName)
+          .userData(cloudInit)
+          .create()
+        } catch (error) {
+          console.log('Create server VPS error', error)
+          client.send(JSON.stringify({
+            type: 'create-server-vps-error',
+            error
+          }))
+          return
+        }
+
+        console.log('serverBuildResult', serverBuildResult)
+
+        console.log(' - Server running.')
+
+        // TODO: Check that the response is exactly as we expect it to be.
+        // (The shape of the .server and .action properties.)
+
+        client.send(JSON.stringify({
+          type: 'create-server-vps-success'
+        }))
+
+        console.log(' - Setting up the domain name…')
+
+        const publicNet = serverBuildResult.server.publicNet
+        const ipv4 = publicNet.ipv4.ip
+        const ipv6 = publicNet.ipv6.ip
+
+        // 3. Create an A record for the subdomain that points to the server’s IP address.
+        // TODO: ALso create AAAA record for the ipv6
+        // Create zone record
+        let dnsZoneCreationResponse
+        try {
+          dnsZoneCreationResponse = await dnsHost.zones.createZoneRecord(
+            accountId = db.settings.dns.accountId,
+            domainId = db.settings.dns.domain,
+            attributes = {name: subdomain, type: 'A', content: ipv4, ttl: 60}
+          )
+          console.log(dnsZoneCreationResponse)
+        } catch (error) {
+          console.log('Create server DNS error', error)
+          client.send(JSON.stringify({
+            type: 'create-server-dns-error',
+            error
+          }))
+          return
+        }
+
+        console.log(' - Domain name created.')
+
+        client.send(JSON.stringify({
+          type: 'create-server-dns-success'
+        }))
+
+        // That’s it. From here on, it’s up to the client to poll for the domain to become
+        // reachable and for the app to complete installing.
+      break
+
       default:
         console.log(`Warning: received unexpected message type: ${message.type}`)
     }
@@ -253,8 +342,9 @@ if (db.settings === undefined) {
 
     vps: {
       provider: 'Hetzner',
-      apiToken: 'thisisnotmyrealapitoken',
-      sshKeyName: '20201210-1',
+      apiToken: '',
+      sshKeyName: '',
+      sshKey: '',
       serverType: 'cpx11',
       location: 'hel1',
       image: 'ubuntu-20.04',

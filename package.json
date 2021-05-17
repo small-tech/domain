@@ -39,6 +39,7 @@
   "dependencies": {
     "@small-tech/jsdb": "^1.2.0",
     "dnsimple": "^4.4.0",
+    "hcloud-js": "^1.4.1",
     "keypather": "^3.1.0",
     "node-fetch": "^2.6.1",
     "showdown": "^1.9.1",

@@ -93,6 +93,14 @@
     baseUrl = document.location.hostname
   })
 
+  function createServer(event) {
+    const domain = event.detail.domain
+    socket.send(JSON.stringify({
+      type: 'create-server',
+      domain
+    }))
+  }
+
   function validateVps() {
     validateVpsError = null
     if (settings.vps.apiToken.length === 64) {
@@ -184,7 +192,8 @@
   }
 
   function vpsSshKeyChange () {
-    settings.vps.sshKey = vpsSshKey.name
+    settings.vps.sshKeyName = vpsSshKey.name
+    settings.vps.sshKey = vpsSshKey.public_key
   }
 
   function showSavedMessage() {
@@ -303,7 +312,7 @@
           //         by removing SSH keys from Hetzner and starting
           //         with a blank slate.
           vpsSshKey = sshKeys.find(sshKey => {
-            return sshKey.name === settings.vps.sshKey
+            return sshKey.name === settings.vps.sshKeyName
           })
 
           ok.vps = true
@@ -512,7 +521,7 @@
               <section class='instructions'>
                 <h3>Instructions</h3>
                 <ol>
-                  <li>Get a <a href=''>DNSimple</a> account (a personal account should suffice as you only need to add subdomains to one domain).</li>
+                  <li>Get a <a href='https://dnsimple.com'>DNSimple</a> account (a personal account should suffice as you only need to add subdomains to one domain).</li>
                   <li><strong>DNSimple does not provide GDPR Data Protection Agreements for anything less than their $300/mo business accounts.</strong> They say one is not necessary for hosting subdomains. (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
                   <li>Add your domain to your DNSimple dashboard and find the details required on it under <strong>Account → Automation</strong>.</li>
                 </ol>
@@ -660,7 +669,11 @@
         <h2>Places</h2>
         <h3>Create a new Small Web place</h3>
         <p>You can create a new place without requiring payment details from here (e.g., for your own organisation, for friends, etc.)</p>
-        <DomainChecker config={settings} buttonLabel='Create server'/>
+        <DomainChecker
+          config={settings}
+          buttonLabel='Create server'
+          on:create={createServer}
+        />
 
         <h3>Hosted places</h3>
         <p>This is the list of Small Web places that are currently being hosted by you.</p>

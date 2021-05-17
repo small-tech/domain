@@ -1,8 +1,10 @@
 <script>
-  import { onMount } from 'svelte'
+  import { onMount, createEventDispatcher } from 'svelte'
   import debounce from '$lib/debounce'
 
   let baseUrl
+
+  const dispatch = createEventDispatcher()
 
   onMount(() => {
     baseUrl = window.location.hostname
@@ -69,6 +71,12 @@
     domainStatusIsUnknown = true
     debouncedInputHandler()
   }
+
+  const buttonHandler = () => {
+    dispatch('create', {
+      domain: domainToCheck
+    })
+  }
 </script>
 
 
@@ -91,6 +99,7 @@
   <button
     class:can-sign-up={canSignUp}
     class:cannot-sign-up={!canSignUp}
+    on:click={buttonHandler}
   >
     {buttonLabel || `Sign up for ${config.payment.currency}${config.payment.price}/month.`}
   </button>
