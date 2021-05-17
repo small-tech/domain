@@ -10,6 +10,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+const { payment } = require("../../.db/settings.cjs")
+
 module.exports = (request, response) => {
 
   const defaultSettings = {
@@ -35,14 +37,17 @@ module.exports = (request, response) => {
       },
       payment: {
         provider: db.settings.payment.provider,
-        mode: db.settings.payment.mode,
-        currency: db.settings.payment.currency,
-        price: db.settings.payment.price
       },
       dns: {
         domain: db.settings.dns.domain
       }
     }
+  }
+
+  if (settings.payment.provider === 2 /* Stripe */) {
+    settings.payment.mode = db.settings.payment.mode,
+    settings.payment.currency = db.settings.payment.currency,
+    settings.payment.price = db.settings.payment.price
   }
 
   response.json(settings)

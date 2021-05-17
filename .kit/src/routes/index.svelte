@@ -36,13 +36,29 @@
   import showdown from 'showdown'
   const { Converter } = showdown
   const converter = new Converter()
+
+  const PAYMENT_PROVIDERS = {
+    none: 0,
+    token: 1,
+    stripe: 2
+  }
 </script>
 
 <main class='site'>
   <!-- <h1>{config.site.name || 'Basil'}</h1> -->
   {#if !serverError}
     {@html converter.makeHtml(config.site.header) || '<p>Small Web hosting template.</p>'}
-    <DomainChecker {config} />
+
+    {#if config.payment.provider === PAYMENT_PROVIDERS.none}
+      <p><strong>This is a private instance.</strong></p>
+      <p>Please use <a href='/admin'>the adminstration interface</a> to set up Small Web places on <strong>{config.dns.domain}</strong>.</p>
+    {:else if config.payment.provider === PAYMENT_PROVIDERS.token}
+      <p><strong>Token-based sign-ups not yet implemented.</strong></p>
+      <DomainChecker {config} />
+    {:else if config.payment.provider === PAYMENT_PROVIDERS.stripe}
+      <DomainChecker {config} />
+    {/if}
+
     {@html converter.makeHtml(config.site.footer) || '<p>Site footer goes here.</p>'}
   {:else}
     <section id=server-error>
