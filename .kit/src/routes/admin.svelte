@@ -80,6 +80,8 @@
 
   $: ok.site = settings.site === undefined ? false : settings.site.name !== '' && settings.site.header !== '' && settings.site.footer !== ''
 
+  $: ok.org = settings.org === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
+
   // Todo: include full list.
   const currencies = {
     'eur': '€',

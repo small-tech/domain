@@ -188,6 +188,13 @@ module.exports = function (client, request) {
 if (db.settings === undefined) {
   // Dummy data for now.
   db.settings = {
+    org: {
+      name: '',
+      address: '',
+      site: '',
+      email: ''
+    },
+
     site: {
       name: 'Small-Web.org',
       header: `<a href='https://small-tech.org/research-and-development'>Small Web</a> host.`,
