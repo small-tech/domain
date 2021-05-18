@@ -440,7 +440,13 @@
 
               <label for='paymentProvider'>Provider</label>
               <!-- svelte-ignore a11y-no-onchange -->
-              <select name='paymentProvider' bind:value={settings.payment.provider} on:change={validatePayment}>
+              <select
+                class='openSelectBox'
+                name='paymentProvider'
+                bind:value={settings.payment.provider}
+                on:change={validatePayment}
+                size={settings.payment.providers.length}
+              >
                 {#each settings.payment.providers as provider, index}
                   <option value={index}>{provider.name}</option>
                 {/each}
@@ -518,10 +524,7 @@
             <TabPanel>
               <h2 id='dns'>DNS Settings</h2>
 
-              <label for='dnsProvider'>Provider</label>
-              <select name='dnsProvider'>
-                <option value='DNSimple'>DNSimple</option>
-              </select>
+              <h3>DNSimple</h3>
 
               <section class='instructions'>
                 <h3>Instructions</h3>
@@ -570,11 +573,8 @@
             <TabPanel>
               <h2 id='vps'>VPS Host Settings</h2>
 
-              <label for='vpsProvider'>Provider</label>
-              <select name='vpsProvider'>
-                <option value='Hetzner'>Hetzner</option>
-              </select>
-
+              <h3>Hetzner</h3>
+              
               <section class='instructions'>
                 <h3>Instructions</h3>
                 <ol>
@@ -663,12 +663,14 @@
             <TabPanel>
               <h2>App Settings</h2>
 
-              <label for='app'>App</label>
-              <select id='app' bind:value={app}>
-                {#each settings.apps as app, index}
-                  <option value={index}>{app.name}</option>
-                {/each}
-              </select>
+              <div id='appSelector'>
+                <label for='app'>App</label>
+                <select id='app' bind:value={app} size={settings.apps.length} class='openSelectBox'>
+                  {#each settings.apps as app, index}
+                    <option value={index}>{app.name}</option>
+                  {/each}
+                </select>
+              </div>
 
               <label for='appName'>Name</label>
               <input
@@ -860,6 +862,11 @@
 
   fieldset {
     max-width: 10em;
+  }
+
+  .openSelectBox {
+    scrollbar-width: none;
+    overflow: hidden;
   }
 
   #rebuildSiteButton {
