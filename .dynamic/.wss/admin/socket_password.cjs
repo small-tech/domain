@@ -186,6 +186,11 @@ module.exports = function (client, request) {
         // TODO
 
         // 2. Create the server and store the returned IP address.
+        //
+        // Note: while the Hetzner API documentation states that the
+        // ===== sshKey provided in the call is optional, if it is not
+        //       provided (a) a root password is set (which we don’t want)
+        //       and the sudo account creation fails during cloud-config/cloud-init.
         let serverBuildResult
         try {
           serverBuildResult = await webHost.servers.build()
