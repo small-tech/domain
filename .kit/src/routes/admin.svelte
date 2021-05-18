@@ -40,6 +40,7 @@
   let vpsLocation
   let vpsImage
   let vpsSshKey
+  let app = 0
 
   const PAYMENT_PROVIDERS = {
     none: 0,
@@ -74,7 +75,7 @@
     apps: false
   }
 
-  $: ok.all = ok.site && ok.payment && ok.dns && ok.vps
+  $: ok.all = ok.site && ok.payment && ok.dns && ok.vps && ok.apps
 
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
@@ -82,6 +83,8 @@
   $: ok.site = settings.site === undefined ? false : settings.site.name !== '' && settings.site.header !== '' && settings.site.footer !== ''
 
   $: ok.org = settings.org === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
+
+  $: ok.apps =settings.apps === undefined ? false : settings.apps.length > 0
 
   // Todo: include full list.
   const currencies = {
@@ -653,17 +656,47 @@
                       {/if}
                         Any Linux with systemd should work but you might have to adjust the Cloud Init script, below.
                     </p>
-
-                    <label for='vpsCloudInit'>Cloud Init</label>
-                    <p>Please only change the Cloud Init configuration if you know what you’re doing.</p>
-                    <textarea id='vpsCloudInit' name='vpsCloudInit' bind:value={settings.vps.cloudInit} />
                   </AccordionItem>
                 </Accordion>
               {/if}
             </TabPanel>
             <TabPanel>
-              <h2>Apps</h2>
-              
+              <h2>App Settings</h2>
+
+              <label for='app'>App</label>
+              <select id='app' bind:value={app}>
+                {#each settings.apps as app, index}
+                  <option value={index}>{app.name}</option>
+                {/each}
+              </select>
+
+              <label for='appName'>Name</label>
+              <input
+                id='appName'
+                name='appName'
+                type='text'
+                bind:value={settings.apps[app].name}
+              />
+
+              <label for='appDescription'>Description</label>
+              <textarea id='appDescription' name='appDescription' bind:value={settings.apps[app].description} />
+
+              <label for='appLogo'>Logo (SVG)</label>
+
+              <div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+              </div>
+
+              <textarea id='appLogo' name='appLogo' bind:value={settings.apps[app].logo} />
+
+              <label for='appCloudInit'>Cloud Init</label>
+              <p>Please only change the Cloud Init configuration if you know what you’re doing.</p>
+              <textarea id='appCloudInit' name='appCloudInit' bind:value={settings.apps[app].cloudInit} />
+
             </TabPanel>
           </form>
 
@@ -728,6 +761,40 @@
 
   :global(label[for=mode] + div) {
     margin-bottom: 1em;
+  }
+
+  *:global(.appLogo) {
+    display: inline-block;
+  }
+
+  *:global(.appLogo svg) {
+    border: 1px solid black;
+    padding: 1em;
+    width: 3em;
+    height: 3em;
+    vertical-align: middle;
+  }
+
+  /* Show the logo in various colours and also inverted
+     to underscore its nature. */
+
+  *:global(.appLogo:nth-of-type(2) svg) {
+    color: white;
+    background-color: black;
+  }
+
+  /* Colours courtesy of: https://cssgradient.io/ */
+
+  *:global(.appLogo:nth-of-type(3) svg) {
+    color: #FF033E; /* American rose. */
+  }
+
+  *:global(.appLogo:nth-of-type(4) svg) {
+    color: #006A4E; /* Bottle green. */
+  }
+
+  *:global(.appLogo:nth-of-type(5) svg) {
+    color: #6CB4EE; /* Argentine blue. */
   }
 
   .inline {
@@ -861,8 +928,12 @@
     /* padding: 0.25em 1em; */
 	}
 
-  #vpsCloudInit {
-    min-height: 300px;
+  #appLogo, #appCloudInit {
+    min-height: 420px;
+  }
+
+  #appDescription {
+    min-height: 100px;
   }
 
   #saved {
