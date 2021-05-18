@@ -41,6 +41,7 @@
     "dnsimple": "^4.4.0",
     "hcloud-js": "^1.4.1",
     "keypather": "^3.1.0",
+    "micromodal": "^0.4.6",
     "node-fetch": "^2.6.1",
     "showdown": "^1.9.1",
     "svelte-accessible-accordion": "^1.0.0",

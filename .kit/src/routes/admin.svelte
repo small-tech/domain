@@ -9,8 +9,10 @@
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
   import Jumper from '$lib/Jumper.svelte'
   import DomainChecker from '$lib/DomainChecker.svelte'
+  import Modal from '$lib/Modal.svelte'
   import Switch from 'svelte-switch'
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
+
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -333,6 +335,8 @@
 </script>
 
 <main>
+  <Modal show={true} />
+
   <h1>Basil Administration</h1>
 
   {#if !signedIn}
@@ -740,7 +744,6 @@
     {/if}
   {/if}
 </main>
-
 
 <style>
   main {

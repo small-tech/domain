@@ -30,6 +30,7 @@
 
   import DomainChecker from '$lib/DomainChecker.svelte'
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
+  import Modal from '$lib/Modal.svelte'
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -43,6 +44,8 @@
     stripe: 2
   }
 </script>
+
+<Modal show={true}/>
 
 <main class='site'>
   <!-- <h1>{config.site.name || 'Basil'}</h1> -->
