@@ -225,19 +225,39 @@ module.exports = function (client, request) {
 
         console.log('serverBuildResult', serverBuildResult)
 
-        // TODO: Poll the returned server creation action and provide progress messages
-        // ===== and only continue once progress is 100%.
-
-        console.log(' - Server running.')
-
         // TODO: Check that the response is exactly as we expect it to be.
         // (The shape of the .server and .action properties.)
 
+        if (serverBuildResult.action.status === 'error') {
+          client.send(JSON.stringify({
+            type: 'create-server-vps-error',
+            error: action.error
+          }))
+          return
+        }
+
+        console.log(' - Server initialising.')
+
         client.send(JSON.stringify({
-          type: 'create-server-vps-success'
+          type: 'create-server-progress',
+          provider: 'vps',
+          status: 'initialising',
+          progress: serverBuildResult.action.progress,
+          finished: serverBuildResult.action.finished
         }))
 
+        // We’ve got the initial result that the server is initialising.
+        // Before polling for whether that’s complete, let’s also set up
+        // the domain entry so we can get that out of the way as soon as
+        // possible.
+
         console.log(' - Setting up the domain name…')
+
+        client.send(JSON.stringify({
+          type: 'create-server-progress',
+          provider: 'dns',
+          status: 'initialising'
+        }))
 
         const publicNet = serverBuildResult.server.publicNet
         const ipv4 = publicNet.ipv4.ip
@@ -265,8 +285,35 @@ module.exports = function (client, request) {
 
         console.log(' - Domain name created.')
 
+        // Poll the returned server creation action and provide progress messages
+        // ===== and only continue once progress is 100%.
+
+        let serverBuildSuccess = false
+        while (!serverBuildSuccess) {
+          const action = await webHost.actions.get(serverBuildResult.action.id)
+          if (action.status === 'error') {
+            client.send(JSON.stringify({
+              type: 'create-server-vps-error',
+              error: action.error
+            }))
+            break
+          }
+          client.send(JSON.stringify({
+            type: 'create-server-progress',
+            provider: 'vps',
+            status: action.status,
+            progress: action.progress,
+            finished: action.finished
+          }))
+          serverBuildSuccess = (action.status === 'success')
+        }
+
+        console.log(' - Server is ready.')
+
         client.send(JSON.stringify({
-          type: 'create-server-dns-success'
+          type: 'create-server-progress',
+          provider: 'all',
+          status: 'done'
         }))
 
         // That’s it. From here on, it’s up to the client to poll for the domain to become
