@@ -39,7 +39,6 @@
   $: isActiveTab = index === $activeTabIndex
 
   $: if (isMounted && isActiveTab) {
-    console.log('Focus is on tab', index)
     link.focus()
   }
 
