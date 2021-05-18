@@ -81,7 +81,26 @@
 
 
 <form on:submit|preventDefault>
-  <label for='domain'>Pick a domain on <strong>{hostDomain}</strong></label>
+  <label for='domain'>Domain (on <strong>{hostDomain}</strong>)</label>
+
+  <div id='domain-status'>
+    {#if !domainStatusIsUnknown}
+      <div
+        class:domain-is-available={domainIsAvailable}
+        class:domain-is-not-available={!domainIsAvailable}
+      >
+        {domainIsAvailable ? '✔️' : '❌️' }
+        <strong>{checkedDomain}.{hostDomain}</strong> is
+        {@html domainIsAvailable ? '' : '<strong>not</strong>'} available.
+      </div>
+    {:else}
+      {#if domainCheckError}
+        <div class=domain-check-error>❌️ {domainCheckErrorMessage}</div>
+      {:else}
+        <div class=domain-check-instructions>* Letters, numbers, and dashes only.</div>
+      {/if}
+    {/if}
+  </div>
 
   <!-- This is the only field and always the next gesture
       so, to remove on gesture for everyone on every use, we autofocus it. -->
@@ -97,29 +116,13 @@
   >
 
   <button
-    class:can-sign-up={canSignUp}
-    class:cannot-sign-up={!canSignUp}
-    on:click={buttonHandler}
-  >
-    {buttonLabel || `Sign up for ${config.payment.currency}${config.payment.price}/month.`}
-  </button>
+  class:can-sign-up={canSignUp}
+  class:cannot-sign-up={!canSignUp}
+  on:click={buttonHandler}
+>
+  {buttonLabel || `Sign up for ${config.payment.currency}${config.payment.price}/month.`}
+</button>
 
-  {#if !domainStatusIsUnknown}
-    <p
-      class:domain-is-available={domainIsAvailable}
-      class:domain-is-not-available={!domainIsAvailable}
-    >
-      {domainIsAvailable ? '✔️' : '❌️' }
-      <strong>{checkedDomain}.{hostDomain}</strong> is
-      {@html domainIsAvailable ? '' : '<strong>not</strong>'} available.
-    </p>
-    {:else}
-    {#if domainCheckError}
-      <p class=domain-check-error>❌️ {domainCheckErrorMessage}</p>
-    {:else}
-      <p>&nbsp;</p>
-    {/if}
-  {/if}
 </form>
 
 
@@ -129,12 +132,18 @@
     margin-bottom: 0.5em;
   }
 
+  input {
+    display: inline-block;
+  }
+
   button {
     border: 0;
     color: white;
     border-radius: 1.33em;
     padding-left: 1em;
     padding-right: 1em;
+    display: block;
+    margin-top: 1.25em;
   }
 
   .can-sign-up {
@@ -145,8 +154,18 @@
     background-color: grey;
   }
 
+  #domain-status {
+    margin-top: -0.25em;
+    margin-bottom: 1em;
+  }
+
   .domain-is-available {
     color: green;
+  }
+
+  .domain-check-instructions {
+    font-style: italic;
+    color:darkolivegreen;
   }
 
   .domain-is-not-available, .domain-check-error {

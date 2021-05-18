@@ -710,23 +710,25 @@
         <h3>Create a new Small Web place</h3>
         <p>You can create a new place without requiring payment details from here (e.g., for your own organisation, for friends, etc.)</p>
 
-        <label for='appToCreate'>App</label>
-        <select
-          id='appToCreate'
-          bind:value={appToCreate}
-          size={settings.apps.length}
-          class='openSelectBox'
-        >
-          {#each settings.apps as app, index}
-            <option value={index}>{app.name}</option>
-          {/each}
-        </select>
+        <div id='createAppForm'>
+          <label for='appToCreate'>App</label>
+          <select
+            id='appToCreate'
+            bind:value={appToCreate}
+            size={settings.apps.length}
+            class='openSelectBox'
+          >
+            {#each settings.apps as app, index}
+              <option value={index}>{app.name}</option>
+            {/each}
+          </select>
 
-        <DomainChecker
-          config={settings}
-          buttonLabel='Create server'
-          on:create={createServer}
-        />
+          <DomainChecker
+            config={settings}
+            buttonLabel='Create server'
+            on:create={createServer}
+          />
+        </div>
 
         <h3>Hosted places</h3>
         <p>This is the list of Small Web places that are currently being hosted by you.</p>
@@ -880,6 +882,10 @@
   .openSelectBox {
     scrollbar-width: none;
     overflow: hidden;
+  }
+
+  #createAppForm {
+    margin-bottom: 2em;
   }
 
   #rebuildSiteButton {
