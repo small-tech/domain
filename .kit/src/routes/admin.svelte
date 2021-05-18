@@ -41,6 +41,7 @@
   let vpsImage
   let vpsSshKey
   let app = 0
+  let appToCreate = 0
 
   const PAYMENT_PROVIDERS = {
     none: 0,
@@ -101,7 +102,8 @@
     const domain = event.detail.domain
     socket.send(JSON.stringify({
       type: 'create-server',
-      domain
+      domain,
+      app: appToCreate
     }))
   }
 
@@ -574,7 +576,7 @@
               <h2 id='vps'>VPS Host Settings</h2>
 
               <h3>Hetzner</h3>
-              
+
               <section class='instructions'>
                 <h3>Instructions</h3>
                 <ol>
@@ -663,14 +665,12 @@
             <TabPanel>
               <h2>App Settings</h2>
 
-              <div id='appSelector'>
-                <label for='app'>App</label>
-                <select id='app' bind:value={app} size={settings.apps.length} class='openSelectBox'>
-                  {#each settings.apps as app, index}
-                    <option value={index}>{app.name}</option>
-                  {/each}
-                </select>
-              </div>
+              <label for='app'>App</label>
+              <select id='app' bind:value={app} size={settings.apps.length} class='openSelectBox'>
+                {#each settings.apps as app, index}
+                  <option value={index}>{app.name}</option>
+                {/each}
+              </select>
 
               <label for='appName'>Name</label>
               <input
@@ -709,6 +709,19 @@
         <h2>Places</h2>
         <h3>Create a new Small Web place</h3>
         <p>You can create a new place without requiring payment details from here (e.g., for your own organisation, for friends, etc.)</p>
+
+        <label for='appToCreate'>App</label>
+        <select
+          id='appToCreate'
+          bind:value={appToCreate}
+          size={settings.apps.length}
+          class='openSelectBox'
+        >
+          {#each settings.apps as app, index}
+            <option value={index}>{app.name}</option>
+          {/each}
+        </select>
+
         <DomainChecker
           config={settings}
           buttonLabel='Create server'

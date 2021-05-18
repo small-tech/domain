@@ -169,6 +169,7 @@ module.exports = function (client, request) {
       case 'create-server':
         console.log('=====================================================================')
         console.log('Creating server…')
+        console.log(message)
 
         // TODO: Handle errors in VPS / DNS service constructors.
         const webHost = new HetznerCloud.Client(db.settings.vps.apiToken)
@@ -177,7 +178,9 @@ module.exports = function (client, request) {
         })
 
         const subdomain = message.domain
-        let cloudInit = db.settings.vps.cloudInit
+        const app = parseInt(message.app)
+
+        let cloudInit = db.settings.apps[app].cloudInit
         cloudInit = cloudInit.replace('{{SSH_KEY}}', db.settings.vps.sshKey)
         cloudInit = cloudInit.replace('{{SUBDOMAIN}}', subdomain)
         console.log(cloudInit)
