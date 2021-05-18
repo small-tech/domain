@@ -70,12 +70,22 @@ module.exports = function (client, request) {
 
         // Get server types. (In this first call we’ll know if the
         // authorisation token is correct or not.)
-        const serverTypes = await (await fetch('https://api.hetzner.cloud/v1/server_types?per_page=50', {
+        const response = await fetch('https://api.hetzner.cloud/v1/server_types?per_page=50', {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${db.settings.vps.apiToken}`
           }
-        })).json()
+        })
+
+        if (response.status !== 200) {
+          client.send(JSON.stringify({
+            type: 'validate-vps-error',
+            error: `${response.status}: ${response.statusText}`
+          }))
+          return
+        }
+
+        const serverTypes = await response.json()
 
         if (serverTypes.error) {
           client.send(JSON.stringify({
