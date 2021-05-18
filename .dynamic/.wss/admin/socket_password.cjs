@@ -212,6 +212,9 @@ module.exports = function (client, request) {
 
         console.log('serverBuildResult', serverBuildResult)
 
+        // TODO: Poll the returned server creation action and provide progress messages
+        // ===== and only continue once progress is 100%.
+
         console.log(' - Server running.')
 
         // TODO: Check that the response is exactly as we expect it to be.

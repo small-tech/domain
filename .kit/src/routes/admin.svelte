@@ -70,7 +70,8 @@
     site: false,
     payment: false,
     dns: false,
-    vps: false
+    vps: false,
+    apps: false
   }
 
   $: ok.all = ok.site && ok.payment && ok.dns && ok.vps
@@ -362,6 +363,7 @@
             <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.dns}>DNS</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.vps}>VPS</StatusMessage></Tab>
+            <Tab><StatusMessage state={ok.apps}>Apps</StatusMessage></Tab>
           </TabList>
 
           <form on:submit|preventDefault>
@@ -659,7 +661,10 @@
                 </Accordion>
               {/if}
             </TabPanel>
-
+            <TabPanel>
+              <h2>Apps</h2>
+              
+            </TabPanel>
           </form>
 
         </TabbedInterface>
