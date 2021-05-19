@@ -40,9 +40,11 @@
         <h2 class="modal__title" id="modal-title">
           {title}
         </h2>
+        <!--
         {#if hasCloseButton}
           <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
         {/if}
+        -->
       </header>
       <main class="modal__content" id="modal-content">
         <slot />
@@ -78,11 +80,12 @@
   .modal__container {
     background-color: #fff;
     padding: 30px;
-    max-width: 500px;
+    max-width: 600px;
     max-height: 100vh;
-    border-radius: 4px;
+    border-radius: 1em;
     overflow-y: auto;
     box-sizing: border-box;
+    box-shadow: rgba(0,0,0,0.5) 1em 1em 1em;
   }
 
   .modal__header {
@@ -98,11 +101,12 @@
   .modal__title {
     margin-top: 0;
     margin-bottom: 0;
-    font-weight: 600;
-    font-size: 1.25rem;
+    font-weight: 500;
+    font-size: 2.5rem;
     line-height: 1.25;
-    color: #00449e;
+    /* color: #00449e; */
     box-sizing: border-box;
+    text-align: center;
   }
 
   .modal__close {
@@ -120,7 +124,7 @@
   }
 
   .modal__btn {
-    font-size: .875rem;
+    font-size: 1.25rem;
     padding-left: 1rem;
     padding-right: 1rem;
     padding-top: .5rem;
@@ -147,13 +151,17 @@
     transition: transform .25s ease-out,-webkit-transform .25s ease-out;
   }
 
+  .modal__btn:not(:last-of-type) {
+    margin-right: 0.25em;
+  }
+
   .modal__btn:focus, .modal__btn:hover {
     -webkit-transform: scale(1.05);
     transform: scale(1.05);
   }
 
   .modal__btn-primary {
-    background-color: #00449e;
+    background-color: #008000;
     color: #fff;
   }
 

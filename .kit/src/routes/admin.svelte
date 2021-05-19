@@ -13,7 +13,8 @@
   import Switch from 'svelte-switch'
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
   import { CheckMark } from '$lib/CheckMark'
-
+  import { tweened } from 'svelte/motion'
+  import { cubicOut } from 'svelte/easing'
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -60,6 +61,23 @@
   let domainNameRegistered = false
   let serverInitialised = false
   let appInstalled = false
+  let appRunning = false
+  let securityCertificateReady = false
+
+  let serverInitialisationProgress = tweened(0, {
+    duration: 333,
+    easing: cubicOut
+  })
+
+  let appInstallProgress = tweened(0, {
+    duration: 10000,
+    easing: cubicOut
+  })
+
+  let appRunProgress = tweened(0, {
+    duration: 16410,
+    easing: cubicOut
+  })
 
   $: siteCreationEnded = siteCreationSucceeded || siteCreationFailed
 
@@ -114,40 +132,80 @@
     'usd': '$'
   }
 
-  onMount(() => {
+  onMount(async () => {
     baseUrl = document.location.hostname
   })
 
-  function createServer(event) {
+  const duration = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+  }
+
+  async function createServer(event) {
     domainToCreate = event.detail.domain
     // socket.send(JSON.stringify({
     //   type: 'create-server',
     //   domain: domainToCreate,
     //   app: appToCreate
     // }))
+
+    // Simulate server creation progress.
     siteCreationSucceeded = false
     siteCreationFailed = false
     creatingSite = true
     serverCreationStep++
-    setTimeout(() => {
-      serverCreated = true
-      serverCreationStep++
-      setTimeout(() => {
-        domainNameRegistered = true
-        serverCreationStep++
-        // siteCreationSucceeded = true
-        // creatingSite = false
-        setTimeout(() => {
-          serverInitialised = true
-          serverCreationStep++
-          setTimeout(() => {
-            appInstalled = true
-            serverCreationStep++
-            siteCreationSucceeded = true
-          }, 10000)
-        }, 5000)
-      }, 1200)
-    }, 1000)
+
+    // Wait for server creation.
+
+    await duration(1000)
+    serverCreated = true
+
+    await duration(1000)
+    serverCreationStep++
+
+    // Wait for domain name registration.
+
+    await duration(1200)
+    domainNameRegistered = true
+
+    await duration(1000)
+    serverCreationStep++
+
+    // Wait for server initialisation
+    // (Hetzner provides percentage results for this which seem to be 50% and 100%)
+
+    await duration(3000)
+    serverInitialisationProgress.set(0.5)
+
+    await duration(2000)
+    serverInitialisationProgress.set(1)
+
+    await duration(700)
+    serverInitialised = true
+
+    await duration(1000)
+    serverCreationStep++
+
+    // Wait for app install.
+
+    appInstallProgress.set(1)
+    await duration(10000)
+    appInstalled = true
+
+    await duration(1000)
+    serverCreationStep++
+
+    appRunProgress.set(1)
+    await duration(16410)
+    appRunning = true
+
+    await duration(1000)
+    serverCreationStep++
+
+    await duration(5000)
+    securityCertificateReady = true
+
+    await duration(1000)
+    siteCreationSucceeded = true
   }
 
   function validateVps() {
@@ -376,11 +434,11 @@
 </script>
 
 <main>
-  <Modal show={creatingSite} title='Setting up {settings ? settings.apps[appToCreate].name : ''} on {domainToCreate}.{settings ? settings.dns.domain : ''}' hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
+  <Modal show={creatingSite} title='Setting up {settings ? settings.apps[appToCreate].name : ''} on {domainToCreate}.{settings ? settings.dns.domain : ''}…' hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
     <ol class='serverCreationProgress'>
       <li>
         <CheckMark checked={false} bind:checkedControlled={serverCreated}/>
-        <span class:currentStep={serverCreationStep === 1}>Create server</span>
+        <span class:currentStep={serverCreationStep === 1}>Commission server</span>
       </li>
       <li>
         <CheckMark checked={false} bind:checkedControlled={domainNameRegistered}/>
@@ -389,12 +447,33 @@
       <li>
         <CheckMark checked={false} bind:checkedControlled={serverInitialised}/>
         <span class:currentStep={serverCreationStep === 3}>Initialise server</span>
+        {#if serverCreationStep === 3}
+          <progress value={$serverInitialisationProgress} />
+        {/if}
       </li>
       <li>
         <CheckMark checked={false} bind:checkedControlled={appInstalled}/>
-        <span class:currentStep={serverCreationStep === 4}>Install and run app</span>
+        <span class:currentStep={serverCreationStep === 4}>Install {settings ? settings.apps[appToCreate].name : ''}</span>
+        {#if serverCreationStep === 4}
+          <progress value={$appInstallProgress} />
+        {/if}
+      </li>
+      <li>
+        <CheckMark checked={false} bind:checkedControlled={appRunning}/>
+        <span class:currentStep={serverCreationStep === 5}>Run {settings ? settings.apps[appToCreate].name : ''}</span>
+        {#if serverCreationStep === 5}
+          <progress value={$appRunProgress} />
+        {/if}
+      </li>
+      <li>
+        <CheckMark checked={false} bind:checkedControlled={securityCertificateReady}/>
+        <span class:currentStep={serverCreationStep === 6}>Get security certificate</span>
       </li>
     </ol>
+
+    {#if siteCreationSucceeded}
+      <p class='appReady'>🎉️ Your app is ready!</p>
+    {/if}
   </Modal>
 
   <h1>Basil Administration</h1>
@@ -596,7 +675,7 @@
                 <h3>Instructions</h3>
                 <ol>
                   <li>Get a <a href='https://dnsimple.com'>DNSimple</a> account (a personal account should suffice as you only need to add subdomains to one domain).</li>
-                  <li><strong>DNSimple does not provide GDPR Data Protection Agreements for anything less than their $300/mo business accounts.</strong> They say one is not necessary for hosting subdomains. (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
+                  <li><strong>DNSimple does not provide GDPR Data Protection Agreements for anything less than their $300/mo bucubicOutss accounts.</strong> They say one is not necessary for hosting subdomains. (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
                   <li>Add your domain to your DNSimple dashboard and find the details required on it under <strong>Account → Automation</strong>.</li>
                 </ol>
               </section>
@@ -930,6 +1009,11 @@
     font-style: italic;
   }
 
+  .appReady {
+    text-align: center;
+    font-size: 1.5em;
+  }
+
   #accountIdLabel, #vpiApiTokenLabel {
     display: block;
   }
@@ -950,6 +1034,17 @@
   .serverCreationProgress {
     list-style-type: none;
     font-size: 1.5em;
+  }
+
+  progress {
+    display: block;
+    width: 70%;
+    height: 5px;
+    margin-top: -0.5em;
+    margin-bottom: 0.3em;
+    margin-left: 2.75em;
+    background-color: #ccc;
+    border: 0;
   }
 
   .currentStep {

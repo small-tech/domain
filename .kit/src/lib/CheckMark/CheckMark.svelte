@@ -9,7 +9,7 @@
   export let id = ''
   export let primaryColor = '#242432'
   export let secondaryColor = '#d8d8ea'
-  export let duration = 900
+  export let duration = 700
   export let labelId = ''
 
   let self,
