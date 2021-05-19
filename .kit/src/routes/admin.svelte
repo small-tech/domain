@@ -45,6 +45,8 @@
   let app = 0
   let appToCreate = 0
 
+  let creatingSite = false
+
   const PAYMENT_PROVIDERS = {
     none: 0,
     token: 1,
@@ -102,12 +104,15 @@
 
   function createServer(event) {
     const domain = event.detail.domain
-    alert(`Create app: ${domain}: ${appToCreate}`)
-    socket.send(JSON.stringify({
-      type: 'create-server',
-      domain,
-      app: appToCreate
-    }))
+    // socket.send(JSON.stringify({
+    //   type: 'create-server',
+    //   domain,
+    //   app: appToCreate
+    // }))
+    creatingSite = true
+    setTimeout(() => {
+      creatingSite = false
+    }, 10000)
   }
 
   function validateVps() {
@@ -336,7 +341,7 @@
 </script>
 
 <main>
-  <Modal show={true} />
+  <Modal show={creatingSite} />
 
   <h1>Basil Administration</h1>
 

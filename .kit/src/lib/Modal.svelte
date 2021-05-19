@@ -3,7 +3,7 @@
 
   export let show = false
 
-  let modalAriaHidden = true
+  let showing = false
 
   let MicroModal
 
@@ -11,30 +11,25 @@
 
   onMount(async () => {
     MicroModal = (await import('micromodal')).default
-    MicroModal.init({
-      onShow: modal => console.log(`${modal.id} is showing`),
-      onClose: modal => console.log(`${modal.id} is hidden`),
-      openClass: 'is-open',
-      awaitOpenAnimation: true,
-      awaitCloseAnimation: true,
-      debugMode: true
-    })
+    MicroModal.init()
     mounted = true
   })
 
   $: if (mounted) {
-    if (show) {
-      console.log('showing', MicroModal.show)
-      if (modalAriaHidden) {
-        MicroModal.show('modal-1')
-      }
-    } else {
+    if (show && !showing) {
+      MicroModal.show('modal-1', {
+        onShow: modal => console.log(`${modal.id} is showing`),
+        onClose: modal => console.log(`${modal.id} is hidden`),
+        awaitOpenAnimation: true,
+        awaitCloseAnimation: true,
+      })
+    } else if (!show && showing) {
       MicroModal.close('modal-1')
     }
   }
 </script>
 
-<div class="modal micromodal-slide" id="modal-1" aria-hidden={modalAriaHidden}>
+<div class="modal micromodal-slide" id="modal-1" aria-hidden=true>
   <div class="modal__overlay" tabindex="-1" data-micromodal-close>
     <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
       <header class="modal__header">
