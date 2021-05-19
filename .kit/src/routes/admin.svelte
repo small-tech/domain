@@ -50,6 +50,7 @@
   let domainToCreate = ''
 
   let creatingSite = false
+  let showSiteCreationModal = false
 
   let siteCreationSucceeded = false
   let siteCreationFailed = false
@@ -152,6 +153,7 @@
     siteCreationSucceeded = false
     siteCreationFailed = false
     creatingSite = true
+    showSiteCreationModal = true
     serverCreationStep++
 
     // Wait for server creation.
@@ -206,6 +208,7 @@
 
     await duration(1000)
     siteCreationSucceeded = true
+    creatingSite = false
   }
 
   function validateVps() {
@@ -431,10 +434,30 @@
       }
     }
   }
+
+  const originalSettingUpMessage = 'Setting up your place'
+  let settingUpMessage = originalSettingUpMessage
+  let settingUpMessageIntervalId
+  $: if (creatingSite) {
+    let dots = 0
+    settingUpMessageIntervalId = setInterval(() => {
+      dots++
+      if (dots > 3) dots = 0
+      settingUpMessage = originalSettingUpMessage + '<span style="color: inherit;">.<span>'.repeat(dots) + '<span style="color: white;">.</span>'.repeat(3-dots)
+    }, 700)
+  } else {
+    settingUpMessage = originalSettingUpMessage + '...'
+    clearInterval(settingUpMessageIntervalId)
+  }
+
+
 </script>
 
 <main>
-  <Modal show={creatingSite} title='Setting up {settings ? settings.apps[appToCreate].name : ''} on {domainToCreate}.{settings ? settings.dns.domain : ''}…' hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
+  <Modal show={showSiteCreationModal} bind:title={settingUpMessage} hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
+
+    <p class='modalIntroduction'>Setting up {settings ? settings.apps[appToCreate].name : ''} on <strong>{domainToCreate}.{settings ? settings.dns.domain : ''}</strong>.</p>
+
     <ol class='serverCreationProgress'>
       <li>
         <CheckMark checked={false} bind:checkedControlled={serverCreated}/>
@@ -472,7 +495,7 @@
     </ol>
 
     {#if siteCreationSucceeded}
-      <p class='appReady'>🎉️ Your app is ready!</p>
+      <p class='appReady'>🎉️ Your Small Web place is ready!</p>
     {/if}
   </Modal>
 
@@ -1012,6 +1035,10 @@
   .appReady {
     text-align: center;
     font-size: 1.5em;
+  }
+
+  .modalIntroduction {
+    font-size: 1.25em;
   }
 
   #accountIdLabel, #vpiApiTokenLabel {

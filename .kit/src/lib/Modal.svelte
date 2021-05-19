@@ -38,7 +38,7 @@
     <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <header class="modal__header">
         <h2 class="modal__title" id="modal-title">
-          {title}
+          {@html title}
         </h2>
         <!--
         {#if hasCloseButton}
@@ -52,7 +52,7 @@
       {#if hasCloseButton || hasActionButton}
       <footer class="modal__footer">
         {#if hasActionButton}
-          <button class="modal__btn modal__btn-primary">Visit site</button>
+          <button class="modal__btn modal__btn-primary">Visit your place</button>
         {/if}
         {#if hasCloseButton}
           <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
@@ -89,9 +89,9 @@
   }
 
   .modal__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    /* display: flex; */
+    /* justify-content: space-between; */
+    /* align-items: center; */
   }
 
   .modal__footer {
