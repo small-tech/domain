@@ -6,6 +6,8 @@ const fetch = require('node-fetch')
 const dnsimple = require('dnsimple')
 const HetznerCloud = require('hcloud-js')
 
+const path = require('path')
+
 module.exports = function (client, request) {
   const password = request.params.password
 
@@ -35,7 +37,7 @@ module.exports = function (client, request) {
             console.log('Done.')
           }
         })
-      break;
+      break
 
       case 'get-price':
         // Return the price from the Stripe API.
@@ -63,7 +65,7 @@ module.exports = function (client, request) {
             amount: priceDetails.unit_amount / 100
           }))
         }
-      break;
+      break
 
       case 'validate-vps':
         console.log('   📡️    ❨Basil❩ Validating VPS Provider settings.')
@@ -181,24 +183,67 @@ module.exports = function (client, request) {
         console.log('Creating server…')
         console.log(message)
 
+        const subdomain = message.domain
+        const appIndex = parseInt(message.app)
+
+        //
+        // Validate input.
+        //
+
+        // Validate subdomain.
+        //
+        // According to the pertinent internet recommendations (RFC3986 section 2.2,
+        // which in turn refers to: RFC1034 section 3.5 and RFC1123 section 2.1),
+        // a subdomain (which is a part of a DNS domain host name), must meet several requirements:
+        //
+        // • Each subdomain part must have a length no greater than 63.
+        // • Each subdomain part must begin and end with an alpha-numeric (i.e. letters [A-Za-z] or digits [0-9]).
+        // • Each subdomain part may contain hyphens (dashes), but may not begin or end with a hyphen.
+        //
+        // (https://stackoverflow.com/a/7933253)
+        const validHostnameCharacters = /^[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?$/
+        if (subdomain.trim() === '' || !validHostnameCharacters.test(subdomain)) {
+          client.send(JSON.stringify({
+            type: 'create-server-error',
+            subject: 'validation',
+            error: 'Invalid domain'
+          }))
+          return
+        }
+
+        // Validate app.
+        if (appIndex === NaN || appIndex < 0 || appIndex >= db.settings.apps.length) {
+          client.send(JSON.stringify({
+            type: 'create-server-error',
+            subject: 'validation',
+            error: 'Invalid app'
+          }))
+          return
+        }
+
+        // Confirm that domain is not already registered.
+        if (db.domains.includes(subdomain)) {
+          client.send(JSON.stringify({
+            type: 'create-server-error',
+            subject: 'validation',
+            error: 'Domain already exists'
+          }))
+        }
+
         // TODO: Handle errors in VPS / DNS service constructors.
         const webHost = new HetznerCloud.Client(db.settings.vps.apiToken)
         const dnsHost = dnsimple({
           accessToken: db.settings.dns.accessToken
         })
 
-        const subdomain = message.domain
-        const app = parseInt(message.app)
-
-        let cloudInit = db.settings.apps[app].cloudInit
+        const app = db.settings.apps[appIndex]
+        let cloudInit = app.cloudInit
         cloudInit = cloudInit.replace('{{SSH_KEY}}', db.settings.vps.sshKey)
         cloudInit = cloudInit.replace('{{SUBDOMAIN}}', subdomain)
-        console.log(cloudInit)
 
-        // 1. Check that the subdomain doesn’t already exist on the DNS.
-        // TODO
+        console.log('Creating app: ', app.name)
 
-        // 2. Create the server and store the returned IP address.
+        // Create the server and store the returned IP address.
         //
         // Note: while the Hetzner API documentation states that the
         // ===== sshKey provided in the call is optional, if it is not
@@ -217,7 +262,8 @@ module.exports = function (client, request) {
         } catch (error) {
           console.log('Create server VPS error', error)
           client.send(JSON.stringify({
-            type: 'create-server-vps-error',
+            type: 'create-server-error',
+            subject: 'vps',
             error
           }))
           return
@@ -230,7 +276,8 @@ module.exports = function (client, request) {
 
         if (serverBuildResult.action.status === 'error') {
           client.send(JSON.stringify({
-            type: 'create-server-vps-error',
+            type: 'create-server-error',
+            subject: 'vps',
             error: action.error
           }))
           return
@@ -240,7 +287,7 @@ module.exports = function (client, request) {
 
         client.send(JSON.stringify({
           type: 'create-server-progress',
-          provider: 'vps',
+          subject: 'vps',
           status: 'initialising',
           progress: serverBuildResult.action.progress,
           finished: serverBuildResult.action.finished
@@ -255,7 +302,7 @@ module.exports = function (client, request) {
 
         client.send(JSON.stringify({
           type: 'create-server-progress',
-          provider: 'dns',
+          subject: 'dns',
           status: 'initialising'
         }))
 
@@ -263,7 +310,7 @@ module.exports = function (client, request) {
         const ipv4 = publicNet.ipv4.ip
         const ipv6 = publicNet.ipv6.ip
 
-        // 3. Create an A record for the subdomain that points to the server’s IP address.
+        // Create an A record for the subdomain that points to the server’s IP address.
         // TODO: ALso create AAAA record for the ipv6
         // Create zone record
         let dnsZoneCreationResponse
@@ -277,7 +324,8 @@ module.exports = function (client, request) {
         } catch (error) {
           console.log('Create server DNS error', error)
           client.send(JSON.stringify({
-            type: 'create-server-dns-error',
+            type: 'create-server-error',
+            subject: 'dns',
             error
           }))
           return
@@ -293,14 +341,15 @@ module.exports = function (client, request) {
           const action = await webHost.actions.get(serverBuildResult.action.id)
           if (action.status === 'error') {
             client.send(JSON.stringify({
-              type: 'create-server-vps-error',
+              type: 'create-server-error',
+              subject: 'vps',
               error: action.error
             }))
             break
           }
           client.send(JSON.stringify({
             type: 'create-server-progress',
-            provider: 'vps',
+            subject: 'vps',
             status: action.status,
             progress: action.progress,
             finished: action.finished
@@ -311,8 +360,8 @@ module.exports = function (client, request) {
         console.log(' - Server is ready.')
 
         client.send(JSON.stringify({
-          type: 'create-server-progress',
-          provider: 'all',
+          type: 'create-server-success',
+          subject: 'task',
           status: 'done'
         }))
 
@@ -342,117 +391,10 @@ module.exports = function (client, request) {
   }
 }
 
+const x = require(path.join(__dirname, '.lib/initial-settings.cjs'))
+console.log(x)
+
 if (db.settings === undefined) {
-  // Dummy data for now.
-  db.settings = {
-    org: {
-      name: '',
-      address: '',
-      site: '',
-      email: ''
-    },
-
-    site: {
-      name: 'Small-Web.org',
-      header: `<a href='https://small-tech.org/research-and-development'>Small Web</a> host.`,
-      footer: `Your organisation. Privacy Policy. etc.`
-    },
-
-    // Note: these will be arrays later on to accommodate other providers.
-    payment: {
-      provider: 0,
-      providers: [
-        {
-          name: 'None',
-          modes: null
-        },
-        {
-          name: 'Access Codes',
-          modes: null,
-          codes: []
-        },
-        {
-          name: 'Stripe',
-          modes: ['test', 'live'],
-          mode: 'test',
-          modeDetails: [
-            {
-              id: 'test',
-              title: 'Test settings',
-              publishableKey: 'pk_test_mLQRpGuO7qq3XMfSgwmt4n8U00FSZOIY1h',
-              secretKey: 'notreallymysecretstripetestingkey',
-              productId: 'notarealtestproductid',
-              priceId: 'notarealtestpriceid'
-            },
-            {
-              id: 'live',
-              title: 'Live settings',
-              publishableKey: 'pk_live_CYYwSVoh2kC4XcTPCudVIocg005StHQ47e',
-              secretKey: 'notreallymysecretstripelivekey',
-              productId: 'notarealliveproductid',
-              priceId: 'notareallivepriceid'
-            }
-          ],
-          // Note: as we progress, we will likely get this from the Stripe API
-          // instead of redundantly declaring it here.
-          currency: '€',
-          price: 15,
-        }
-      ]
-    },
-
-    dns: {
-      domain: 'small-web.org',
-      provider: 'DNSimple',
-      accountId: '000000',
-      accessToken: 'asecretaccesstoken'
-    },
-
-    vps: {
-      provider: 'Hetzner',
-      apiToken: '',
-      sshKeyName: '',
-      sshKey: '',
-      serverType: 'cpx11',
-      location: 'hel1',
-      image: 'ubuntu-20.04',
-      cloudInit: `#cloud-config
-
-  # Configures a basic Site.js server.
-  write_files:
-  - path: /home/site/public/index.html
-    permissions: '0755'
-    content: |
-      <!DOCTYPE html>
-      <html lang='en'>
-      <title>Welcome to the Small Web!</title>
-      <h1>Welcome to your Small Web site powered by Site.js.</h1>
-
-  users:
-  - name: site
-    gecos: Site.JS
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    lock_passwd: true
-    ssh_authorized_keys:
-      - {{sshKey}}
-    groups: sudo
-    shell: /bin/bash
-
-  disable_root: true
-
-  runcmd:
-  - ufw allow OpenSSH
-  - ufw enable
-  - ufw allow 80/tcp
-  - ufw allow 443/tcp
-  - chown -R site:site /home/site
-  - hostnamectl set-hostname {{subdomain}}.small-web.org
-  - su site -c 'wget -qO- https://sitejs.org/install | bash'
-  - su site -c 'mkdir /home/site/public'
-  - su site -c 'site enable /home/site/public --skip-domain-reachability-check --ensure-can-sync'
-
-  final_message: "Welcome to your Small Web site powered by Site.js. Setup took $UPTIME seconds."
-      `
-    }
-  }
+  // Initialise the settings object.
+  db.settings = require('.lib/initial-settings')
 }
