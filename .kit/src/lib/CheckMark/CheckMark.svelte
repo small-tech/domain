@@ -97,7 +97,8 @@
     position: relative;
     display: inline-block;
     vertical-align: middle;
-    margin-right: 1em;
+    margin-right: 0.5em;
+    padding-bottom: 0.1em;
   }
   .checkbox input {
     opacity: 0;

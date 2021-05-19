@@ -54,6 +54,8 @@
   let siteCreationFailed = false
   let siteCreationEnded = false
 
+  let serverCreationStep = 0
+
   let serverCreated = false
   let domainNameRegistered = false
   let serverInitialised = false
@@ -126,16 +128,21 @@
     siteCreationSucceeded = false
     siteCreationFailed = false
     creatingSite = true
+    serverCreationStep++
     setTimeout(() => {
       serverCreated = true
+      serverCreationStep++
       setTimeout(() => {
         domainNameRegistered = true
+        serverCreationStep++
         // siteCreationSucceeded = true
         // creatingSite = false
         setTimeout(() => {
           serverInitialised = true
+          serverCreationStep++
           setTimeout(() => {
             appInstalled = true
+            serverCreationStep++
             siteCreationSucceeded = true
           }, 10000)
         }, 5000)
@@ -371,10 +378,22 @@
 <main>
   <Modal show={creatingSite} title='Setting up {settings ? settings.apps[appToCreate].name : ''} on {domainToCreate}.{settings ? settings.dns.domain : ''}' hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
     <ol class='serverCreationProgress'>
-      <li><CheckMark checked={false} bind:checkedControlled={serverCreated}/>Create server</li>
-      <li><CheckMark checked={false} bind:checkedControlled={domainNameRegistered}/>Register domain name</li>
-      <li><CheckMark checked={false} bind:checkedControlled={serverInitialised}/>Initialise server</li>
-      <li><CheckMark checked={false} bind:checkedControlled={appInstalled}/>Install and run app</li>
+      <li>
+        <CheckMark checked={false} bind:checkedControlled={serverCreated}/>
+        <span class:currentStep={serverCreationStep === 1}>Create server</span>
+      </li>
+      <li>
+        <CheckMark checked={false} bind:checkedControlled={domainNameRegistered}/>
+        <span class:currentStep={serverCreationStep === 2}>Register domain name</span>
+      </li>
+      <li>
+        <CheckMark checked={false} bind:checkedControlled={serverInitialised}/>
+        <span class:currentStep={serverCreationStep === 3}>Initialise server</span>
+      </li>
+      <li>
+        <CheckMark checked={false} bind:checkedControlled={appInstalled}/>
+        <span class:currentStep={serverCreationStep === 4}>Install and run app</span>
+      </li>
     </ol>
   </Modal>
 
@@ -931,6 +950,10 @@
   .serverCreationProgress {
     list-style-type: none;
     font-size: 1.5em;
+  }
+
+  .currentStep {
+    font-weight: bold;
   }
 
   #createAppForm {
