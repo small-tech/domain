@@ -12,6 +12,7 @@
   import Modal from '$lib/Modal.svelte'
   import Switch from 'svelte-switch'
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
+  import { CheckMark } from '$lib/CheckMark'
 
 
   // Doing this in two-steps to the SvelteKit static adapter
@@ -20,7 +21,7 @@
 
   const { Converter } = showdown
 
-  let settings = {}
+  let settings
 
   let shouldShowSavedMessage = false
 
@@ -43,9 +44,22 @@
   let vpsImage
   let vpsSshKey
   let app = 0
+
   let appToCreate = 0
+  let domainToCreate = ''
 
   let creatingSite = false
+
+  let siteCreationSucceeded = false
+  let siteCreationFailed = false
+  let siteCreationEnded = false
+
+  let serverCreated = false
+  let domainNameRegistered = false
+  let serverInitialised = false
+  let appInstalled = false
+
+  $: siteCreationEnded = siteCreationSucceeded || siteCreationFailed
 
   const PAYMENT_PROVIDERS = {
     none: 0,
@@ -85,11 +99,11 @@
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
 
-  $: ok.site = settings.site === undefined ? false : settings.site.name !== '' && settings.site.header !== '' && settings.site.footer !== ''
+  $: ok.site = settings === undefined ? false : settings.site.name !== '' && settings.site.header !== '' && settings.site.footer !== ''
 
-  $: ok.org = settings.org === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
+  $: ok.org = settings === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
 
-  $: ok.apps =settings.apps === undefined ? false : settings.apps.length > 0
+  $: ok.apps =settings === undefined ? false : settings.apps.length > 0
 
   // Todo: include full list.
   const currencies = {
@@ -103,16 +117,30 @@
   })
 
   function createServer(event) {
-    const domain = event.detail.domain
+    domainToCreate = event.detail.domain
     // socket.send(JSON.stringify({
     //   type: 'create-server',
-    //   domain,
+    //   domain: domainToCreate,
     //   app: appToCreate
     // }))
+    siteCreationSucceeded = false
+    siteCreationFailed = false
     creatingSite = true
     setTimeout(() => {
-      creatingSite = false
-    }, 10000)
+      serverCreated = true
+      setTimeout(() => {
+        domainNameRegistered = true
+        // siteCreationSucceeded = true
+        // creatingSite = false
+        setTimeout(() => {
+          serverInitialised = true
+          setTimeout(() => {
+            appInstalled = true
+            siteCreationSucceeded = true
+          }, 10000)
+        }, 5000)
+      }, 1200)
+    }, 1000)
   }
 
   function validateVps() {
@@ -341,7 +369,14 @@
 </script>
 
 <main>
-  <Modal show={creatingSite} />
+  <Modal show={creatingSite} title='Setting up {settings ? settings.apps[appToCreate].name : ''} on {domainToCreate}.{settings ? settings.dns.domain : ''}' hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
+    <ol class='serverCreationProgress'>
+      <li><CheckMark checked={false} bind:checkedControlled={serverCreated}/>Create server</li>
+      <li><CheckMark checked={false} bind:checkedControlled={domainNameRegistered}/>Register domain name</li>
+      <li><CheckMark checked={false} bind:checkedControlled={serverInitialised}/>Initialise server</li>
+      <li><CheckMark checked={false} bind:checkedControlled={appInstalled}/>Install and run app</li>
+    </ol>
+  </Modal>
 
   <h1>Basil Administration</h1>
 
@@ -891,6 +926,11 @@
   .openSelectBox {
     scrollbar-width: none;
     overflow: hidden;
+  }
+
+  .serverCreationProgress {
+    list-style-type: none;
+    font-size: 1.5em;
   }
 
   #createAppForm {

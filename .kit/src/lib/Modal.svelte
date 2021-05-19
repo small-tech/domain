@@ -1,13 +1,15 @@
 <script>
-  import { onMount, afterUpdate } from 'svelte'
+  import { onMount } from 'svelte'
 
   export let show = false
+  export let hasCloseButton = true
+  export let hasActionButton = true
+  export let title = 'Modal'
 
   let showing = false
+  let mounted = false
 
   let MicroModal
-
-  let mounted = false
 
   onMount(async () => {
     MicroModal = (await import('micromodal')).default
@@ -17,36 +19,44 @@
 
   $: if (mounted) {
     if (show && !showing) {
-      MicroModal.show('modal-1', {
+      MicroModal.show('modal', {
         onShow: modal => console.log(`${modal.id} is showing`),
         onClose: modal => console.log(`${modal.id} is hidden`),
         awaitOpenAnimation: true,
         awaitCloseAnimation: true,
       })
+      showing = true
     } else if (!show && showing) {
-      MicroModal.close('modal-1')
+      MicroModal.close('modal')
+      showing = false
     }
   }
 </script>
 
-<div class="modal micromodal-slide" id="modal-1" aria-hidden=true>
-  <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+<div class="modal micromodal-slide" id="modal" aria-hidden=true>
+  <div class="modal__overlay" tabindex="-1" data-micromodal-close={hasCloseButton ? true : null}>
+    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <header class="modal__header">
-        <h2 class="modal__title" id="modal-1-title">
-          Micromodal
+        <h2 class="modal__title" id="modal-title">
+          {title}
         </h2>
-        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        {#if hasCloseButton}
+          <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        {/if}
       </header>
-      <main class="modal__content" id="modal-1-content">
-        <p>
-          Try hitting the <code>tab</code> key and notice how the focus stays within the modal itself. Also, <code>esc</code> to close modal.
-        </p>
+      <main class="modal__content" id="modal-content">
+        <slot />
       </main>
+      {#if hasCloseButton || hasActionButton}
       <footer class="modal__footer">
-        <button class="modal__btn modal__btn-primary">Continue</button>
-        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        {#if hasActionButton}
+          <button class="modal__btn modal__btn-primary">Visit site</button>
+        {/if}
+        {#if hasCloseButton}
+          <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        {/if}
       </footer>
+      {/if}
     </div>
   </div>
 </div>
@@ -79,6 +89,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .modal__footer {
+    text-align: center;
   }
 
   .modal__title {
