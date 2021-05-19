@@ -40,9 +40,17 @@
   //////////////////////////////////////////////////////////////////////
 
   const debouncedInputHandler = debounce(async () => {
-    // Client-side validation of valid domain names.
-    // Via https://github.com/miguelmota/is-valid-hostname/blob/a375657352475b03fbd118e3b46029aca952d816/index.js#L5 implementation of RFC 3696.
-    const validHostnameCharacters = /^([a-zA-Z0-9-]+){1,253}$/g
+    // Client-side validation of valid subdomain names.
+    // According to the pertinent internet recommendations (RFC3986 section 2.2,
+    // which in turn refers to: RFC1034 section 3.5 and RFC1123 section 2.1),
+    // a subdomain (which is a part of a DNS domain host name), must meet several requirements:
+    //
+    // • Each subdomain part must have a length no greater than 63.
+    // • Each subdomain part must begin and end with an alpha-numeric (i.e. letters [A-Za-z] or digits [0-9]).
+    // • Each subdomain part may contain hyphens (dashes), but may not begin or end with a hyphen.
+    //
+    // (https://stackoverflow.com/a/7933253)
+    const validHostnameCharacters = /^[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?$/
     if (domainToCheck.trim() === '') return
     if (!validHostnameCharacters.test(domainToCheck)) {
       domainCheckErrorMessage = `Sorry, that’s not a valid domain name.`
@@ -97,7 +105,7 @@
       {#if domainCheckError}
         <div class=domain-check-error>❌️ {domainCheckErrorMessage}</div>
       {:else}
-        <div class=domain-check-instructions>* Letters, numbers, and dashes only.</div>
+        <div class=domain-check-instructions>* Letters, numbers, and dashes only. Must begin and end with a letter or number.</div>
       {/if}
     {/if}
   </div>

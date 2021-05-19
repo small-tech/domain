@@ -102,6 +102,7 @@
 
   function createServer(event) {
     const domain = event.detail.domain
+    alert(`Create app: ${domain}: ${appToCreate}`)
     socket.send(JSON.stringify({
       type: 'create-server',
       domain,
