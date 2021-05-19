@@ -391,10 +391,7 @@ module.exports = function (client, request) {
   }
 }
 
-const x = require(path.join(__dirname, '.lib/initial-settings.cjs'))
-console.log(x)
-
 if (db.settings === undefined) {
   // Initialise the settings object.
-  db.settings = require('.lib/initial-settings')
+  db.settings = require(path.join(__dirname, '.lib/initial-settings.cjs'))
 }
