@@ -454,50 +454,6 @@
 </script>
 
 <main>
-  <Modal show={showSiteCreationModal} bind:title={settingUpMessage} hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
-
-    <p class='modalIntroduction'>Setting up {settings ? settings.apps[appToCreate].name : ''} on <strong>{domainToCreate}.{settings ? settings.dns.domain : ''}</strong>.</p>
-
-    <ol class='serverCreationProgress'>
-      <li>
-        <CheckMark checked={false} bind:checkedControlled={serverCreated}/>
-        <span class:currentStep={serverCreationStep === 1}>Commission server</span>
-      </li>
-      <li>
-        <CheckMark checked={false} bind:checkedControlled={domainNameRegistered}/>
-        <span class:currentStep={serverCreationStep === 2}>Register domain name</span>
-      </li>
-      <li>
-        <CheckMark checked={false} bind:checkedControlled={serverInitialised}/>
-        <span class:currentStep={serverCreationStep === 3}>Initialise server</span>
-        {#if serverCreationStep === 3}
-          <progress value={$serverInitialisationProgress} />
-        {/if}
-      </li>
-      <li>
-        <CheckMark checked={false} bind:checkedControlled={appInstalled}/>
-        <span class:currentStep={serverCreationStep === 4}>Install {settings ? settings.apps[appToCreate].name : ''}</span>
-        {#if serverCreationStep === 4}
-          <progress value={$appInstallProgress} />
-        {/if}
-      </li>
-      <li>
-        <CheckMark checked={false} bind:checkedControlled={appRunning}/>
-        <span class:currentStep={serverCreationStep === 5}>Run {settings ? settings.apps[appToCreate].name : ''}</span>
-        {#if serverCreationStep === 5}
-          <progress value={$appRunProgress} />
-        {/if}
-      </li>
-      <li>
-        <CheckMark checked={false} bind:checkedControlled={securityCertificateReady}/>
-        <span class:currentStep={serverCreationStep === 6}>Get security certificate</span>
-      </li>
-    </ol>
-
-    {#if siteCreationSucceeded}
-      <p class='appReady'>🎉️ Your Small Web place is ready!</p>
-    {/if}
-  </Modal>
 
   <h1>Basil Administration</h1>
 
@@ -906,6 +862,52 @@
     {/if}
   {/if}
 </main>
+
+<Modal show={showSiteCreationModal} bind:title={settingUpMessage} hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
+
+  <p class='modalIntroduction'>Setting up {settings ? settings.apps[appToCreate].name : ''} on <strong>{domainToCreate}.{settings ? settings.dns.domain : ''}</strong>.</p>
+
+  <ol class='serverCreationProgress'>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={serverCreated}/>
+      <span class:currentStep={serverCreationStep === 1}>Commission server</span>
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={domainNameRegistered}/>
+      <span class:currentStep={serverCreationStep === 2}>Register domain name</span>
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={serverInitialised}/>
+      <span class:currentStep={serverCreationStep === 3}>Initialise server</span>
+      {#if serverCreationStep === 3}
+        <progress value={$serverInitialisationProgress} />
+      {/if}
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={appInstalled}/>
+      <span class:currentStep={serverCreationStep === 4}>Install {settings ? settings.apps[appToCreate].name : ''}</span>
+      {#if serverCreationStep === 4}
+        <progress value={$appInstallProgress} />
+      {/if}
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={appRunning}/>
+      <span class:currentStep={serverCreationStep === 5}>Run {settings ? settings.apps[appToCreate].name : ''}</span>
+      {#if serverCreationStep === 5}
+        <progress value={$appRunProgress} />
+      {/if}
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={securityCertificateReady}/>
+      <span class:currentStep={serverCreationStep === 6}>Get security certificate</span>
+    </li>
+  </ol>
+
+  {#if siteCreationSucceeded}
+    <p class='appReady'>🎉️ Your Small Web place is ready!</p>
+  {/if}
+</Modal>
+
 
 <style>
   main {
