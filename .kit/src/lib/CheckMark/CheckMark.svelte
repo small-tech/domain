@@ -1,4 +1,5 @@
 <script>
+  // From https://github.com/Perspective-Software/svelte-checkbox/blob/master/Checkbox.svelte
   import { createEventDispatcher, onMount } from "svelte"
   import { sineInOut } from "svelte/easing"
   import createStyle from "./createStyle.js"
@@ -7,7 +8,7 @@
   export let size = '3rem'
   export let name = ''
   export let id = ''
-  export let primaryColor = '#242432'
+  export let primaryColor = '#1CAC78'
   export let secondaryColor = '#d8d8ea'
   export let duration = 700
   export let labelId = ''
