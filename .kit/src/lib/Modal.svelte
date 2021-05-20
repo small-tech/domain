@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte'
+  import { scale } from 'svelte/transition'
 
   export let show = false
   export let hasCloseButton = true
@@ -50,7 +51,7 @@
         <slot />
       </main>
       {#if hasCloseButton || hasActionButton}
-      <footer class="modal__footer">
+      <footer class="modal__footer" in:scale={{duration: 600}}>
         {#if hasActionButton}
           <button class="modal__btn modal__btn-primary">Visit your place</button>
         {/if}

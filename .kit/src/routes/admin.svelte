@@ -2,7 +2,7 @@
   // @hmr:keep-all
 
   import { onMount } from 'svelte'
-  import { fade } from 'svelte/transition'
+  import { fade, scale } from 'svelte/transition'
   import StatusMessage from '$lib/StatusMessage.svelte'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import DataProxy from '$lib/JSDB/DataProxy'
@@ -65,18 +65,20 @@
   let appRunning = false
   let securityCertificateReady = false
 
+  const speedUpFactor = 10
+
   let serverInitialisationProgress = tweened(0, {
     duration: 333,
     easing: cubicOut
   })
 
   let appInstallProgress = tweened(0, {
-    duration: 10000,
+    duration: 10000/speedUpFactor,
     easing: cubicOut
   })
 
   let appRunProgress = tweened(0, {
-    duration: 16410,
+    duration: 16410/speedUpFactor,
     easing: cubicOut
   })
 
@@ -156,57 +158,59 @@
     showSiteCreationModal = true
     serverCreationStep++
 
+
     // Wait for server creation.
 
-    await duration(1000)
+    await duration(1000/speedUpFactor)
     serverCreated = true
 
-    await duration(1000)
+    await duration(1000/speedUpFactor)
     serverCreationStep++
 
     // Wait for domain name registration.
 
-    await duration(1200)
+    await duration(1200/speedUpFactor)
     domainNameRegistered = true
 
-    await duration(1000)
+    await duration(1000/speedUpFactor)
     serverCreationStep++
 
     // Wait for server initialisation
     // (Hetzner provides percentage results for this which seem to be 50% and 100%)
 
-    await duration(3000)
+    await duration(3000/speedUpFactor)
     serverInitialisationProgress.set(0.5)
 
-    await duration(2000)
+    await duration(2000/speedUpFactor)
     serverInitialisationProgress.set(1)
 
-    await duration(700)
+    await duration(700/speedUpFactor)
     serverInitialised = true
 
-    await duration(1000)
+    await duration(1000/speedUpFactor)
     serverCreationStep++
 
     // Wait for app install.
 
     appInstallProgress.set(1)
-    await duration(10000)
+    await duration(10000/speedUpFactor)
     appInstalled = true
 
-    await duration(1000)
+    await duration(1000/speedUpFactor)
     serverCreationStep++
 
     appRunProgress.set(1)
-    await duration(16410)
+    await duration(16410/speedUpFactor)
     appRunning = true
 
-    await duration(1000)
+    await duration(1000/speedUpFactor)
     serverCreationStep++
 
-    await duration(5000)
+    await duration(5000/speedUpFactor)
     securityCertificateReady = true
 
-    await duration(1000)
+    await duration(1000/speedUpFactor)
+    serverCreationStep++
     siteCreationSucceeded = true
     creatingSite = false
   }
@@ -904,7 +908,7 @@
   </ol>
 
   {#if siteCreationSucceeded}
-    <p class='appReady'>🎉️ Your Small Web place is ready!</p>
+    <p class='appReady' in:scale={{duration: 600}}>🎉️ Your Small Web place is ready!</p>
   {/if}
 </Modal>
 
