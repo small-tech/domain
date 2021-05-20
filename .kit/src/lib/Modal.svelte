@@ -6,11 +6,16 @@
   export let hasCloseButton = true
   export let hasActionButton = true
   export let title = 'Modal'
+  export let url
 
   let showing = false
   let mounted = false
 
   let MicroModal
+
+  function visitPlaceHandler() {
+    window.open(url, '_blank')
+  }
 
   onMount(async () => {
     MicroModal = (await import('micromodal')).default
@@ -53,7 +58,7 @@
       {#if hasCloseButton || hasActionButton}
       <footer class="modal__footer" in:scale={{duration: 600}}>
         {#if hasActionButton}
-          <button class="modal__btn modal__btn-primary">Visit your place</button>
+          <button class="modal__btn modal__btn-primary" on:click={visitPlaceHandler}>Visit your place</button>
         {/if}
         {#if hasCloseButton}
           <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>

@@ -48,6 +48,7 @@
 
   let appToCreate = 0
   let domainToCreate = ''
+  let newSiteUrl
 
   let creatingSite = false
   let showSiteCreationModal = false
@@ -378,6 +379,8 @@
               type: 'wait-for-server-response',
               url: `${domainToCreate}.${settings.dns.domain}`
             }))
+
+            newSiteUrl = `https://${domainToCreate}.${settings.dns.domain}`
 
             // TODO: set the Visit button URL to new site’s URL.
           } else {
@@ -923,7 +926,7 @@
   {/if}
 </main>
 
-<Modal show={showSiteCreationModal} bind:title={settingUpMessage} hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
+<Modal show={showSiteCreationModal} title={settingUpMessage} hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded} url={newSiteUrl}>
 
   <p class='modalIntroduction'>Setting up {settings ? settings.apps[appToCreate].name : ''} on <strong>{domainToCreate}.{settings ? settings.dns.domain : ''}</strong>.</p>
 
