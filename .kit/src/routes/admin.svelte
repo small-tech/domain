@@ -65,20 +65,25 @@
   let appRunning = false
   let securityCertificateReady = false
 
-  const speedUpFactor = 10
-
+  // Actual progress timings from Hetzner API.
   let serverInitialisationProgress = tweened(0, {
     duration: 333,
     easing: cubicOut
   })
 
+  // Simulated progress timings for app install and app run.
   let appInstallProgress = tweened(0, {
-    duration: 10000/speedUpFactor,
+    duration: 5000,
     easing: cubicOut
   })
 
   let appRunProgress = tweened(0, {
-    duration: 16410/speedUpFactor,
+    duration: 8000,
+    easing: cubicOut
+  })
+
+  let certificateProvisioningProgress = tweened(0, {
+    duration: 10000,
     easing: cubicOut
   })
 
@@ -145,74 +150,21 @@
 
   async function createServer(event) {
     domainToCreate = event.detail.domain
-    // socket.send(JSON.stringify({
-    //   type: 'create-server',
-    //   domain: domainToCreate,
-    //   app: appToCreate
-    // }))
 
-    // Simulate server creation progress.
+    socket.send(JSON.stringify({
+      type: 'create-server',
+      domain: domainToCreate,
+      app: appToCreate
+    }))
+
+    // Show the progress modal.
+    // (It will be updated when we get progress messages from the server.)
+
     siteCreationSucceeded = false
     siteCreationFailed = false
     creatingSite = true
     showSiteCreationModal = true
     serverCreationStep++
-
-
-    // Wait for server creation.
-
-    await duration(1000/speedUpFactor)
-    serverCreated = true
-
-    await duration(1000/speedUpFactor)
-    serverCreationStep++
-
-    // Wait for domain name registration.
-
-    await duration(1200/speedUpFactor)
-    domainNameRegistered = true
-
-    await duration(1000/speedUpFactor)
-    serverCreationStep++
-
-    // Wait for server initialisation
-    // (Hetzner provides percentage results for this which seem to be 50% and 100%)
-
-    await duration(3000/speedUpFactor)
-    serverInitialisationProgress.set(0.5)
-
-    await duration(2000/speedUpFactor)
-    serverInitialisationProgress.set(1)
-
-    await duration(700/speedUpFactor)
-    serverInitialised = true
-
-    await duration(1000/speedUpFactor)
-    serverCreationStep++
-
-    // Wait for app install.
-
-    appInstallProgress.set(1)
-    await duration(10000/speedUpFactor)
-    appInstalled = true
-
-    await duration(1000/speedUpFactor)
-    serverCreationStep++
-
-    appRunProgress.set(1)
-    await duration(16410/speedUpFactor)
-    appRunning = true
-
-    await duration(1000/speedUpFactor)
-    serverCreationStep++
-
-    await duration(5000/speedUpFactor)
-    securityCertificateReady = true
-
-    await duration(1000/speedUpFactor)
-    serverCreationStep++
-    siteCreationSucceeded = true
-    creatingSite = false
   }
 
   function validateVps() {
@@ -341,9 +293,101 @@
       console.log(`Socket closed.`)
     }
 
-    socket.onmessage = event => {
+    socket.onmessage = async event => {
       const message = JSON.parse(event.data)
       switch (message.type) {
+
+        case 'create-server-progress':
+
+          switch (message.subject) {
+            case 'vps':
+              if (message.status === 'initialising') {
+                serverCreated = true
+                await duration(700)
+                serverCreationStep++
+              } else if (message.status === 'running') {
+                serverInitialisationProgress.set(message.progress)
+              } else {
+                console.log('Warning: received unexpected status for create-server-progress subject VPS:', message.status)
+              }
+            break
+
+            case 'dns':
+              if (message.status === 'initialising') {
+                domainNameRegistered = true
+                await duration(700)
+                serverCreationStep++
+              } else {
+                console.log('Warning: received unexpected status for create-server-progress subject DNS:', message.status)
+              }
+            break
+
+            default:
+              console.log('Warning: unexpected create-server-progress subject received', message.subject)
+          }
+        break
+
+        case 'create-server-success':
+          if (message.status === 'done') {
+            serverInitialised = true
+            await duration(700)
+            serverCreationStep++
+
+            // From here, we simulate progress for the app install and app run staged based on
+            // actual timings taken from the same server configuration. There will be some variance and
+            // that’s why we wait for an actual response from the server at the end of the process.
+            // In the future, we might add an API to Site.js that sends progress information back so
+            // we can have more precise timings but this should, for the time being and for the
+            // supported apps, give us adequate timings/progress to within a couple of seconds.
+
+            // Wait for app install.
+
+            // Installing Site.js (the only supported app at the moment) takes on average 4 seconds,
+            // min: 2.995 seconds, max: 5.54 seconds. Sample size: 10 runs.
+            // To be on the safe side, let’s keep this at 5 seconds.
+            appInstallProgress.set(1)
+            await duration(5000)
+            appInstalled = true
+
+            await duration(700) // Wait for checkmark animation to end.
+            serverCreationStep++
+
+            // Running site enable takes ~2-3 seconds.
+            // For Owncast, it takes longer as it has to download, install and run owncast (I have
+            // two timings so far: 7.4578 seconds and 9.046 seconds; average: 8.312 seconds).
+            //
+            // TODO: this is currently hard-coded for Site.js Owncast install. At least use the
+            // ===== right duration when running just Site.js.
+            appRunProgress.set(1)
+            await duration(8500)
+            appRunning = true
+
+            await duration(700) // Wait for checkmark animation to end.
+            serverCreationStep++
+
+            certificateProvisioningProgress.set(1)
+            await duration(10000)
+            securityCertificateReady = true
+
+            // Now we actually start polling the server to see if it is ready.
+
+            // TODO.
+
+            // OK, server is ready!
+            await duration(700)
+            serverCreationStep++
+            siteCreationSucceeded = true
+            creatingSite = false
+
+            // TODO: Once the progress modal has been closed, make sure we
+            // ===== reset serverCreationStep, etc.
+            //       (Even better, pull out the progress modal into its own component)
+
+          } else {
+            console.log('Warning: received unexpected status for create-server-success subject task:', message.status)
+          }
+        break
+
         case 'settings':
           settings = DataProxy.createDeepProxy(
             {
