@@ -64,6 +64,7 @@
   let appInstalled = false
   let appRunning = false
   let securityCertificateReady = false
+  let serverResponseReceived = false
 
   // Actual progress timings from Hetzner API.
   let serverInitialisationProgress = tweened(0, {
@@ -369,23 +370,34 @@
             await duration(10000)
             securityCertificateReady = true
 
-            // Now we actually start polling the server to see if it is ready.
-
-            // TODO.
-
-            // OK, server is ready!
-            await duration(700)
+            await duration(700) // Wait for checkmark animation to end.
             serverCreationStep++
-            siteCreationSucceeded = true
-            creatingSite = false
 
-            // TODO: Once the progress modal has been closed, make sure we
-            // ===== reset serverCreationStep, etc.
-            //       (Even better, pull out the progress modal into its own component)
+            // Now we actually start polling the server to see if it is ready.
+            socket.send(JSON.stringify({
+              type: 'wait-for-server-response',
+              url: `${domainToCreate}.${settings.dns.domain}`
+            }))
 
+            // TODO: set the Visit button URL to new site’s URL.
           } else {
             console.log('Warning: received unexpected status for create-server-success subject task:', message.status)
           }
+        break
+
+        case 'server-response-received':
+          // OK, server is ready!
+          serverResponseReceived = true
+
+          await duration(700) // Wait for checkmark animation to end.
+          serverCreationStep++
+
+          siteCreationSucceeded = true
+          creatingSite = false
+
+          // TODO: Once the progress modal has been closed, make sure we
+          // ===== reset serverCreationStep, etc.
+          //       (Even better, pull out the progress modal into its own component)
         break
 
         case 'settings':
@@ -948,6 +960,16 @@
     <li>
       <CheckMark checked={false} bind:checkedControlled={securityCertificateReady}/>
       <span class:currentStep={serverCreationStep === 6}>Get security certificate</span>
+      {#if serverCreationStep === 6}
+        <progress value={$certificateProvisioningProgress} />
+      {/if}
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={serverResponseReceived}/>
+      <span class:currentStep={serverCreationStep === 7}>Wait for response from server</span>
+      {#if serverCreationStep === 7}
+        <Jumper />
+      {/if}
     </li>
   </ol>
 

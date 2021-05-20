@@ -8,6 +8,10 @@ const HetznerCloud = require('hcloud-js')
 
 const path = require('path')
 
+const duration = (milliseconds) => {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
 module.exports = function (client, request) {
   const password = request.params.password
 
@@ -178,6 +182,35 @@ module.exports = function (client, request) {
         }
       break
 
+      case 'wait-for-server-response':
+        console.log('Waiting for server response for', message.url)
+        let serverResponseReceived = false
+
+        const newSiteUrl = `https://${message.url}`
+
+        while (!serverResponseReceived) {
+          console.log(`Trying to see if ${newSiteUrl} is ready.`)
+          let response
+          try {
+            response = await fetch(newSiteUrl)
+            serverResponseReceived = response.ok
+          } catch (error) {
+            console.log(`${newSiteUrl} is not yet ready, got an error.`)
+          }
+          if (!serverResponseReceived) {
+            console.log(`${newSiteUrl} not ready, waiting a bit before retrying…`)
+            // Wait a bit before trying again.
+            await duration(1000)
+          }
+        }
+
+        console.log(`🎉️ ${newSiteUrl} is ready!`)
+
+        client.send(JSON.stringify({
+          type: 'server-response-received'
+        }))
+      break
+
       case 'create-server':
         console.log('=====================================================================')
         console.log('Creating server…')
@@ -242,6 +275,8 @@ module.exports = function (client, request) {
         cloudInit = cloudInit.replace('{{SUBDOMAIN}}', subdomain)
 
         console.log('Creating app: ', app.name)
+
+        console.log(cloudInit)
 
         // Create the server and store the returned IP address.
         //
