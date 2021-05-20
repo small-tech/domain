@@ -222,7 +222,7 @@ module.exports = function (client, request) {
         }
 
         // Confirm that domain is not already registered.
-        if (db.domains.includes(subdomain)) {
+        if (db.domains[subdomain] !== undefined) {
           client.send(JSON.stringify({
             type: 'create-server-error',
             subject: 'validation',
