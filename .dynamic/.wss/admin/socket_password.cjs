@@ -155,7 +155,6 @@ module.exports = function (client, request) {
             details
           }))
         }
-
       break
 
       case 'validate-dns':
