@@ -45,8 +45,6 @@
   }
 </script>
 
-<Modal show={true}/>
-
 <main class='site'>
   <!-- <h1>{config.site.name || 'Basil'}</h1> -->
   {#if !serverError}

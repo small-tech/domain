@@ -1,57 +1,65 @@
 <script>
-  import { onMount, afterUpdate } from 'svelte'
+  import { onMount } from 'svelte'
+  import { scale } from 'svelte/transition'
 
   export let show = false
+  export let hasCloseButton = true
+  export let hasActionButton = true
+  export let title = 'Modal'
 
-  let modalAriaHidden = true
+  let showing = false
+  let mounted = false
 
   let MicroModal
 
-  let mounted = false
-
   onMount(async () => {
     MicroModal = (await import('micromodal')).default
-    MicroModal.init({
-      onShow: modal => console.log(`${modal.id} is showing`),
-      onClose: modal => console.log(`${modal.id} is hidden`),
-      openClass: 'is-open',
-      awaitOpenAnimation: true,
-      awaitCloseAnimation: true,
-      debugMode: true
-    })
+    MicroModal.init()
     mounted = true
   })
 
   $: if (mounted) {
-    if (show) {
-      console.log('showing', MicroModal.show)
-      if (modalAriaHidden) {
-        MicroModal.show('modal-1')
-      }
-    } else {
-      MicroModal.close('modal-1')
+    if (show && !showing) {
+      MicroModal.show('modal', {
+        onShow: modal => console.log(`${modal.id} is showing`),
+        onClose: modal => console.log(`${modal.id} is hidden`),
+        awaitOpenAnimation: true,
+        awaitCloseAnimation: true,
+      })
+      showing = true
+    } else if (!show && showing) {
+      MicroModal.close('modal')
+      showing = false
     }
   }
 </script>
 
-<div class="modal micromodal-slide" id="modal-1" aria-hidden={modalAriaHidden}>
-  <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+<div class="modal micromodal-slide" id="modal" aria-hidden=true>
+  <div class="modal__overlay" tabindex="-1" data-micromodal-close={hasCloseButton ? true : null}>
+    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <header class="modal__header">
-        <h2 class="modal__title" id="modal-1-title">
-          Micromodal
+        <h2 class="modal__title" id="modal-title">
+          {@html title}
         </h2>
-        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        <!--
+        {#if hasCloseButton}
+          <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        {/if}
+        -->
       </header>
-      <main class="modal__content" id="modal-1-content">
-        <p>
-          Try hitting the <code>tab</code> key and notice how the focus stays within the modal itself. Also, <code>esc</code> to close modal.
-        </p>
+      <main class="modal__content" id="modal-content">
+        <slot />
       </main>
-      <footer class="modal__footer">
-        <button class="modal__btn modal__btn-primary">Continue</button>
-        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+      {#if hasCloseButton || hasActionButton}
+      <footer class="modal__footer" in:scale={{duration: 600}}>
+        {#if hasActionButton}
+          <button class="modal__btn modal__btn-primary">Visit your place</button>
+        {/if}
+        {#if hasCloseButton}
+          <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        {/if}
       </footer>
+      {/if}
     </div>
   </div>
 </div>
@@ -73,27 +81,33 @@
   .modal__container {
     background-color: #fff;
     padding: 30px;
-    max-width: 500px;
+    max-width: 600px;
     max-height: 100vh;
-    border-radius: 4px;
+    border-radius: 1em;
     overflow-y: auto;
     box-sizing: border-box;
+    box-shadow: rgba(0,0,0,0.5) 1em 1em 1em;
   }
 
   .modal__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    /* display: flex; */
+    /* justify-content: space-between; */
+    /* align-items: center; */
+  }
+
+  .modal__footer {
+    text-align: center;
   }
 
   .modal__title {
     margin-top: 0;
     margin-bottom: 0;
-    font-weight: 600;
-    font-size: 1.25rem;
+    font-weight: 500;
+    font-size: 2.5rem;
     line-height: 1.25;
-    color: #00449e;
+    /* color: #00449e; */
     box-sizing: border-box;
+    text-align: center;
   }
 
   .modal__close {
@@ -111,7 +125,7 @@
   }
 
   .modal__btn {
-    font-size: .875rem;
+    font-size: 1.25rem;
     padding-left: 1rem;
     padding-right: 1rem;
     padding-top: .5rem;
@@ -138,13 +152,17 @@
     transition: transform .25s ease-out,-webkit-transform .25s ease-out;
   }
 
+  .modal__btn:not(:last-of-type) {
+    margin-right: 0.25em;
+  }
+
   .modal__btn:focus, .modal__btn:hover {
     -webkit-transform: scale(1.05);
     transform: scale(1.05);
   }
 
   .modal__btn-primary {
-    background-color: #00449e;
+    background-color: #008000;
     color: #fff;
   }
 

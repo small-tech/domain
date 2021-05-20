@@ -2,7 +2,7 @@
   // @hmr:keep-all
 
   import { onMount } from 'svelte'
-  import { fade } from 'svelte/transition'
+  import { fade, scale } from 'svelte/transition'
   import StatusMessage from '$lib/StatusMessage.svelte'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import DataProxy from '$lib/JSDB/DataProxy'
@@ -12,7 +12,9 @@
   import Modal from '$lib/Modal.svelte'
   import Switch from 'svelte-switch'
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
-
+  import { CheckMark } from '$lib/CheckMark'
+  import { tweened } from 'svelte/motion'
+  import { cubicOut } from 'svelte/easing'
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -20,7 +22,7 @@
 
   const { Converter } = showdown
 
-  let settings = {}
+  let settings
 
   let shouldShowSavedMessage = false
 
@@ -43,7 +45,50 @@
   let vpsImage
   let vpsSshKey
   let app = 0
+
   let appToCreate = 0
+  let domainToCreate = ''
+
+  let creatingSite = false
+  let showSiteCreationModal = false
+
+  let siteCreationSucceeded = false
+  let siteCreationFailed = false
+  let siteCreationEnded = false
+
+  let serverCreationStep = 0
+
+  let serverCreated = false
+  let domainNameRegistered = false
+  let serverInitialised = false
+  let appInstalled = false
+  let appRunning = false
+  let securityCertificateReady = false
+  let serverResponseReceived = false
+
+  // Actual progress timings from Hetzner API.
+  let serverInitialisationProgress = tweened(0, {
+    duration: 333,
+    easing: cubicOut
+  })
+
+  // Simulated progress timings for app install and app run.
+  let appInstallProgress = tweened(0, {
+    duration: 5000,
+    easing: cubicOut
+  })
+
+  let appRunProgress = tweened(0, {
+    duration: 8000,
+    easing: cubicOut
+  })
+
+  let certificateProvisioningProgress = tweened(0, {
+    duration: 10000,
+    easing: cubicOut
+  })
+
+  $: siteCreationEnded = siteCreationSucceeded || siteCreationFailed
 
   const PAYMENT_PROVIDERS = {
     none: 0,
@@ -83,11 +128,11 @@
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
 
-  $: ok.site = settings.site === undefined ? false : settings.site.name !== '' && settings.site.header !== '' && settings.site.footer !== ''
+  $: ok.site = settings === undefined ? false : settings.site.name !== '' && settings.site.header !== '' && settings.site.footer !== ''
 
-  $: ok.org = settings.org === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
+  $: ok.org = settings === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
 
-  $: ok.apps =settings.apps === undefined ? false : settings.apps.length > 0
+  $: ok.apps =settings === undefined ? false : settings.apps.length > 0
 
   // Todo: include full list.
   const currencies = {
@@ -96,18 +141,31 @@
     'usd': '$'
   }
 
-  onMount(() => {
+  onMount(async () => {
     baseUrl = document.location.hostname
   })
 
-  function createServer(event) {
-    const domain = event.detail.domain
-    alert(`Create app: ${domain}: ${appToCreate}`)
+  const duration = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+  }
+
+  async function createServer(event) {
+    domainToCreate = event.detail.domain
+
     socket.send(JSON.stringify({
       type: 'create-server',
-      domain,
+      domain: domainToCreate,
       app: appToCreate
     }))
+
+    // Show the progress modal.
+    // (It will be updated when we get progress messages from the server.)
+
+    siteCreationSucceeded = false
+    siteCreationFailed = false
+    creatingSite = true
+    showSiteCreationModal = true
+    serverCreationStep++
   }
 
   function validateVps() {
@@ -236,9 +294,112 @@
       console.log(`Socket closed.`)
     }
 
-    socket.onmessage = event => {
+    socket.onmessage = async event => {
       const message = JSON.parse(event.data)
       switch (message.type) {
+
+        case 'create-server-progress':
+
+          switch (message.subject) {
+            case 'vps':
+              if (message.status === 'initialising') {
+                serverCreated = true
+                await duration(700)
+                serverCreationStep++
+              } else if (message.status === 'running') {
+                serverInitialisationProgress.set(message.progress)
+              } else {
+                console.log('Warning: received unexpected status for create-server-progress subject VPS:', message.status)
+              }
+            break
+
+            case 'dns':
+              if (message.status === 'initialising') {
+                domainNameRegistered = true
+                await duration(700)
+                serverCreationStep++
+              } else {
+                console.log('Warning: received unexpected status for create-server-progress subject DNS:', message.status)
+              }
+            break
+
+            default:
+              console.log('Warning: unexpected create-server-progress subject received', message.subject)
+          }
+        break
+
+        case 'create-server-success':
+          if (message.status === 'done') {
+            serverInitialised = true
+            await duration(700)
+            serverCreationStep++
+
+            // From here, we simulate progress for the app install and app run staged based on
+            // actual timings taken from the same server configuration. There will be some variance and
+            // that’s why we wait for an actual response from the server at the end of the process.
+            // In the future, we might add an API to Site.js that sends progress information back so
+            // we can have more precise timings but this should, for the time being and for the
+            // supported apps, give us adequate timings/progress to within a couple of seconds.
+
+            // Wait for app install.
+
+            // Installing Site.js (the only supported app at the moment) takes on average 4 seconds,
+            // min: 2.995 seconds, max: 5.54 seconds. Sample size: 10 runs.
+            // To be on the safe side, let’s keep this at 5 seconds.
+            appInstallProgress.set(1)
+            await duration(5000)
+            appInstalled = true
+
+            await duration(700) // Wait for checkmark animation to end.
+            serverCreationStep++
+
+            // Running site enable takes ~2-3 seconds.
+            // For Owncast, it takes longer as it has to download, install and run owncast (I have
+            // two timings so far: 7.4578 seconds and 9.046 seconds; average: 8.312 seconds).
+            //
+            // TODO: this is currently hard-coded for Site.js Owncast install. At least use the
+            // ===== right duration when running just Site.js.
+            appRunProgress.set(1)
+            await duration(8500)
+            appRunning = true
+
+            await duration(700) // Wait for checkmark animation to end.
+            serverCreationStep++
+
+            certificateProvisioningProgress.set(1)
+            await duration(10000)
+            securityCertificateReady = true
+
+            await duration(700) // Wait for checkmark animation to end.
+            serverCreationStep++
+
+            // Now we actually start polling the server to see if it is ready.
+            socket.send(JSON.stringify({
+              type: 'wait-for-server-response',
+              url: `${domainToCreate}.${settings.dns.domain}`
+            }))
+
+            // TODO: set the Visit button URL to new site’s URL.
+          } else {
+            console.log('Warning: received unexpected status for create-server-success subject task:', message.status)
+          }
+        break
+
+        case 'server-response-received':
+          // OK, server is ready!
+          serverResponseReceived = true
+
+          await duration(700) // Wait for checkmark animation to end.
+          serverCreationStep++
+
+          siteCreationSucceeded = true
+          creatingSite = false
+
+          // TODO: Once the progress modal has been closed, make sure we
+          // ===== reset serverCreationStep, etc.
+          //       (Even better, pull out the progress modal into its own component)
+        break
+
         case 'settings':
           settings = DataProxy.createDeepProxy(
             {
@@ -333,10 +494,26 @@
       }
     }
   }
+
+  const originalSettingUpMessage = 'Setting up your place'
+  let settingUpMessage = originalSettingUpMessage
+  let settingUpMessageIntervalId
+  $: if (creatingSite) {
+    let dots = 0
+    settingUpMessageIntervalId = setInterval(() => {
+      dots++
+      if (dots > 3) dots = 0
+      settingUpMessage = originalSettingUpMessage + '<span style="color: inherit;">.<span>'.repeat(dots) + '<span style="color: white;">.</span>'.repeat(3-dots)
+    }, 700)
+  } else {
+    settingUpMessage = originalSettingUpMessage + '...'
+    clearInterval(settingUpMessageIntervalId)
+  }
+
+
 </script>
 
 <main>
-  <Modal show={true} />
 
   <h1>Basil Administration</h1>
 
@@ -537,7 +714,7 @@
                 <h3>Instructions</h3>
                 <ol>
                   <li>Get a <a href='https://dnsimple.com'>DNSimple</a> account (a personal account should suffice as you only need to add subdomains to one domain).</li>
-                  <li><strong>DNSimple does not provide GDPR Data Protection Agreements for anything less than their $300/mo business accounts.</strong> They say one is not necessary for hosting subdomains. (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
+                  <li><strong>DNSimple does not provide GDPR Data Protection Agreements for anything less than their $300/mo bucubicOutss accounts.</strong> They say one is not necessary for hosting subdomains. (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
                   <li>Add your domain to your DNSimple dashboard and find the details required on it under <strong>Account → Automation</strong>.</li>
                 </ol>
               </section>
@@ -746,6 +923,62 @@
   {/if}
 </main>
 
+<Modal show={showSiteCreationModal} bind:title={settingUpMessage} hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded}>
+
+  <p class='modalIntroduction'>Setting up {settings ? settings.apps[appToCreate].name : ''} on <strong>{domainToCreate}.{settings ? settings.dns.domain : ''}</strong>.</p>
+
+  <ol class='serverCreationProgress'>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={serverCreated}/>
+      <span class:currentStep={serverCreationStep === 1}>Commission server</span>
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={domainNameRegistered}/>
+      <span class:currentStep={serverCreationStep === 2}>Register domain name</span>
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={serverInitialised}/>
+      <span class:currentStep={serverCreationStep === 3}>Initialise server</span>
+      {#if serverCreationStep === 3}
+        <progress value={$serverInitialisationProgress} />
+      {/if}
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={appInstalled}/>
+      <span class:currentStep={serverCreationStep === 4}>Install {settings ? settings.apps[appToCreate].name : ''}</span>
+      {#if serverCreationStep === 4}
+        <progress value={$appInstallProgress} />
+      {/if}
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={appRunning}/>
+      <span class:currentStep={serverCreationStep === 5}>Run {settings ? settings.apps[appToCreate].name : ''}</span>
+      {#if serverCreationStep === 5}
+        <progress value={$appRunProgress} />
+      {/if}
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={securityCertificateReady}/>
+      <span class:currentStep={serverCreationStep === 6}>Get security certificate</span>
+      {#if serverCreationStep === 6}
+        <progress value={$certificateProvisioningProgress} />
+      {/if}
+    </li>
+    <li>
+      <CheckMark checked={false} bind:checkedControlled={serverResponseReceived}/>
+      <span class:currentStep={serverCreationStep === 7}>Wait for response from server</span>
+      {#if serverCreationStep === 7}
+        <Jumper />
+      {/if}
+    </li>
+  </ol>
+
+  {#if siteCreationSucceeded}
+    <p class='appReady' in:scale={{duration: 600}}>🎉️ Your Small Web place is ready!</p>
+  {/if}
+</Modal>
+
+
 <style>
   main {
     max-width: 800px;
@@ -871,6 +1104,15 @@
     font-style: italic;
   }
 
+  .appReady {
+    text-align: center;
+    font-size: 1.5em;
+  }
+
+  .modalIntroduction {
+    font-size: 1.25em;
+  }
+
   #accountIdLabel, #vpiApiTokenLabel {
     display: block;
   }
@@ -886,6 +1128,26 @@
   .openSelectBox {
     scrollbar-width: none;
     overflow: hidden;
+  }
+
+  .serverCreationProgress {
+    list-style-type: none;
+    font-size: 1.5em;
+  }
+
+  progress {
+    display: block;
+    width: 70%;
+    height: 5px;
+    margin-top: -0.5em;
+    margin-bottom: 0.3em;
+    margin-left: 2.75em;
+    background-color: #ccc;
+    border: 0;
+  }
+
+  .currentStep {
+    font-weight: bold;
   }
 
   #createAppForm {

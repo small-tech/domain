@@ -1,7 +1,7 @@
 <script>
   import { range, durationUnitRegex } from "$lib/utils.js";
   export let size = 60;
-  export let color = "#FF3E00";
+  export let color = "#1F75FE";
   export let unit = "px";
   export let duration = "1s";
   let durationUnit = duration.match(durationUnitRegex)[0];
