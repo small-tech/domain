@@ -37,6 +37,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@small-tech/eff-diceware-passphrase": "^1.0.1",
     "@small-tech/jsdb": "^1.2.0",
     "dnsimple": "^4.4.0",
     "hcloud-js": "^1.4.1",

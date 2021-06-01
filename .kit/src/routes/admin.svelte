@@ -12,9 +12,10 @@
   import Modal from '$lib/Modal.svelte'
   import Switch from 'svelte-switch'
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
-  import { CheckMark } from '$lib/CheckMark'
+  import { Checkbox } from '$lib/Checkbox'
   import { tweened } from 'svelte/motion'
   import { cubicOut } from 'svelte/easing'
+  import EFFDicewarePassphrase from '@small-tech/eff-diceware-passphrase'
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -66,6 +67,10 @@
   let appRunning = false
   let securityCertificateReady = false
   let serverResponseReceived = false
+
+  let newPlacePassphrase
+  let passphraseSavedCheck = false
+  let agreeToTerms = false
 
   // Actual progress timings from Hetzner API.
   let serverInitialisationProgress = tweened(0, {
@@ -144,6 +149,9 @@
 
   onMount(async () => {
     baseUrl = document.location.hostname
+
+    const generate = new EFFDicewarePassphrase()
+    newPlacePassphrase = generate.entropy(100).join(' ')
   })
 
   const duration = (milliseconds) => {
@@ -351,7 +359,7 @@
             await duration(5000)
             appInstalled = true
 
-            await duration(700) // Wait for checkmark animation to end.
+            await duration(700) // Wait for Checkbox animation to end.
             serverCreationStep++
 
             // Running site enable takes ~2-3 seconds.
@@ -364,14 +372,14 @@
             await duration(8500)
             appRunning = true
 
-            await duration(700) // Wait for checkmark animation to end.
+            await duration(700) // Wait for Checkbox animation to end.
             serverCreationStep++
 
             certificateProvisioningProgress.set(1)
             await duration(10000)
             securityCertificateReady = true
 
-            await duration(700) // Wait for checkmark animation to end.
+            await duration(700) // Wait for Checkbox animation to end.
             serverCreationStep++
 
             // Now we actually start polling the server to see if it is ready.
@@ -392,7 +400,7 @@
           // OK, server is ready!
           serverResponseReceived = true
 
-          await duration(700) // Wait for checkmark animation to end.
+          await duration(700) // Wait for Checkbox animation to end.
           serverCreationStep++
 
           siteCreationSucceeded = true
@@ -908,6 +916,19 @@
             {/each}
           </select>
 
+          <p class='label'>Passphrase</p>
+          <p><strong>Store this passphrase is your password manager.</strong> You will need it to manage this domain.</p>
+          <div class='passphrase'>{newPlacePassphrase}</div>
+
+          <label class='checkbox-label'>
+            <Checkbox bind:checked={passphraseSavedCheck}/> I have stored this passphrase in my password manager.
+          </label>
+
+          <label class='checkbox-label'>
+            <Checkbox bind:checked={agreeToTerms}/> I agree to the terms of service.
+          </label>
+
+
           <DomainChecker
             config={settings}
             buttonLabel='Create server'
@@ -932,43 +953,43 @@
 
   <ol class='serverCreationProgress'>
     <li>
-      <CheckMark checked={false} bind:checkedControlled={serverCreated}/>
+      <Checkbox checked={false} bind:checkedControlled={serverCreated} disabled={true}/>
       <span class:currentStep={serverCreationStep === 1}>Commission server</span>
     </li>
     <li>
-      <CheckMark checked={false} bind:checkedControlled={domainNameRegistered}/>
+      <Checkbox checked={false} bind:checkedControlled={domainNameRegistered} disabled={true}/>
       <span class:currentStep={serverCreationStep === 2}>Register domain name</span>
     </li>
     <li>
-      <CheckMark checked={false} bind:checkedControlled={serverInitialised}/>
+      <Checkbox checked={false} bind:checkedControlled={serverInitialised} disabled={true}/>
       <span class:currentStep={serverCreationStep === 3}>Initialise server</span>
       {#if serverCreationStep === 3}
         <progress value={$serverInitialisationProgress} />
       {/if}
     </li>
     <li>
-      <CheckMark checked={false} bind:checkedControlled={appInstalled}/>
+      <Checkbox checked={false} bind:checkedControlled={appInstalled} disabled={true}/>
       <span class:currentStep={serverCreationStep === 4}>Install {settings ? settings.apps[appToCreate].name : ''}</span>
       {#if serverCreationStep === 4}
         <progress value={$appInstallProgress} />
       {/if}
     </li>
     <li>
-      <CheckMark checked={false} bind:checkedControlled={appRunning}/>
+      <Checkbox checked={false} bind:checkedControlled={appRunning} disabled={true}/>
       <span class:currentStep={serverCreationStep === 5}>Run {settings ? settings.apps[appToCreate].name : ''}</span>
       {#if serverCreationStep === 5}
         <progress value={$appRunProgress} />
       {/if}
     </li>
     <li>
-      <CheckMark checked={false} bind:checkedControlled={securityCertificateReady}/>
+      <Checkbox checked={false} bind:checkedControlled={securityCertificateReady} disabled={true}/>
       <span class:currentStep={serverCreationStep === 6}>Get security certificate</span>
       {#if serverCreationStep === 6}
         <progress value={$certificateProvisioningProgress} />
       {/if}
     </li>
     <li>
-      <CheckMark checked={false} bind:checkedControlled={serverResponseReceived}/>
+      <Checkbox checked={false} bind:checkedControlled={serverResponseReceived} disabled={true}/>
       <span class:currentStep={serverCreationStep === 7}>Wait for response from server</span>
       {#if serverCreationStep === 7}
         <Jumper />
@@ -1007,7 +1028,7 @@
     font-style: italic;
   }
 
-  label {
+  label, .label {
     margin-bottom: 0.5em;
   }
 
@@ -1053,6 +1074,11 @@
   *:global(.appLogo:nth-of-type(5) svg) {
     color: #6CB4EE; /* Argentine blue. */
   }
+
+  .checkbox-label {
+    display: inline-block;
+    margin: none;
+}
 
   .inline {
     display: inline;
@@ -1126,6 +1152,10 @@
 
   fieldset {
     max-width: 10em;
+  }
+
+  .passphrase {
+    margin-bottom: 1.5em;
   }
 
   .openSelectBox {

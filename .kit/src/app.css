@@ -2,11 +2,11 @@
   font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-input, button, label, textarea, select {
+input, button, label, .label, textarea, select {
   font-size: 1.25em;
 }
 
-input, button, textarea, select, fieldset {
+input, button, textarea, select, fieldset, .passphrase {
   background: white;
   color: black;
   border: 2px solid grey;

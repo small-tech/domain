@@ -12,6 +12,7 @@
   export let secondaryColor = '#d8d8ea'
   export let duration = 700
   export let labelId = ''
+  export let disabled = false
 
   let self,
     canChange = true,
@@ -159,7 +160,7 @@
   class:-changeBg={changeBg}
   class:-checked={checked || !canChange}
   style="width: {size};height: {size};">
-  <input id={labelId} type="checkbox" on:change={handleChange} {name} disabled/>
+  <input id={labelId} type="checkbox" on:change={handleChange} {name} {disabled}/>
   <svg class="checkbox__svg" preserveAspectRatio="none" viewBox="0 0 100 100">
     <rect class="checkbox__border" rx="15%" />
     <rect class="checkbox__border -active" style={borderStyle} rx="15%" />
