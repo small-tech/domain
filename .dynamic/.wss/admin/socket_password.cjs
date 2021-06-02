@@ -182,10 +182,31 @@ module.exports = function (client, request) {
       break
 
       case 'wait-for-server-response':
+        // Validate request.
+        if (db.domains[message.domain] === undefined) {
+          client.send(JSON.stringify({
+            type: 'wait-for-server-response-error',
+            error: 'Domain not found.'
+          }))
+          return
+        }
+
+        if (db.domains[message.domain].status !== 'setup-vps-created') {
+          client.send(JSON.stringify({
+            type: 'wait-for-server-response-error',
+            error: `Incorrect domain status (${db.domains[message.domain].status}). Should be 'setup-vps-created'.`
+          }))
+          return
+        }
+
+        // Request is valid.
+
         console.log('Waiting for server response for', message.url)
         let serverResponseReceived = false
 
-        const newSiteUrl = `https://${message.url}`
+        const newSiteUrl = `https://${message.domain}.${db.settings.dns.domain}`
+
+        // TODO: Implement timeout.
 
         while (!serverResponseReceived) {
           console.log(`Trying to see if ${newSiteUrl} is ready.`)
@@ -202,6 +223,8 @@ module.exports = function (client, request) {
             await duration(1000)
           }
         }
+
+        db.domains[message.domain].status = 'active'
 
         console.log(`🎉️ ${newSiteUrl} is ready!`)
 
@@ -408,7 +431,7 @@ module.exports = function (client, request) {
         }
 
 
-        db.domains[subdomain].status = `created`
+        db.domains[subdomain].status = `setup-vps-created`
 
         console.log(' - Server is ready.')
 

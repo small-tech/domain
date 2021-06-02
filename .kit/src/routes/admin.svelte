@@ -395,7 +395,7 @@
             // Now we actually start polling the server to see if it is ready.
             socket.send(JSON.stringify({
               type: 'wait-for-server-response',
-              url: `${domainToCreate}.${settings.dns.domain}`
+              domain: domainToCreate
             }))
 
             newSiteUrl = `https://${domainToCreate}.${settings.dns.domain}`
