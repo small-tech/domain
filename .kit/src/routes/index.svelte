@@ -60,10 +60,14 @@
       <DomainChecker {config} />
     {/if}
 
+    <hr>
+
+    <h2>Already have a place? Sign in to manage it.</h2>
+
     {@html converter.makeHtml(config.site.footer) || '<p>Site footer goes here.</p>'}
   {:else}
     <section id=server-error>
-      <h2>Server error</h2>
+      <h1>Server error</h1>
       <pre>{serverError.details}</pre>
       {#if serverError.details.includes('ECONNREFUSED')}
         <p><strong>This is likely because Site.js is not running.</strong></p>
@@ -75,7 +79,8 @@
 <!-- <SvelteToast /> -->
 
 <style>
-  #server-error h2 {
+
+  #server-error h1 {
     background: red;
     color: white;
     padding: 0.6em; /* optically adjusted as the error title always begin with an “s” */

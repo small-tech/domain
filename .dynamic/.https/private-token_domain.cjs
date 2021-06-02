@@ -2,12 +2,12 @@ const nacl = require('tweetnacl')
 const sealedBox = require('tweetnacl-sealedbox-js')
 
 function getPublicEncryptionKeyForDomain(domain) {
-  const publicKeys = db.domains[domain]
-  return publicKeys ? publicKeys.encryption : undefined
+  const domainRecord = db.domains[domain]
+  if (domainRecord === undefined) return undefined
+  return domainRecord.publicKeys.encryption
 }
 
 module.exports = (request, response) => {
-
   const domain = request.params.domain
   const publicEncryptionKeyForDomain = getPublicEncryptionKeyForDomain(domain)
 
@@ -20,6 +20,8 @@ module.exports = (request, response) => {
     return
   }
 
+  console.log('public encryption key for domain: ', publicEncryptionKeyForDomain)
+
   const publicEncryptionKey = Buffer.from(publicEncryptionKeyForDomain, 'hex')
 
   // Generate a new private token.
@@ -31,7 +33,7 @@ module.exports = (request, response) => {
   if (!db.privateTokens) {
     db.privateTokens = []
   }
-  db.privateTokens.push({ createdAt: Date.now(), accessedAt: Date.now(), body: unencryptedPrivateToken })
+  db.privateTokens.push({ domain, createdAt: Date.now(), accessedAt: Date.now(), body: unencryptedPrivateToken })
 
   // Encrypt the private token using the domain’s public encryption key.
   // Remember that the purpose of this token is for the person to prove who they are so the server
@@ -41,7 +43,7 @@ module.exports = (request, response) => {
   // prove its identity again so a sealed box will suffice.
   const encryptedPrivateToken = toHex(sealedBox.seal(Buffer.from(unencryptedPrivateToken), publicEncryptionKey))
 
-  console.log(`   🔑️    ❨Place❩ Created new private token: ${unencryptedPrivateToken.slice(0,8).toLowerCase()}`)
+  console.log(`   🔑️    ❨Basil❩ Created new private token: ${unencryptedPrivateToken.slice(0,8).toLowerCase()}`)
 
   response.json({
     encryptedPrivateToken
@@ -82,11 +84,12 @@ function toHex(buffer) {
   for (let idx = 0, edx = buffer.length; idx < edx; idx++) {
     out += LUT_HEX_8b[buffer[idx]]
   }
-  return out
+  return out.toLowerCase()
 }
 
 // Hex string to Uint8Array
 function hexToUInt8Array(string) {
+  string = string.toUpperCase()
   var bytes = new Uint8Array(Math.ceil(string.length / 2));
   for (var i = 0; i < bytes.length; i++) bytes[i] = parseInt(string.substr(i * 2, 2), 16);
   return bytes

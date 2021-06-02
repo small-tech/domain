@@ -21,7 +21,6 @@
 const os = require('os')
 const fs = require('fs')
 const path = require('path')
-const dnsimple = require('dnsimple')
 
 // Courtesy: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval#never_use_eval!
 const parseJsObject = obj => Function('"use strict";return (' + obj + ')')()

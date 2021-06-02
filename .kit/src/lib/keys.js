@@ -3,6 +3,7 @@ import blake from 'blakejs'
 import nacl from 'tweetnacl'
 import naclUtil from 'tweetnacl-util'
 import sealedBox from 'tweetnacl-sealedbox-js'
+import { compute_rest_props } from 'svelte/internal'
 
 // Add sealed box functionality to TweetNaCl.
 nacl.sealedBox = sealedBox
@@ -59,18 +60,25 @@ export async function getSecretKeysHex (domain, passphrase) {
 
 export async function authenticate (domain, passphrase) {
   // Get the encrypted private token.
-  const privateTokenURL = `https://${window.location.hostname}/private-token`
+  const privateTokenURL = `https://${window.location.hostname}/private-token/${domain}`
 
   const privateTokenResponse = await fetch(privateTokenURL)
+  console.log(privateTokenResponse)
   const privateTokenResponseJson = await privateTokenResponse.json()
+  console.log(privateTokenResponseJson)
   const encryptedPrivateToken = privateTokenResponseJson.encryptedPrivateToken
 
   const keys = await getKeys(domain, passphrase)
+
+  const keysAsHex = await getKeysHex(domain, passphrase)
+
 
   const publicEncryptionKeyAsHex = toHex(keys.public.encryption)
   console.log('Public encryption key: ', publicEncryptionKeyAsHex)
 
   // Open the sealed box to get the token.
+  console.log('keys', keys)
+  console.log('keysAsHex', keysAsHex)
   console.log('encryptedPrivateToken', encryptedPrivateToken)
   const sealedBoxOpenResult = nacl.sealedBox.open(hexToUInt8Array(encryptedPrivateToken), keys.public.encryption, keys.secret.encryption)
 
