@@ -13,9 +13,14 @@
   import Switch from 'svelte-switch'
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
   import { Checkbox } from '$lib/Checkbox'
+  import { getPublicKeysHex } from '$lib/keys.js'
   import { tweened } from 'svelte/motion'
   import { cubicOut } from 'svelte/easing'
   import EFFDicewarePassphrase from '@small-tech/eff-diceware-passphrase'
+
+  // Implement global Buffer support.
+  import { Buffer } from 'buffer'
+  globalThis.Buffer = Buffer
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -161,10 +166,15 @@
   async function createServer(event) {
     domainToCreate = event.detail.domain
 
+    const publicKeys = await getPublicKeysHex(domainToCreate, newPlacePassphrase)
+
+    console.log('Public keys (hex)', publicKeys)
+
     socket.send(JSON.stringify({
       type: 'create-server',
       domain: domainToCreate,
-      app: appToCreate
+      app: appToCreate,
+      publicKeys
     }))
 
     // Show the progress modal.

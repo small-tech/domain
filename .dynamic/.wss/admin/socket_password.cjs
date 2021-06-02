@@ -217,6 +217,7 @@ module.exports = function (client, request) {
 
         const subdomain = message.domain
         const appIndex = parseInt(message.app)
+        const publicKeys = message.publicKeys
 
         //
         // Validate input.
@@ -260,6 +261,12 @@ module.exports = function (client, request) {
             subject: 'validation',
             error: 'Domain already exists'
           }))
+        }
+
+        // Create the domain entry
+        db.domains[subdomain] = {
+          publicKeys,
+          status: 'setup-started'
         }
 
         // TODO: Handle errors in VPS / DNS service constructors.
@@ -309,6 +316,7 @@ module.exports = function (client, request) {
         // (The shape of the .server and .action properties.)
 
         if (serverBuildResult.action.status === 'error') {
+          db.domains[subdomain].status = `setup-create-server-error`
           client.send(JSON.stringify({
             type: 'create-server-error',
             subject: 'vps',
@@ -316,6 +324,8 @@ module.exports = function (client, request) {
           }))
           return
         }
+
+        db.domains[subdomain].status = `setup-server-initialising`
 
         console.log(' - Server initialising.')
 
@@ -331,6 +341,8 @@ module.exports = function (client, request) {
         // Before polling for whether that’s complete, let’s also set up
         // the domain entry so we can get that out of the way as soon as
         // possible.
+
+        db.domains[subdomain].status = `setup-dns-initialising`
 
         console.log(' - Setting up the domain name…')
 
@@ -357,6 +369,7 @@ module.exports = function (client, request) {
           console.log(dnsZoneCreationResponse)
         } catch (error) {
           console.log('Create server DNS error', error)
+          db.domains[subdomain].status = `setup-domain-creation-failed`
           client.send(JSON.stringify({
             type: 'create-server-error',
             subject: 'dns',
@@ -367,6 +380,8 @@ module.exports = function (client, request) {
 
         console.log(' - Domain name created.')
 
+        db.domains[subdomain].status = `setup-domain-created`
+
         // Poll the returned server creation action and provide progress messages
         // ===== and only continue once progress is 100%.
 
@@ -374,6 +389,7 @@ module.exports = function (client, request) {
         while (!serverBuildSuccess) {
           const action = await webHost.actions.get(serverBuildResult.action.id)
           if (action.status === 'error') {
+            db.domains[subdomain].status = `setup-vps-creation-failed`
             client.send(JSON.stringify({
               type: 'create-server-error',
               subject: 'vps',
@@ -391,6 +407,9 @@ module.exports = function (client, request) {
           serverBuildSuccess = (action.status === 'success')
         }
 
+
+        db.domains[subdomain].status = `created`
+
         console.log(' - Server is ready.')
 
         client.send(JSON.stringify({
@@ -401,6 +420,8 @@ module.exports = function (client, request) {
 
         // That’s it. From here on, it’s up to the client to poll for the domain to become
         // reachable and for the app to complete installing.
+
+        // TODO: We need a call from the client to let us know when that happens so we can set the domain status to active.
       break
 
       default:
