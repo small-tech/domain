@@ -56,16 +56,16 @@
 
 <main class='site'>
   <form>
-    <p>I want my own <select><option value='Meep'>Meep</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.small-web.org</span> for €10/month.</p>
+    <p>I want my own <select><option value='Meep'>Meep</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.{config.dns.domain}</span> for €10/month.</p>
     <button>Get started!</button>
   </form>
 
   <p class='sign-in'>Already have a place? <a href='sign-in'>Sign in.</a></p>
 
-  <p>Need help? Email Laura and Aral at <a href='mailto:support@small-tech.org'>support@small-tech.org.</a></p>
+  <p><strong>Need help?</strong> Email Laura and Aral at <a href='mailto:{config.org.email}'>{config.org.email}.</a></p>
 
   <footer>
-    <p>This is a <a href=''>Small Web</a> Host run by <a href='https://small-tech.org'>Small Technology Foundation.</a><br><a href=''>Terms of Service</a>. <a href=''>Privacy Policy.</a> <a href=''>View Source.</a></p>
+    <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Host run by <a href='{config.org.site}'>{config.org.name}.</a><br><a href=''>Terms of Service</a>. <a href=''>Privacy Policy.</a> <a href='https://github.com/small-tech/basil'>View Source.</a></p>
   </footer>
 
   <!-- <h1>{config.site.name || 'Basil'}</h1> -->
@@ -150,11 +150,14 @@
     margin-bottom: 0.75em;
   }
 
-  select {
+  select, input[type='text'] {
     border: 0;
-    appearance: none;
-    border-bottom: 2px solid black;
+    border-bottom: 3px solid black;
     border-radius: 0;
+  }
+
+  select {
+    appearance: none;
     display: inline-block;
     font-size: 1em;
     text-align: center;
@@ -165,9 +168,6 @@
   }
 
   input[type='text'] {
-    border: 0px;
-    border-bottom: 2px solid black;
-    border-radius: 0;
     display: inline-block;
     width: 5em;
     font-size: 1em;
