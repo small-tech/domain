@@ -56,7 +56,7 @@
 
 <main class='site'>
   <form>
-    <p>I want my own <select><option value='Meep'>Meep</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.{config.dns.domain}</span> for €10/month.</p>
+    <p>I want my own <select><option value='Place'>Place</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.{config.dns.domain}</span> for €10/month.</p>
     <button>Get started!</button>
   </form>
 
