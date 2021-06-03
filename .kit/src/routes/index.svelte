@@ -42,11 +42,6 @@
   const { Converter } = showdown
   const converter = new Converter()
 
-  const PAYMENT_PROVIDERS = {
-    none: 0,
-    token: 1,
-    stripe: 2
-  }
   if (browser) {
     stretchy()
   }
@@ -61,16 +56,16 @@
 
 <main class='site'>
   <form>
-    <p>I want my own <select><option value='Meep'>Meep</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span><input type='text' placeholder='domain'>.small-web.org</span> for €10/month.</p>
+    <p>I want my own <select><option value='Meep'>Meep</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.small-web.org</span> for €10/month.</p>
     <button>Get started!</button>
   </form>
 
   <p class='sign-in'>Already have a place? <a href='sign-in'>Sign in.</a></p>
 
-  <p>Need help? Email Laura and Aral at <a href='mailto:support@small-tech.org'>support@small-tech.org</a></p>
+  <p>Need help? Email Laura and Aral at <a href='mailto:support@small-tech.org'>support@small-tech.org.</a></p>
 
   <footer>
-    <p>This is a Small Web Host run by Small Technology Foundation.<br><a href=''>Terms of Service</a>. <a href=''>Privacy Policy.</a> <a href=''>View Source</a></p>
+    <p>This is a <a href=''>Small Web</a> Host run by <a href='https://small-tech.org'>Small Technology Foundation.</a><br><a href=''>Terms of Service</a>. <a href=''>Privacy Policy.</a> <a href=''>View Source.</a></p>
   </footer>
 
   <!-- <h1>{config.site.name || 'Basil'}</h1> -->
@@ -163,9 +158,10 @@
     display: inline-block;
     font-size: 1em;
     text-align: center;
-    font-weight: 500;
+    font-weight: 600;
     padding: 0;
     text-align: center;
+    color: #1CAC78;
   }
 
   input[type='text'] {
@@ -176,8 +172,8 @@
     width: 5em;
     font-size: 1em;
     text-align: right;
-    font-weight: bold;
-    color: green;
+    font-weight: 600;
+    color: #1CAC78;
     height: 1.5em;
     padding: 0;
   }
