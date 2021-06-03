@@ -31,6 +31,10 @@
   import DomainChecker from '$lib/DomainChecker.svelte'
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
   import Modal from '$lib/Modal.svelte'
+  import {onMount} from 'svelte'
+  import stretchy from '$lib/stretchy.js'
+
+  import {browser} from '$app/env'
 
   // Doing this in two-steps to the SvelteKit static adapter
   // doesn’t choke on it.
@@ -43,11 +47,34 @@
     token: 1,
     stripe: 2
   }
+  if (browser) {
+    stretchy()
+  }
+
+  let mounted = false
+  onMount(() => {
+    mounted = true
+  })
+
+  let domain = ''
 </script>
 
 <main class='site'>
+  <form>
+    <p>I want my own <select><option value='Meep'>Meep</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span><input type='text' placeholder='domain'>.small-web.org</span> for €10/month.</p>
+    <button>Get started!</button>
+  </form>
+
+  <p class='sign-in'>Already have a place? <a href='sign-in'>Sign in.</a></p>
+
+  <p>Need help? Email Laura and Aral at <a href='mailto:support@small-tech.org'>support@small-tech.org</a></p>
+
+  <footer>
+    <p>This is a Small Web Host run by Small Technology Foundation.<br><a href=''>Terms of Service</a>. <a href=''>Privacy Policy.</a> <a href=''>View Source</a></p>
+  </footer>
+
   <!-- <h1>{config.site.name || 'Basil'}</h1> -->
-  {#if !serverError}
+  <!-- {#if !serverError}
     {@html converter.makeHtml(config.site.header) || '<p>Small Web hosting template.</p>'}
 
     {#if config.payment.provider === PAYMENT_PROVIDERS.none}
@@ -73,12 +100,87 @@
         <p><strong>This is likely because Site.js is not running.</strong></p>
       {/if}
     </section>
-  {/if}
+  {/if} -->
 </main>
 
 <!-- <SvelteToast /> -->
 
 <style>
+
+  .keep-together {
+    white-space: nowrap;
+  }
+
+  .sign-in {
+    font-size: 1.5em;
+  }
+
+  button {
+    font-size: 2em;
+    border: 0px;
+    background-color: #1CAC78;
+    color: white;
+    display: block;
+    margin-bottom: 1.5em;
+  }
+
+  a {
+    color: #1F75FE;
+  }
+
+  main {
+    padding: 1em;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  footer {
+    border-top: 1px solid black;
+    margin-top: 3em;
+  }
+
+  footer > p {
+    font-size: 1em;
+  }
+
+  p {
+    font-size: 1.25em;
+  }
+
+  form > p {
+    font-size: 4em;
+    font-weight: 300;
+    line-height: 1.5em;
+    margin-bottom: 0.75em;
+  }
+
+  select {
+    border: 0;
+    appearance: none;
+    border-bottom: 2px solid black;
+    border-radius: 0;
+    display: inline-block;
+    font-size: 1em;
+    text-align: center;
+    font-weight: 500;
+    padding: 0;
+    text-align: center;
+  }
+
+  input[type='text'] {
+    border: 0px;
+    border-bottom: 2px solid black;
+    border-radius: 0;
+    display: inline-block;
+    width: 5em;
+    font-size: 1em;
+    text-align: right;
+    font-weight: bold;
+    color: green;
+    height: 1.5em;
+    padding: 0;
+  }
 
   #server-error h1 {
     background: red;
