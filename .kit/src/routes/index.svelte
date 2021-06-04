@@ -65,6 +65,7 @@
   <p><strong>Need help?</strong> Email Laura and Aral at <a href='mailto:{config.org.email}'>{config.org.email}.</a></p>
 
   <footer>
+    <!--<p><strong>Like this? <a href='https://small-tech.org/fund-us'>Help fund the folks who make it.</a></strong></p>-->
     <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Host run by <a href='{config.org.site}'>{config.org.name}.</a><br><a href=''>Terms of Service</a>. <a href=''>Privacy Policy.</a> <a href='https://github.com/small-tech/basil'>View Source.</a></p>
   </footer>
 
