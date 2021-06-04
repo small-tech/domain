@@ -35,11 +35,19 @@
     isMounted = true
   })
 
+  let i = 0
+
   // Reactively set whether we’re the active tab or not.
   $: isActiveTab = index === $activeTabIndex
 
   $: if (isMounted && isActiveTab) {
-    link.focus()
+    if (i === 0 && index === 0) {
+      i++
+      window.scrollTo(0,0)
+      document.activeElement.blur()
+    } else {
+      link.focus()
+    }
   }
 
   function tabClick (event) {
