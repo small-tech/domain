@@ -8,12 +8,6 @@ module.exports = {
     email: ''
   },
 
-  site: {
-    name: 'A Small Web Host',
-    header: `A <a href='https://small-tech.org/research-and-development'>Small Web</a> host.`,
-    footer: `I am a <strike>teapot</strike> footer, short and sweet.`
-  },
-
   // Note: these will be arrays later on to accommodate other providers.
   payment: {
     provider: 0,

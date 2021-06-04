@@ -15,12 +15,6 @@ const { payment } = require("../../.db/settings.cjs")
 module.exports = (request, response) => {
 
   const defaultSettings = {
-    site: {
-      name: 'Your small web host',
-      header: `[Configure your host](/admin) to get started.`,
-      footer: `---
-               Add your organisation details, terms of service, and privacy policy here.`
-    },
     payment: {},
     dns: {},
     org: {}
@@ -31,11 +25,6 @@ module.exports = (request, response) => {
     settings = defaultSettings
   } else {
     settings = {
-      site: {
-        name: db.settings.site.name,
-        header: db.settings.site.header,
-        footer: db.settings.site.footer
-      },
       payment: {
         provider: db.settings.payment.provider
       },

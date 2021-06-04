@@ -22,12 +22,6 @@
   import { Buffer } from 'buffer'
   globalThis.Buffer = Buffer
 
-  // Doing this in two-steps to the SvelteKit static adapter
-  // doesn’t choke on it.
-  import showdown from 'showdown'
-
-  const { Converter } = showdown
-
   let settings
 
   let shouldShowSavedMessage = false
@@ -111,35 +105,29 @@
     test: false,
     live: false
   }
+
   const priceError = {
     test: null,
     live: null
   }
 
   let signedIn = false
-
   let baseUrl
-
   let socket
-
-  const converter = new Converter()
 
   const ok = {
     all: false,
     org: false,
-    site: false,
     payment: false,
     dns: false,
     vps: false,
     apps: false
   }
 
-  $: ok.all = ok.site && ok.payment && ok.dns && ok.vps && ok.apps
+  $: ok.all = ok.org && ok.payment && ok.dns && ok.vps && ok.apps
 
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
-
-  $: ok.site = settings === undefined ? false : settings.site.name !== '' && settings.site.header !== '' && settings.site.footer !== ''
 
   $: ok.org = settings === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
 
@@ -567,7 +555,6 @@
         <TabbedInterface>
           <TabList>
             <Tab><StatusMessage state={ok.org}>Organisation</StatusMessage></Tab>
-            <Tab><StatusMessage state={ok.site}>Site</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.dns}>DNS</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.vps}>VPS</StatusMessage></Tab>
@@ -577,7 +564,7 @@
           <form on:submit|preventDefault>
 
             <TabPanel>
-              <h2 id='site'>Organisation settings</h2>
+              <h2 id='organisation'>Organisation settings</h2>
               <p>These details are used to populate the legal matter in the privacy policy and terms and conditions, etc. See Site.</p>
 
               <label for='orgName'>Name</label>
@@ -592,52 +579,6 @@
               <label for='orgEmail'>Support email</label>
               <input name='orgEmail' type='text' bind:value={settings.org.email}/>
 
-            </TabPanel>
-
-            <TabPanel>
-              <h2 id='site'>Site settings</h2>
-              <p>The details here are used to render the page that people use to sign up to your hosting service.</p>
-
-              <TabbedInterface>
-                <TabList>
-                  <Tab>Header</Tab>
-                  <Tab>Footer</Tab>
-                  <Tab>Privacy Policy</Tab>
-                  <Tab>Terms and Conditions</Tab>
-                </TabList>
-                <TabPanel>
-                  <label for='siteHeader'>Header</label>
-                  <textarea name='siteHeader' bind:value={settings.site.header}/>
-                  <small>You can use Markdown and HTML.</small>
-                </TabPanel>
-                <TabPanel>
-                  <label for='siteFooter'>Footer</label>
-                  <textarea name='siteFooter' bind:value={settings.site.footer}/>
-                  <small>You can use Markdown and HTML.</small>
-                </TabPanel>
-              </TabbedInterface>
-
-              <div id='preview' class='site'>
-                <h3>Preview</h3>
-                <!-- <h1>{settings.site.name}</h1> -->
-                {@html converter.makeHtml(settings.site.header)}
-                <strong>[Sign-Up Module Goes Here]</strong>
-                {@html converter.makeHtml(settings.site.footer)}
-              </div>
-
-              <p><em>Your changes are automatically saved in the database but the static site is not automatically rebuilt for you. Either run <code>npm run build</code> from the command-line manually or use the button below to regenerate your site to match the above preview.</em></p>
-
-              <button
-                id='rebuildSiteButton'
-                disabled={rebuildingSite}
-                on:click|preventDefault={() => rebuildingSite = true}
-              >
-                  Rebuild site
-              </button>
-
-              {#if rebuildingSite}
-                <div id='rebuildSiteProgressIndicator'><Jumper size=1.5 unit=em color=green/> Rebuilding site…</div>
-              {/if}
             </TabPanel>
 
             <TabPanel>
