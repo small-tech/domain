@@ -573,7 +573,9 @@
     clearInterval(settingUpMessageIntervalId)
   }
 
-
+  function signOut () {
+    window.location.reload()
+  }
 </script>
 
 <main>
@@ -601,6 +603,7 @@
       <p style='color: red;'>❌️ {@html errorMessage}</p>
     {/if}
   {:else}
+    <p class='signOut'><a href='/' on:click={signOut}>Sign out.</a></p>
     <TabbedInterface>
       <TabList>
         <Tab><StatusMessage state={ok.all}>Setup</StatusMessage></Tab>
@@ -1223,6 +1226,12 @@
 
   .modalIntroduction {
     font-size: 1.25em;
+  }
+
+  .signOut {
+    text-align: right;
+    font-size: 1.25em;
+    margin-top: -1em;
   }
 
   #accountIdLabel, #vpiApiTokenLabel {
