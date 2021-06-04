@@ -207,6 +207,24 @@
     padding: 0;
   }
 
+  input:focus, button:focus, textarea:focus, select:focus {
+  outline: none;
+}
+
+select:focus, input:focus {
+  /* background-image: repeating-linear-gradient(145deg, #fff, #fff 3px, #ddd 3px, #ddd 6px); */
+  background-color: #eee;
+}
+
+input:focus {
+  padding-left: 0.25em !important;
+  padding-right:0.25em !important;
+}
+
+button:focus {
+  background-color: hsl(158, 72%, 29%) !important;
+}
+
   #server-error h1 {
     background: red;
     color: white;
