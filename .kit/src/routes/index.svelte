@@ -10,7 +10,7 @@
           serverError: {
             details
           },
-          config: {site: {}, dns: {}, payment: {}}
+          config: {site: {}, dns: {}, payment: {}, psl: {}}
         }
       }
     }
@@ -81,14 +81,16 @@
         ===== to the following Svelte bug. TODO: use a regular space once bug has been fixed.
         https://github.com/sveltejs/svelte/issues/6381
       -->
-      <p>I {#if paymentIsToken}have a token and I{/if} want my own <select><option value='Place'>Place</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.{config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
       {#if paymentIsNone}
+        <p>{config.dns.domain}</p>
         <aside>
           <p><strong>This is a private instance.</strong></p>
           <p>Please <a href='mailto:{config.org.email}'>contact your administrator</a> for help in setting up your own place or use a public host like <a href='https://small-web.org'>small-web.org</a>.</p>
         </aside>
-      {/if}
-      <button on:click|preventDefault={handleButton}>{#if paymentIsNone}Administer instance{:else}Get started!{/if}</button>
+      {:else}
+        <p>I {#if paymentIsToken}have a token and I{/if} want my own <select><option value='Place'>Place</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.{config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
+       {/if}
+       <button on:click|preventDefault={handleButton}>{#if paymentIsNone}Admin panel{:else}Get started!{/if}</button>
     </form>
 
     <p class='sign-in'>Already have a place? <a href='sign-in'>Sign in.</a></p>
@@ -99,7 +101,13 @@
 
     <footer>
       <!--<p><strong>Like this? <a href='https://small-tech.org/fund-us'>Help fund the folks who make it.</a></strong></p>-->
-      <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Host run by <a href='{config.org.site}'>{config.org.name}.</a><br><a href=''>Terms of Service</a>. <a href=''>Privacy Policy.</a> <a href='https://github.com/small-tech/basil'>View Source.</a></p>
+      <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Host run by <a href='{config.org.site}'>{config.org.name}.</a>
+        {#if !paymentIsNone}
+          <br>
+          <a href=''>Terms of Service</a>.
+          <a href=''>Privacy Policy.</a>
+        {/if}
+      <a href='https://github.com/small-tech/basil'>View Source.</a></p>
     </footer>
 
     <!-- {#if config.payment.provider === PAYMENT_PROVIDERS.none}
@@ -208,22 +216,22 @@
   }
 
   input:focus, button:focus, textarea:focus, select:focus {
-  outline: none;
-}
+    outline: none;
+  }
 
-select:focus, input:focus {
-  /* background-image: repeating-linear-gradient(145deg, #fff, #fff 3px, #ddd 3px, #ddd 6px); */
-  background-color: #eee;
-}
+  select:focus, input:focus {
+    /* background-image: repeating-linear-gradient(145deg, #fff, #fff 3px, #ddd 3px, #ddd 6px); */
+    background-color: #eee;
+  }
 
-input:focus {
-  padding-left: 0.25em !important;
-  padding-right:0.25em !important;
-}
+  input:focus {
+    padding-left: 0.25em !important;
+    padding-right:0.25em !important;
+  }
 
-button:focus {
-  background-color: hsl(158, 72%, 29%) !important;
-}
+  button:focus {
+    background-color: hsl(158, 72%, 29%) !important;
+  }
 
   #server-error h1 {
     background: red;

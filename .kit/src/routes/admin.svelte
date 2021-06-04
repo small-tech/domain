@@ -1,3 +1,29 @@
+<script context='module'>
+  export async function load({page, fetch}) {
+    const response = await fetch('ssr/config')
+
+    if (response.status !== 200) {
+      const details = await response.text()
+
+      return {
+        props: {
+          serverError: {
+            details
+          },
+          config: {site: {}, dns: {}, payment: {}, psl: {}}
+        }
+      }
+    }
+
+    const config = await (response).json()
+    return {
+      props: {
+        config
+      }
+    }
+  }
+</script>
+
 <script>
   // @hmr:keep-all
 
@@ -22,6 +48,7 @@
   import { Buffer } from 'buffer'
   globalThis.Buffer = Buffer
 
+  export let config
   let settings
 
   let shouldShowSavedMessage = false
@@ -551,13 +578,18 @@
 
 <main>
 
-  <h1>Basil Administration</h1>
+  <h1>{config.dns.domain} admin</h1>
 
   {#if !signedIn}
-    <p>Please sign in to access this page.</p>
     <form on:submit|preventDefault>
       <label for='password'>Password:</label>
-      <input name='password' type='password' bind:value={password}/>
+      <!--
+        Since this is the only control on this page, the usability advantage
+        outweighs the accessibility concern (which is valid on pages with more
+        than one control).
+      -->
+      <!-- svelte-ignore a11y-autofocus -->
+      <input id='password' type='password' bind:value={password} autofocus/>
       <button on:click={signIn}>Sign in</button>
     </form>
 
@@ -1040,15 +1072,31 @@
 
 <style>
   main {
-    max-width: 800px;
+    max-width: 760px;
     margin-left: auto;
     margin-right: auto;
+    padding: 1em;
+  }
+
+  h1 {
+    font-size: 4em;
+    font-weight: 300;
+    line-height: 1.5em;
+    margin-bottom: 0.75em;
   }
 
   input, textarea, select {
     display: block;
     margin-top: 0.5em;
     margin-bottom: 1em;
+  }
+
+  #password {
+    display: inline-block;
+  }
+
+  label[for='password'] {
+    display: block;
   }
 
   textarea {
