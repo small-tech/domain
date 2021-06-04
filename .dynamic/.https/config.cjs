@@ -22,7 +22,8 @@ module.exports = (request, response) => {
                Add your organisation details, terms of service, and privacy policy here.`
     },
     payment: {},
-    dns: {}
+    dns: {},
+    org: {}
   }
 
   let settings
@@ -36,11 +37,12 @@ module.exports = (request, response) => {
         footer: db.settings.site.footer
       },
       payment: {
-        provider: db.settings.payment.provider,
+        provider: db.settings.payment.provider
       },
       dns: {
         domain: db.settings.dns.domain
-      }
+      },
+      org: db.settings.org
     }
   }
 
