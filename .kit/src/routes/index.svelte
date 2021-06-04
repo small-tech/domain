@@ -31,8 +31,9 @@
   import DomainChecker from '$lib/DomainChecker.svelte'
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
   import Modal from '$lib/Modal.svelte'
-  import {onMount} from 'svelte'
+  import { onMount } from 'svelte'
   import stretchy from '$lib/stretchy.js'
+  import { goto } from '$app/navigation'
 
   import {browser} from '$app/env'
 
@@ -46,34 +47,62 @@
     stretchy()
   }
 
+  const PAYMENT_PROVIDERS = {
+    none: 0,
+    token: 1,
+    stripe: 2
+  }
+
+  const paymentIsNone = config.payment.provider === PAYMENT_PROVIDERS.none
+  const paymentIsToken = config.payment.provider === PAYMENT_PROVIDERS.token
+  const paymentIsStripe = config.payment.provider === PAYMENT_PROVIDERS.stripe
+
   let mounted = false
   onMount(() => {
     mounted = true
   })
 
   let domain = ''
+
+  console.log(config)
+
+  function handleButton() {
+    if (paymentIsNone) {
+      goto('/admin')
+    }
+  }
 </script>
 
 <main class='site'>
-  <form>
-    <p>I want my own <select><option value='Place'>Place</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.{config.dns.domain}</span> for €10/month.</p>
-    <button>Get started!</button>
-  </form>
+  {#if !serverError}
+    <form>
+      <!--
+        Note: using an en-space instead of a standard space after the conditional, below, due
+        ===== to the following Svelte bug. TODO: use a regular space once bug has been fixed.
+        https://github.com/sveltejs/svelte/issues/6381
+      -->
+      <p>I {#if paymentIsToken}have a token and I{/if} want my own <select><option value='Place'>Place</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.{config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
+      {#if paymentIsNone}
+        <aside>
+          <p><strong>This is a private instance.</strong></p>
+          <p>Please <a href='mailto:{config.org.email}'>contact your administrator</a> for help in setting up your own place or use a public host like <a href='https://small-web.org'>small-web.org</a>.</p>
+        </aside>
+      {/if}
+      <button on:click|preventDefault={handleButton}>{#if paymentIsNone}Administer instance{:else}Get started!{/if}</button>
+    </form>
 
-  <p class='sign-in'>Already have a place? <a href='sign-in'>Sign in.</a></p>
+    <p class='sign-in'>Already have a place? <a href='sign-in'>Sign in.</a></p>
 
-  <p><strong>Need help?</strong> Email Laura and Aral at <a href='mailto:{config.org.email}'>{config.org.email}.</a></p>
+    {#if !paymentIsNone}
+      <p><strong>Need help?</strong> Email Laura and Aral at <a href='mailto:{config.org.email}'>{config.org.email}.</a></p>
+    {/if}
 
-  <footer>
-    <!--<p><strong>Like this? <a href='https://small-tech.org/fund-us'>Help fund the folks who make it.</a></strong></p>-->
-    <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Host run by <a href='{config.org.site}'>{config.org.name}.</a><br><a href=''>Terms of Service</a>. <a href=''>Privacy Policy.</a> <a href='https://github.com/small-tech/basil'>View Source.</a></p>
-  </footer>
+    <footer>
+      <!--<p><strong>Like this? <a href='https://small-tech.org/fund-us'>Help fund the folks who make it.</a></strong></p>-->
+      <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Host run by <a href='{config.org.site}'>{config.org.name}.</a><br><a href=''>Terms of Service</a>. <a href=''>Privacy Policy.</a> <a href='https://github.com/small-tech/basil'>View Source.</a></p>
+    </footer>
 
-  <!-- <h1>{config.site.name || 'Basil'}</h1> -->
-  <!-- {#if !serverError}
-    {@html converter.makeHtml(config.site.header) || '<p>Small Web hosting template.</p>'}
-
-    {#if config.payment.provider === PAYMENT_PROVIDERS.none}
+    <!-- {#if config.payment.provider === PAYMENT_PROVIDERS.none}
       <p><strong>This is a private instance.</strong></p>
       <p>Please use <a href='/admin'>the adminstration interface</a> to set up Small Web places on <strong>{config.dns.domain}</strong>.</p>
     {:else if config.payment.provider === PAYMENT_PROVIDERS.token}
@@ -81,13 +110,7 @@
       <DomainChecker {config} />
     {:else if config.payment.provider === PAYMENT_PROVIDERS.stripe}
       <DomainChecker {config} />
-    {/if}
-
-    <hr>
-
-    <h2>Already have a place? Sign in to manage it.</h2>
-
-    {@html converter.makeHtml(config.site.footer) || '<p>Site footer goes here.</p>'}
+    {/if} -->
   {:else}
     <section id=server-error>
       <h1>Server error</h1>
@@ -96,12 +119,17 @@
         <p><strong>This is likely because Site.js is not running.</strong></p>
       {/if}
     </section>
-  {/if} -->
+  {/if}
 </main>
 
 <!-- <SvelteToast /> -->
 
 <style>
+
+  aside {
+    font-size: 1.5em;
+    margin-bottom: 1.75em;
+  }
 
   .keep-together {
     white-space: nowrap;
