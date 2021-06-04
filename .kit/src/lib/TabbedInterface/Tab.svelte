@@ -1,6 +1,8 @@
 <script>
   import { onMount, getContext } from 'svelte'
 
+  export let navStyle = false
+
   let tab
   let link
   let isActiveTab
@@ -87,6 +89,7 @@
     tabindex={isActiveTab ? undefined : -1}
     aria-selected={isActiveTab || undefined}
     role={linkRole}
+    class:navStyle
     bind:this={link}
     on:keydown={keyHandler}
     on:click|preventDefault={tabClick}
@@ -101,13 +104,31 @@
     margin: 0;
   }
 
-  *:global([aria-selected]) {
-    border: 2px solid;
-    background: #fff;
-    border-bottom: 0;
-    position: relative;
-    top: 2px;
+  a.navStyle {
+    /* font-size: 2em; */
   }
+
+  *:global([aria-selected]) {
+    /* border: 2px solid; */
+    background: #ddd;
+    border-radius: 2em;
+    /* border-bottom: 0; */
+    /* border-bottom: 2px solid black; */
+    position: relative;
+    /* top: 2px; */
+  }
+
+  *:global([aria-selected].navStyle) {
+    /* border: 2px solid; */
+    background:none;
+    border-radius: 0;
+    /* border-bottom: 0; */
+    border-bottom: 2px solid black;
+    position: relative;
+    font-weight: 600;
+    /* top: 2px; */
+  }
+
 
   @media (max-width: 550px) {
     *:global([aria-selected]) {

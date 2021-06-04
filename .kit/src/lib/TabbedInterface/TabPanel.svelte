@@ -39,8 +39,8 @@
 
 <style>
   *:global([role="tabpanel"]) {
-    border: 2px solid;
-    padding: 1.5rem;
+    /* border: 2px solid;      */
+    /* padding: 1.5rem; */
   }
 
   *:global([role="tabpanel"] > *) {

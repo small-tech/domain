@@ -604,10 +604,10 @@
     {/if}
   {:else}
     <p class='signOut'><a href='/' on:click={signOut}>Sign out.</a></p>
-    <TabbedInterface>
-      <TabList>
-        <Tab><StatusMessage state={ok.all}>Setup</StatusMessage></Tab>
-        <Tab>Places</Tab>
+    <TabbedInterface navStyle={true}>
+      <TabList navStyle={true}>
+        <Tab navStyle={true}>Setup</Tab>
+        <Tab navStyle={true}>Places</Tab>
       </TabList>
 
       <TabPanel>
@@ -628,7 +628,7 @@
 
             <!-- Organisation settings -->
             <TabPanel>
-              <h2 id='organisation'>Organisation settings</h2>
+              <h3 id='organisation'>Organisation settings</h3>
               <p>These details are used to populate the legal matter in the privacy policy and terms and conditions, etc. See Site.</p>
 
               <label for='orgName'>Name</label>
@@ -647,7 +647,7 @@
 
             <!-- App settings -->
             <TabPanel>
-              <h2>App Settings</h2>
+              <h3>App Settings</h3>
 
               <label for='app'>App</label>
               <select id='app' bind:value={app} size={settings.apps.length} class='openSelectBox'>
@@ -685,7 +685,7 @@
             </TabPanel>
 
             <TabPanel>
-              <h2 id='psl'>Public Suffix List (PSL) Settings</h2>
+              <h3 id='psl'>Public Suffix List (PSL) Settings</h3>
                 {#if settings.payment.provider === PAYMENT_PROVIDERS.none}
                   <p><strong>✔️ Private instances do not have be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a>.</strong></p>
 
@@ -735,12 +735,12 @@
 
             <!-- DNS settings-->
             <TabPanel>
-              <h2 id='dns'>DNS Settings</h2>
+              <h3 id='dns'>DNS Settings</h3>
 
-              <h3>DNSimple</h3>
+              <h4>DNSimple</h4>
 
               <section class='instructions'>
-                <h3>Instructions</h3>
+                <h5>Instructions</h5>
                 <ol>
                   <li>Get a <a href='https://dnsimple.com'>DNSimple</a> account (a personal account should suffice as you only need to add subdomains to one domain).</li>
                   <li><strong>DNSimple does not provide GDPR Data Protection Agreements for anything less than their $300/mo business accounts.</strong> They say one is not necessary for hosting subdomains. (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
@@ -786,12 +786,12 @@
 
             <!-- VPS Settings -->
             <TabPanel>
-              <h2 id='vps'>VPS Host Settings</h2>
+              <h3 id='vps'>VPS Host Settings</h3>
 
-              <h3>Hetzner</h3>
+              <h4>Hetzner</h4>
 
               <section class='instructions'>
-                <h3>Instructions</h3>
+                <h5>Instructions</h5>
                 <ol>
                   <li>Create a <a href='https://www.hetzner.com/cloud'>Hetzner Cloud</a> account.</li>
                   <li><a href='https://accounts.hetzner.com/account/dpa'>Create a GDPR Data Protection Agreement</a>, accept it, download a copy, sign it, and keep it somewhere safe. (See <a href='https://docs.hetzner.com/general/general-terms-and-conditions/data-privacy-faq/'>Hetzner Data Privacy FAQ</a>)</li>
@@ -879,13 +879,14 @@
 
             <!-- Payment settings -->
             <TabPanel>
-              <h2 id='payment'>Payment Settings</h2>
+              <h3 id='payment'>Payment Settings</h3>
 
               <label for='paymentProvider'>Provider</label>
               <!-- svelte-ignore a11y-no-onchange -->
               <select
                 class='openSelectBox'
                 name='paymentProvider'
+                id='paymentProvider'
                 bind:value={settings.payment.provider}
                 on:change={validatePayment}
                 size={settings.payment.providers.length}
@@ -898,7 +899,7 @@
               {#if settings.payment.provider === 0}
                 <!-- None: no payment provider. All server setups must be done via the admin. -->
                 <section class='instructions'>
-                  <h3>Instructions </h3>
+                  <h4>Instructions </h4>
                   <p>You do not need to set up a payment method to use Basil. When no payment method is set, all server deployments must be done here, from the administrator. You still need to set up the DNS and VPS settings. This is a good option if you just want to set up servers for yourself or for you and your family and friends, for example.</p>
                 </section>
               {/if}
@@ -906,7 +907,7 @@
               {#if settings.payment.provider === 1}
                 <!-- Tokens -->
                 <section class='instructions'>
-                  <h3>Instructions </h3>
+                  <h4>Instructions </h4>
                   <p><strong>Not implemented yet:</strong> Tokens are an alternative to using regular currency, credit/debit card transactions to provide access to servers. A munipicality, for example, might decide that it is a human right for every one of its citizens to have their own place on the Small Web. In this case, a munipicality might decide to issue tokens to every resident that they can use when setting up their place. The same municipality may also activate Stripe payments for those who want more than one site, etc.</p>
                 </section>
               {/if}
@@ -914,7 +915,7 @@
               {#if settings.payment.provider === 2}
                 <!-- Stripe. -->
                 <section class='instructions'>
-                  <h3>Instructions</h3>
+                  <h4>Instructions</h4>
 
                   <ol>
                     <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
@@ -932,15 +933,15 @@
                   <span class='test' slot='unCheckedIcon'>Test</span>
                 </Switch>
 
-                <TabbedInterface>
-                  <TabList>
+                <TabbedInterface navStyle={true}>
+                  <TabList navStyle={true}>
                     {#each settings.payment.providers[2].modeDetails as mode}
-                      <Tab>{mode.title}</Tab>
+                      <Tab navStyle={true}>{mode.title}</Tab>
                     {/each}
                   </TabList>
                   {#each settings.payment.providers[2].modeDetails as mode}
                     <TabPanel>
-                      <h3>{mode.title}</h3>
+                      <h4>{mode.title}</h4>
                       <label for={`${mode.id}PublishableKey`}>Publishable key</label>
                       <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePayment(mode.id)}/>
 
@@ -1088,6 +1089,32 @@
     margin-bottom: 0.75em;
   }
 
+  h2 {
+    font-size: 3em;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+
+  h3 {
+    font-size: 2em;
+  }
+
+  h4 {
+    font-size: 1.5em;
+    margin-top: 1.5em;
+  }
+
+  section > h4 {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+  }
+
+  h5 {
+    font-size: 1.25em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+  }
+
   input, textarea, select {
     display: block;
     margin-top: 0.5em;
@@ -1161,10 +1188,16 @@
     color: #6CB4EE; /* Argentine blue. */
   }
 
+  /* Select the setup tabs */
+  :global(ul:first-of-type) {
+    margin-top: 3em;
+    margin-bottom: 2em;
+  }
+
   .checkbox-label {
     display: inline-block;
     margin: none;
-}
+  }
 
   .inline {
     display: inline;
@@ -1304,6 +1337,10 @@
   #currency, #price {
     display: inline;
     width: 2em;
+  }
+
+  #paymentProvider {
+    min-width: 300px;
   }
 
   :global([data-accordion]) {

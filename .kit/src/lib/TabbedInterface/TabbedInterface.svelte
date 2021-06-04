@@ -16,12 +16,14 @@
 
   // $: $activeTabIndex = selectedIndex
 
+  export let navStyle = false
+
   onMount(() => {
   })
 
 </script>
 
-<div class='tabbed'>
+<div class='tabbed' class:navStyle>
   <slot></slot>
 </div>
 
@@ -33,6 +35,12 @@
 
   :global(*:focus) {
     outline: none;
-    box-shadow: inset 0 0 0 4px lightBlue;
+    box-shadow: 0 0 0 4px lightBlue;
+  }
+
+  :global(*.navStyle:focus) {
+    outline: none;
+    box-shadow: 0 8px 0 0 lightBlue;
+
   }
 </style>

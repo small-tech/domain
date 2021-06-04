@@ -1,6 +1,8 @@
 <script>
   import { onMount } from 'svelte'
 
+  export let navStyle = false
+
   let tabList
   let role = undefined
 
@@ -11,12 +13,27 @@
   })
 </script>
 
-<ul {role} bind:this={tabList}>
+<ul {role} bind:this={tabList} class:navStyle>
   <slot></slot>
   <div id='force'></div>
 </ul>
 
 <style>
+  ul {
+    background-color: #eee;
+    border-radius: 1em;
+    margin-left: -1em;
+    padding-left: 1em;
+    margin-right: -1em;
+    padding-right: 1em;
+  }
+
+  ul.navStyle {
+    background-color: #fff;
+    margin: inherit;
+    padding: inherit;
+  }
+
   * {
     color: inherit;
     margin: 0;
@@ -42,7 +59,7 @@
     }
 
     *:global([role="tablist"] a) {
-      border: 2px solid #222 !important;
+      /* border: 2px solid #222 !important; */
     }
 
     *:global([role="tablist"] li + li a) {
