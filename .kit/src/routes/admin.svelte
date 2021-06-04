@@ -38,6 +38,7 @@
 
   let validateDnsError = null
   let validateVpsError = null
+  let validatePslError = null
 
   let vpsDetails = {}
   let vpsServerType
@@ -177,6 +178,16 @@
     creatingSite = true
     showSiteCreationModal = true
     serverCreationStep++
+  }
+
+  function validatePsl() {
+    if (settings.payment.provider === PAYMENT_PROVIDERS.none) {
+      // Domain does not need to be on the Public Suffix List for private instances.
+      return true
+    }
+    socket.send(JSON.stringify({
+      type: 'validate-psl'
+    }))
   }
 
   function validateVps() {
@@ -429,6 +440,7 @@
           signingIn = false
           signedIn = true
           validatePayment()
+          validatePsl()
           validateDns()
           validateVps()
         break
@@ -462,6 +474,17 @@
         case 'validate-dns':
           validateDnsError = null
           ok.dns = true
+        break
+
+        case 'validate-psl':
+          isOnPublicSuffixList = true
+          ok.psl = true
+        break
+
+        case 'validate-psl-error':
+          isOnPublicSuffixList = false
+          validatePslError = message.error
+          ok.psl = false
         break
 
         case 'validate-vps-error':
@@ -629,7 +652,7 @@
             <TabPanel>
               <h2 id='psl'>Public Suffix List (PSL) Settings</h2>
                 {#if settings.payment.provider === PAYMENT_PROVIDERS.none}
-                  <p>Private instances do not have be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a>.</p>
+                  <p><strong>✔️ Private instances do not have be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a>.</strong></p>
 
                   <p>A private instance is one where the payment provider is set to “none” and where domains can only be registered using this administration panel.</p>
 
@@ -639,6 +662,15 @@
 
                   <p><a href='https://publicsuffix.org/learn/'>Learn more.</a></p>
                 {:else}
+
+                {#if validatePslError}
+                  <p style='color: red;'><strong>❌️ {validatePslError}</strong></p>
+                {:else if ok.psl}
+                  <p><strong>✔️ Your domain is on the Public Suffix List.</strong></p>
+                {:else}
+                  <p><strong>You’ll be informed once we have verified that your domain is on the Public Suffix List.</strong></p>
+                {/if}
+
                   <p>Public instances must be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a> for privacy purposes.</p>
 
                   <p>A public instance is one where the payment provider is set to anything but “none” where members of the public can register their own indepenedent Small Web places using tokens, money, etc.</p>
@@ -649,17 +681,19 @@
 
                   <p><a href='https://publicsuffix.org/learn/'>Learn more.</a></p>
 
-                  <section class='instructions'>
-                    <h3>Instructions</h3>
-                    <ol>
-                      <li><a href='https://github.com/publicsuffix/list/wiki/Guidelines'>Read the guidelines</a> for submitting a domain to the <a href='https://publicsuffix.org'>Public Suffix List</a>.</li>
-                      <li>
-                        <p><a href='https://github.com/publicsuffix/list/pulls'>Submit your pull request</a> to amend the PSL.</p>
-                        <p>You can use <a href='https://small-web.org'>small-web.org’s pull request</a> as a template. You can also refer to that pull request in yours as an example of a precedent for acceptance of a Small Web Host onto the Public Suffix List.</p>
-                        <p>If you have any touble getting accepted, please contact <a href='https://small-tech.org'>Small Technology Foundation</a> at <a href='mailto:'>hello@small-tech.org</a> and we will help.</li>
-                    </ol>
-                    <p><strong>Once your domain is on the public suffix list, we will automatically detect the fact and enable your Small Web Host for public access.</strong></p>
-                  </section>
+                  {#if !ok.psl}
+                    <section class='instructions'>
+                      <h3>Instructions</h3>
+                      <ol>
+                        <li><a href='https://github.com/publicsuffix/list/wiki/Guidelines'>Read the guidelines</a> for submitting a domain to the <a href='https://publicsuffix.org'>Public Suffix List</a>.</li>
+                        <li>
+                          <p><a href='https://github.com/publicsuffix/list/pulls'>Submit your pull request</a> to amend the PSL.</p>
+                          <p>You can use <a href='https://small-web.org'>small-web.org’s pull request</a> as a template. You can also refer to that pull request in yours as an example of a precedent for acceptance of a Small Web Host onto the Public Suffix List.</p>
+                          <p>If you have any touble getting accepted, please contact <a href='https://small-tech.org'>Small Technology Foundation</a> at <a href='mailto:'>hello@small-tech.org</a> and we will help.</li>
+                      </ol>
+                      <p><strong>Once your domain is on the public suffix list, we will automatically detect the fact and enable your Small Web Host for public access.</strong></p>
+                    </section>
+                  {/if}
                 {/if}
             </TabPanel>
 
@@ -674,7 +708,7 @@
                 <h3>Instructions</h3>
                 <ol>
                   <li>Get a <a href='https://dnsimple.com'>DNSimple</a> account (a personal account should suffice as you only need to add subdomains to one domain).</li>
-                  <li><strong>DNSimple does not provide GDPR Data Protection Agreements for anything less than their $300/mo bucubicOutss accounts.</strong> They say one is not necessary for hosting subdomains. (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
+                  <li><strong>DNSimple does not provide GDPR Data Protection Agreements for anything less than their $300/mo business accounts.</strong> They say one is not necessary for hosting subdomains. (see <a href='https://blog.dnsimple.com/2018/05/gdpr/'>GDPR at DNSimple</a>, <a href='https://dnsimple.com/privacy'>DNSimple Privacy Policy</a>).</li>
                   <li>Add your domain to your DNSimple dashboard and find the details required on it under <strong>Account → Automation</strong>.</li>
                 </ol>
               </section>
