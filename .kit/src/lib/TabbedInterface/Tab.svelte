@@ -104,8 +104,14 @@
     margin: 0;
   }
 
-  a.navStyle {
-    /* font-size: 2em; */
+  a.navStyle:focus {
+    outline: none;
+    box-shadow: 0 6px 0 0 lightBlue;
+  }
+
+  a:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px lightBlue;
   }
 
   *:global([aria-selected]) {

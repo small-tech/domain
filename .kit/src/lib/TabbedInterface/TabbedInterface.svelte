@@ -32,15 +32,4 @@
     color: inherit;
     margin: 0;
   }
-
-  :global(*:focus) {
-    outline: none;
-    box-shadow: 0 0 0 4px lightBlue;
-  }
-
-  :global(*.navStyle:focus) {
-    outline: none;
-    box-shadow: 0 8px 0 0 lightBlue;
-
-  }
 </style>
