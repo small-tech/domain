@@ -111,6 +111,7 @@
     live: null
   }
 
+  let isOnPublicSuffixList = false
   let signedIn = false
   let baseUrl
   let socket
@@ -118,10 +119,11 @@
   const ok = {
     all: false,
     org: false,
-    payment: false,
+    apps: false,
+    psl: false,
     dns: false,
     vps: false,
-    apps: false
+    payment: false
   }
 
   $: ok.all = ok.org && ok.payment && ok.dns && ok.vps && ok.apps
@@ -131,7 +133,9 @@
 
   $: ok.org = settings === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
 
-  $: ok.apps =settings === undefined ? false : settings.apps.length > 0
+  $: ok.apps = settings === undefined ? false : settings.apps.length > 0
+
+  $: ok.psl = settings === undefined ? false : settings.payment.provider === PAYMENT_PROVIDERS.none || isOnPublicSuffixList
 
   // Todo: include full list.
   const currencies = {
@@ -555,14 +559,16 @@
         <TabbedInterface>
           <TabList>
             <Tab><StatusMessage state={ok.org}>Organisation</StatusMessage></Tab>
-            <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
+            <Tab><StatusMessage state={ok.apps}>Apps</StatusMessage></Tab>
+            <Tab><StatusMessage state={ok.psl}>PSL</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.dns}>DNS</StatusMessage></Tab>
             <Tab><StatusMessage state={ok.vps}>VPS</StatusMessage></Tab>
-            <Tab><StatusMessage state={ok.apps}>Apps</StatusMessage></Tab>
+            <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
           </TabList>
 
           <form on:submit|preventDefault>
 
+            <!-- Organisation settings -->
             <TabPanel>
               <h2 id='organisation'>Organisation settings</h2>
               <p>These details are used to populate the legal matter in the privacy policy and terms and conditions, etc. See Site.</p>
@@ -578,95 +584,87 @@
 
               <label for='orgEmail'>Support email</label>
               <input name='orgEmail' type='text' bind:value={settings.org.email}/>
-
             </TabPanel>
 
-            <TabPanel>
-              <h2 id='payment'>Payment Settings</h2>
 
-              <label for='paymentProvider'>Provider</label>
-              <!-- svelte-ignore a11y-no-onchange -->
-              <select
-                class='openSelectBox'
-                name='paymentProvider'
-                bind:value={settings.payment.provider}
-                on:change={validatePayment}
-                size={settings.payment.providers.length}
-              >
-                {#each settings.payment.providers as provider, index}
-                  <option value={index}>{provider.name}</option>
+            <!-- App settings -->
+            <TabPanel>
+              <h2>App Settings</h2>
+
+              <label for='app'>App</label>
+              <select id='app' bind:value={app} size={settings.apps.length} class='openSelectBox'>
+                {#each settings.apps as app, index}
+                  <option value={index}>{app.name}</option>
                 {/each}
               </select>
 
-              {#if settings.payment.provider === 0}
-                <!-- None: no payment provider. All server setups must be done via the admin. -->
-                <section class='instructions'>
-                  <h3>Instructions </h3>
-                  <p>You do not need to set up a payment method to use Basil. When no payment method is set, all server deployments must be done here, from the administrator. You still need to set up the DNS and VPS settings. This is a good option if you just want to set up servers for yourself or for you and your family and friends, for example.</p>
-                </section>
-              {/if}
+              <label for='appName'>Name</label>
+              <input
+                id='appName'
+                name='appName'
+                type='text'
+                bind:value={settings.apps[app].name}
+              />
 
-              {#if settings.payment.provider === 1}
-                <!-- Tokens -->
-                <section class='instructions'>
-                  <h3>Instructions </h3>
-                  <p><strong>Not implemented yet:</strong> Tokens are an alternative to using regular currency, credit/debit card transactions to provide access to servers. A munipicality, for example, might decide that it is a human right for every one of its citizens to have their own place on the Small Web. In this case, a munipicality might decide to issue tokens to every resident that they can use when setting up their place. The same municipality may also activate Stripe payments for those who want more than one site, etc.</p>
-                </section>
-              {/if}
+              <label for='appDescription'>Description</label>
+              <textarea id='appDescription' name='appDescription' bind:value={settings.apps[app].description} />
 
-              {#if settings.payment.provider === 2}
-                <!-- Stripe. -->
-                <section class='instructions'>
-                  <h3>Instructions</h3>
+              <label for='appLogo'>Logo (SVG)</label>
 
-                  <ol>
-                    <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
-                    <li>Accept your <a href='https://stripe.com/dpa/legal'>Data Processing Addendum</a> (GDPR). Download and print a copy, sign it and keep it safe.</li>
-                    <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
-                    <li>Enter the API ID of its price and other the details below.</li>
-                  </ol>
+              <div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+                <div class='appLogo'>{@html settings.apps[app].logo}</div>
+              </div>
 
-                  <p><em>(Repeat Steps 3 and 4 once for Test Mode and once for Live Mode.)</em></p>
-                </section>
+              <textarea id='appLogo' name='appLogo' bind:value={settings.apps[app].logo} />
 
-                <label for='mode'>Mode</label>
-                <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} width=75>
-                  <span class='live' slot='checkedIcon'>Live</span>
-                  <span class='test' slot='unCheckedIcon'>Test</span>
-                </Switch>
-
-                <TabbedInterface>
-                  <TabList>
-                    {#each settings.payment.providers[2].modeDetails as mode}
-                      <Tab>{mode.title}</Tab>
-                    {/each}
-                  </TabList>
-                  {#each settings.payment.providers[2].modeDetails as mode}
-                    <TabPanel>
-                      <h3>{mode.title}</h3>
-                      <label for={`${mode.id}PublishableKey`}>Publishable key</label>
-                      <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePayment(mode.id)}/>
-
-                      <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
-                      <!-- TODO: Implement input event on SensitiveTextInput component. -->
-                      <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validatePayment(mode.id)}/>
-
-                      <label for={`${mode.id}PriceId`}>Price (API ID)</label>
-                      <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={validatePayment(mode.id)}/>
-
-                      {#if gotPrice[mode.id] && priceError[mode.id] !== null}
-                        <p style='color: red;'>❌️ {priceError[mode.id]}</p>
-                      {:else if gotPrice[mode.id]}
-                        <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
-                      {:else}
-                        <p>ℹ️ <em>Waiting for a valid Stripe price API ID in the form <code>price_[24 chars]</code> before validating these details.</em></p>
-                      {/if}
-                    </TabPanel>
-                  {/each}
-                </TabbedInterface>
-              {/if}
+              <label for='appCloudInit'>Cloud Init</label>
+              <p>Please only change the Cloud Init configuration if you know what you’re doing.</p>
+              <textarea id='appCloudInit' name='appCloudInit' bind:value={settings.apps[app].cloudInit} />
             </TabPanel>
 
+            <TabPanel>
+              <h2 id='psl'>Public Suffix List (PSL) Settings</h2>
+                {#if settings.payment.provider === PAYMENT_PROVIDERS.none}
+                  <p>Private instances do not have be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a>.</p>
+
+                  <p>A private instance is one where the payment provider is set to “none” and where domains can only be registered using this administration panel.</p>
+
+                  <p>The assumption with private instances is that all subdomains registered on the domain belong to the organisation running the Small Web Host. If this assumption is incorrect for your use case (and domains are owned by separate entities even though you register them manually from here), you should <a href='https://github.com/publicsuffix/list/wiki/Guidelines'>apply to have your domain added to the PSL.</a></p>
+
+                  <p>If you’re not on the PSL, realise that this will allow the domain to set privacy-violating “supercookies” that are valid for all subdomains.</p>
+
+                  <p><a href='https://publicsuffix.org/learn/'>Learn more.</a></p>
+                {:else}
+                  <p>Public instances must be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a> for privacy purposes.</p>
+
+                  <p>A public instance is one where the payment provider is set to anything but “none” where members of the public can register their own indepenedent Small Web places using tokens, money, etc.</p>
+
+                  <p>Without this requirement, the organisation running the Small Web Host could set a “supercookie” on the main domain and violate the privacy of the people who own and control the subdomains.</p>
+
+                  <p>Additionally, having the domain on the PSL enables browsers to highlight the most important part of a domain name when displaying it and accurately sort history entries by site.</p>
+
+                  <p><a href='https://publicsuffix.org/learn/'>Learn more.</a></p>
+
+                  <section class='instructions'>
+                    <h3>Instructions</h3>
+                    <ol>
+                      <li><a href='https://github.com/publicsuffix/list/wiki/Guidelines'>Read the guidelines</a> for submitting a domain to the <a href='https://publicsuffix.org'>Public Suffix List</a>.</li>
+                      <li>
+                        <p><a href='https://github.com/publicsuffix/list/pulls'>Submit your pull request</a> to amend the PSL.</p>
+                        <p>You can use <a href='https://small-web.org'>small-web.org’s pull request</a> as a template. You can also refer to that pull request in yours as an example of a precedent for acceptance of a Small Web Host onto the Public Suffix List.</p>
+                        <p>If you have any touble getting accepted, please contact <a href='https://small-tech.org'>Small Technology Foundation</a> at <a href='mailto:'>hello@small-tech.org</a> and we will help.</li>
+                    </ol>
+                    <p><strong>Once your domain is on the public suffix list, we will automatically detect the fact and enable your Small Web Host for public access.</strong></p>
+                  </section>
+                {/if}
+            </TabPanel>
+
+
+            <!-- DNS settings-->
             <TabPanel>
               <h2 id='dns'>DNS Settings</h2>
 
@@ -716,6 +714,8 @@
               />
             </TabPanel>
 
+
+            <!-- VPS Settings -->
             <TabPanel>
               <h2 id='vps'>VPS Host Settings</h2>
 
@@ -806,43 +806,93 @@
                 </Accordion>
               {/if}
             </TabPanel>
-            <TabPanel>
-              <h2>App Settings</h2>
 
-              <label for='app'>App</label>
-              <select id='app' bind:value={app} size={settings.apps.length} class='openSelectBox'>
-                {#each settings.apps as app, index}
-                  <option value={index}>{app.name}</option>
+
+            <!-- Payment settings -->
+            <TabPanel>
+              <h2 id='payment'>Payment Settings</h2>
+
+              <label for='paymentProvider'>Provider</label>
+              <!-- svelte-ignore a11y-no-onchange -->
+              <select
+                class='openSelectBox'
+                name='paymentProvider'
+                bind:value={settings.payment.provider}
+                on:change={validatePayment}
+                size={settings.payment.providers.length}
+              >
+                {#each settings.payment.providers as provider, index}
+                  <option value={index}>{provider.name}</option>
                 {/each}
               </select>
 
-              <label for='appName'>Name</label>
-              <input
-                id='appName'
-                name='appName'
-                type='text'
-                bind:value={settings.apps[app].name}
-              />
+              {#if settings.payment.provider === 0}
+                <!-- None: no payment provider. All server setups must be done via the admin. -->
+                <section class='instructions'>
+                  <h3>Instructions </h3>
+                  <p>You do not need to set up a payment method to use Basil. When no payment method is set, all server deployments must be done here, from the administrator. You still need to set up the DNS and VPS settings. This is a good option if you just want to set up servers for yourself or for you and your family and friends, for example.</p>
+                </section>
+              {/if}
 
-              <label for='appDescription'>Description</label>
-              <textarea id='appDescription' name='appDescription' bind:value={settings.apps[app].description} />
+              {#if settings.payment.provider === 1}
+                <!-- Tokens -->
+                <section class='instructions'>
+                  <h3>Instructions </h3>
+                  <p><strong>Not implemented yet:</strong> Tokens are an alternative to using regular currency, credit/debit card transactions to provide access to servers. A munipicality, for example, might decide that it is a human right for every one of its citizens to have their own place on the Small Web. In this case, a munipicality might decide to issue tokens to every resident that they can use when setting up their place. The same municipality may also activate Stripe payments for those who want more than one site, etc.</p>
+                </section>
+              {/if}
 
-              <label for='appLogo'>Logo (SVG)</label>
+              {#if settings.payment.provider === 2}
+                <!-- Stripe. -->
+                <section class='instructions'>
+                  <h3>Instructions</h3>
 
-              <div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-              </div>
+                  <ol>
+                    <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
+                    <li>Accept your <a href='https://stripe.com/dpa/legal'>Data Processing Addendum</a> (GDPR). Download and print a copy, sign it and keep it safe.</li>
+                    <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
+                    <li>Enter the API ID of its price and other the details below.</li>
+                  </ol>
 
-              <textarea id='appLogo' name='appLogo' bind:value={settings.apps[app].logo} />
+                  <p><em>(Repeat Steps 3 and 4 once for Test Mode and once for Live Mode.)</em></p>
+                </section>
 
-              <label for='appCloudInit'>Cloud Init</label>
-              <p>Please only change the Cloud Init configuration if you know what you’re doing.</p>
-              <textarea id='appCloudInit' name='appCloudInit' bind:value={settings.apps[app].cloudInit} />
+                <label for='mode'>Mode</label>
+                <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} width=75>
+                  <span class='live' slot='checkedIcon'>Live</span>
+                  <span class='test' slot='unCheckedIcon'>Test</span>
+                </Switch>
 
+                <TabbedInterface>
+                  <TabList>
+                    {#each settings.payment.providers[2].modeDetails as mode}
+                      <Tab>{mode.title}</Tab>
+                    {/each}
+                  </TabList>
+                  {#each settings.payment.providers[2].modeDetails as mode}
+                    <TabPanel>
+                      <h3>{mode.title}</h3>
+                      <label for={`${mode.id}PublishableKey`}>Publishable key</label>
+                      <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePayment(mode.id)}/>
+
+                      <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
+                      <!-- TODO: Implement input event on SensitiveTextInput component. -->
+                      <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validatePayment(mode.id)}/>
+
+                      <label for={`${mode.id}PriceId`}>Price (API ID)</label>
+                      <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={validatePayment(mode.id)}/>
+
+                      {#if gotPrice[mode.id] && priceError[mode.id] !== null}
+                        <p style='color: red;'>❌️ {priceError[mode.id]}</p>
+                      {:else if gotPrice[mode.id]}
+                        <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
+                      {:else}
+                        <p>ℹ️ <em>Waiting for a valid Stripe price API ID in the form <code>price_[24 chars]</code> before validating these details.</em></p>
+                      {/if}
+                    </TabPanel>
+                  {/each}
+                </TabbedInterface>
+              {/if}
             </TabPanel>
           </form>
 
