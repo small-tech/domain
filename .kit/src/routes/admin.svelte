@@ -44,6 +44,15 @@
   import { cubicOut } from 'svelte/easing'
   import EFFDicewarePassphrase from '@small-tech/eff-diceware-passphrase'
 
+  import {
+    allSupportedCurrencies,
+    additionalCurrenciesSupportedInUnitedArabEmirates,
+    currencyDetails,
+    alphabeticallySortedCurrencyDetails,
+    minimumChargeAmountsInWholeCurrencyUnits,
+    minimumChargeAmountsInWholeStripeUnits
+  } from '$lib/StripeCurrencies.js'
+
   // Implement global Buffer support.
   import { Buffer } from 'buffer'
   globalThis.Buffer = Buffer
@@ -869,7 +878,7 @@
                       {:else}
                         <strong class='warning'>This is an unsupported system for Small Web deployments.</strong>
                       {/if}
-                        Any Linux with systemd should work but you might have to adjust the Cloud Init script, below.
+                        Any Linux with systemd should work but you might have to adjust the Cloud Init scripts for your apps.
                     </p>
                   </AccordionItem>
                 </Accordion>
@@ -898,8 +907,8 @@
 
               {#if settings.payment.provider === 0}
                 <!-- None: no payment provider. All server setups must be done via the admin. -->
-                <section class='instructions'>
-                  <h4>Instructions </h4>
+                <section>
+                  <h4>You’re all set!</h4>
                   <p>You do not need to set up a payment method to use Basil. When no payment method is set, all server deployments must be done here, from the administrator. You still need to set up the DNS and VPS settings. This is a good option if you just want to set up servers for yourself or for you and your family and friends, for example.</p>
                 </section>
               {/if}
@@ -920,12 +929,31 @@
                   <ol>
                     <li>Get a <a href='https://stripe.com'>Stripe</a> account.</li>
                     <li>Accept your <a href='https://stripe.com/dpa/legal'>Data Processing Addendum</a> (GDPR). Download and print a copy, sign it and keep it safe.</li>
-                    <li><a href='https://dashboard.stripe.com/products/create'>Create a new “recurring product”</a> e.g., <em>Small Web Hosting (monthly)</em></li>
-                    <li>Enter the API ID of its price and other the details below.</li>
+                    <li>From your <a href='https://dashboard.stripe.com/dashboard'>Stripe dashboard</a>, get your <em>test API keys</em> and your live API keys and enter them below.</li>
+                    <li>Set the price and currency to finish your Stripe configuration and create your monthly subscription. Please also read through the <a href='https://stripe.com/docs/currencies'>supported currencies</a> section of the Stripe documentation.</li>
                   </ol>
 
-                  <p><em>(Repeat Steps 3 and 4 once for Test Mode and once for Live Mode.)</em></p>
+                  <p><em></em></p>
                 </section>
+
+                <h4>Subscription</h4>
+
+                <p>Please note that you can only have one plan, only set prices in whole numbers (no “psychological pricing”), and only support one currency (ideally, the one for the local region that your Small Web host is based in). These limitations are not bugs, they are features. The idea is that no single Small Web host should scale beyond a certain point. Your Small Web host should be serving your community and you should let other Small Web hosts serve theirs. This is our <a href='https://small-web.org/about/#small-technology'>non-colonial approach</a> as per the <a href='https://small-web.org/about/#small-technology'>Small Technology Principles</a>.</p>
+
+                <p>Support for a commercial option is necessary for organisations that have to exist under capitalism. It doesn’t mean we have to play their shortsighted manipulative games or adopt their success criteria. The goal is for our organisations to provide a bridge to a post-capitalist future (e.g., on where cities can use tokens to provide their citizens with access to the commons from the commons).</p>
+
+                <p>You will not become rich by being a Small Web Host. If that’s your goal, please look elsewhere. However, you will hopefully be able to susbist under capitalism while helping bootstrap a kinder, fairer, and more caring world based on respect for human rights and democracy.</p>
+
+                <label for='currency'>Currency</label>
+
+                <select>
+                  {#each alphabeticallySortedCurrencyDetails as currency, index}
+                    <option value={currency.code} selected={currency.code === 'eur'}>{currency.label}</option>
+                  {/each}
+                </select>
+
+                <label for='price'>Price/month</label>
+                <input id='price' type='number' value=10/>
 
                 <label for='mode'>Mode</label>
                 <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} width=75>
@@ -942,6 +970,13 @@
                   {#each settings.payment.providers[2].modeDetails as mode}
                     <TabPanel>
                       <h4>{mode.title}</h4>
+                      <p>The necesssary objects will be created for you automatically on Stripe once you add your Stripe keys.</p>
+
+                      <ol class='serverCreationProgress'>
+                        <li><StatusMessage state={ok.stripeProduct}>Product</StatusMessage></li>
+                        <li><StatusMessage state={ok.stripePrice}>Price</StatusMessage></li>
+                        <li><StatusMessage state={ok.stripeWebhook}>Webhook</StatusMessage></li>
+                      </ol>
                       <label for={`${mode.id}PublishableKey`}>Publishable key</label>
                       <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePayment(mode.id)}/>
 
@@ -949,15 +984,12 @@
                       <!-- TODO: Implement input event on SensitiveTextInput component. -->
                       <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validatePayment(mode.id)}/>
 
-                      <label for={`${mode.id}PriceId`}>Price (API ID)</label>
-                      <input id={`${mode.id}PriceId`} type='text' bind:value={mode.priceId} on:input={validatePayment(mode.id)}/>
-
                       {#if gotPrice[mode.id] && priceError[mode.id] !== null}
                         <p style='color: red;'>❌️ {priceError[mode.id]}</p>
                       {:else if gotPrice[mode.id]}
                         <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
                       {:else}
-                        <p>ℹ️ <em>Waiting for a valid Stripe price API ID in the form <code>price_[24 chars]</code> before validating these details.</em></p>
+                        <p>ℹ️ <em>Please enter your API key details to create your monthly subscription.</em></p>
                       {/if}
                     </TabPanel>
                   {/each}
@@ -1127,6 +1159,11 @@
 
   label[for='password'] {
     display: block;
+  }
+
+  input[type='number'] {
+    min-width: 4em;
+    display: block !important;
   }
 
   textarea {

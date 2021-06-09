@@ -41,6 +41,7 @@
     "@small-tech/jsdb": "^1.2.0",
     "blakejs": "^1.1.0",
     "buffer": "^6.0.3",
+    "currency-format": "^1.0.13",
     "dnsimple": "^4.4.0",
     "hcloud-js": "^1.4.1",
     "keypather": "^3.1.0",
