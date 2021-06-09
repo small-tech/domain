@@ -108,6 +108,9 @@
   let passphraseSavedCheck = false
   let agreeToTerms = false
 
+  let stripeCurrency
+  let stripeCurrencyOnlyValidInUnitedArabEmirates = false
+
   // Actual progress timings from Hetzner API.
   let serverInitialisationProgress = tweened(0, {
     duration: 333,
@@ -173,6 +176,8 @@
   $: ok.apps = settings === undefined ? false : settings.apps.length > 0
 
   $: ok.psl = settings === undefined ? false : settings.payment.provider === PAYMENT_PROVIDERS.none || isOnPublicSuffixList
+
+  $: stripeCurrencyOnlyValidInUnitedArabEmirates = additionalCurrenciesSupportedInUnitedArabEmirates.includes(stripeCurrency)
 
   // Todo: include full list.
   const currencies = {
@@ -946,11 +951,15 @@
 
                 <label for='currency'>Currency</label>
 
-                <select>
+                <select bind:value={stripeCurrency}>
                   {#each alphabeticallySortedCurrencyDetails as currency, index}
                     <option value={currency.code} selected={currency.code === 'eur'}>{currency.label}</option>
                   {/each}
                 </select>
+
+                {#if stripeCurrencyOnlyValidInUnitedArabEmirates}
+                  <p><small><strong>* This currency is only supported if your organisation is set to United Arab Emirates in Stripe.</strong> For more information, please see the <a href='https://stripe.com/docs/currencies'>supported currencies</a> section of the Stripe documentation.</small></p>
+                {/if}
 
                 <label for='price'>Price/month</label>
                 <input id='price' type='number' value=10/>
