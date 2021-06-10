@@ -45,6 +45,7 @@
   import EFFDicewarePassphrase from '@small-tech/eff-diceware-passphrase'
 
   import Organisation from '$lib/admin/Organisation.svelte'
+  import Apps from '$lib/admin/Apps.svelte'
 
   import {
     additionalCurrenciesSupportedInUnitedArabEmirates,
@@ -84,7 +85,6 @@
   let vpsLocation
   let vpsImage
   let vpsSshKey
-  let app = 0
 
   let appToCreate = 0
   let domainToCreate = ''
@@ -674,46 +674,7 @@
 
           <form on:submit|preventDefault>
             <TabPanel><Organisation {settings} /></TabPanel>
-
-
-            <!-- App settings -->
-            <TabPanel>
-              <h3>App Settings</h3>
-
-              <label for='app'>App</label>
-              <select id='app' bind:value={app} size={settings.apps.length} class='openSelectBox'>
-                {#each settings.apps as app, index}
-                  <option value={index}>{app.name}</option>
-                {/each}
-              </select>
-
-              <label for='appName'>Name</label>
-              <input
-                id='appName'
-                name='appName'
-                type='text'
-                bind:value={settings.apps[app].name}
-              />
-
-              <label for='appDescription'>Description</label>
-              <textarea id='appDescription' name='appDescription' bind:value={settings.apps[app].description} />
-
-              <label for='appLogo'>Logo (SVG)</label>
-
-              <div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-                <div class='appLogo'>{@html settings.apps[app].logo}</div>
-              </div>
-
-              <textarea id='appLogo' name='appLogo' bind:value={settings.apps[app].logo} />
-
-              <label for='appCloudInit'>Cloud Init</label>
-              <p>Please only change the Cloud Init configuration if you know what you’re doing.</p>
-              <textarea id='appCloudInit' name='appCloudInit' bind:value={settings.apps[app].cloudInit} />
-            </TabPanel>
+            <TabPanel><Apps {settings} /></TabPanel>
 
             <TabPanel>
               <h3 id='psl'>Public Suffix List (PSL) Settings</h3>
@@ -1214,13 +1175,13 @@
     display: block !important;
   }
 
-  textarea {
+  * :global(textarea) {
     width: 100%;
     box-sizing: border-box;
     min-height: 200px;
   }
 
-  textarea + small {
+  * :global(textarea + small) {
     display: block;
     margin-top: -0.5em;
     font-style: italic;
@@ -1246,40 +1207,6 @@
 
   :global(label[for=mode] + div) {
     margin-bottom: 1em;
-  }
-
-  *:global(.appLogo) {
-    display: inline-block;
-  }
-
-  *:global(.appLogo svg) {
-    border: 1px solid black;
-    padding: 1em;
-    width: 3em;
-    height: 3em;
-    vertical-align: middle;
-  }
-
-  /* Show the logo in various colours and also inverted
-     to underscore its nature. */
-
-  *:global(.appLogo:nth-of-type(2) svg) {
-    color: white;
-    background-color: black;
-  }
-
-  /* Colours courtesy of: https://cssgradient.io/ */
-
-  *:global(.appLogo:nth-of-type(3) svg) {
-    color: #FF033E; /* American rose. */
-  }
-
-  *:global(.appLogo:nth-of-type(4) svg) {
-    color: #006A4E; /* Bottle green. */
-  }
-
-  *:global(.appLogo:nth-of-type(5) svg) {
-    color: #6CB4EE; /* Argentine blue. */
   }
 
   /* Select the setup tabs */
@@ -1377,7 +1304,7 @@
     margin-bottom: 1.5em;
   }
 
-  .openSelectBox {
+  * :global(.openSelectBox) {
     scrollbar-width: none;
     overflow: hidden;
   }
@@ -1476,13 +1403,6 @@
     /* padding: 0.25em 1em; */
 	}
 
-  #appLogo, #appCloudInit {
-    min-height: 420px;
-  }
-
-  #appDescription {
-    min-height: 100px;
-  }
 
   #saved {
     position: fixed;
