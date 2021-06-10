@@ -46,6 +46,7 @@
 
   import {
     additionalCurrenciesSupportedInUnitedArabEmirates,
+    currencyDetailsForCurrencyCode,
     alphabeticallySortedCurrencyDetails,
     minimumChargeAmountsInWholeCurrencyUnits,
     minimumChargeAmountsInWholeStripeUnits
@@ -56,6 +57,8 @@
   globalThis.Buffer = Buffer
 
   export let config
+
+  let mounted = false
   let settings
 
   let shouldShowSavedMessage = false
@@ -108,6 +111,7 @@
 
   let stripePrice = 10
   let previousStripePrice = stripePrice
+  let formattedMinimumPrice
   let stripeCurrency
   let stripeCurrencyOnlyValidInUnitedArabEmirates = false
   let minimumStripePriceForCurrency = 1
@@ -180,18 +184,23 @@
 
   $: stripeCurrencyOnlyValidInUnitedArabEmirates = additionalCurrenciesSupportedInUnitedArabEmirates.includes(stripeCurrency)
 
-  // Todo: include full list.
-  const currencies = {
-    'eur': '€',
-    'gbp': '₤',
-    'usd': '$'
-  }
+  // TODO: Implement this in index and then remove from here.
+  // $: {
+  //   if (stripeCurrency) {
+  //     const currencyDetails = currencyDetailsForCurrencyCode(stripeCurrency)
+  //     let output = currencyDetails.template
+  //     output = output.replace('$', currencyDetails.symbol)
+  //     output = output.replace('1', minimumStripePriceForCurrency)
+  //     formattedMinimumPrice = output
+  //   }
+  // }
 
   onMount(async () => {
     baseUrl = document.location.hostname
 
     const generate = new EFFDicewarePassphrase()
     newPlacePassphrase = generate.entropy(100).join(' ')
+    mounted = true
   })
 
   const duration = (milliseconds) => {
@@ -224,12 +233,23 @@
 
   // Custom validation because the built-in browser form validation is useless.
   // This simply does not allow an invalid value to be entered.
-  function validateStripePrice (event) {
+  function validateStripePriceOnInput (event) {
     const price = event.target.value
-    if (price < minimumStripePriceForCurrency || parseInt(price) === NaN) {
-      stripePrice = previousStripePrice
+    if (price < 1 || parseInt(price) === NaN) {
+      // On input, do not force the validation so people
+      // can create temporarily invalid enties (e.g., when deleting an existing
+      // number)
+      return
     } else {
       previousStripePrice = stripePrice
+    }
+  }
+
+  // On change, actually force the value to be correct.
+  function validateStripePriceOnChange (event) {
+    const price = event.target.value
+    if (price < 1 || parseInt(price) === NaN) {
+      stripePrice = previousStripePrice
     }
   }
 
@@ -970,7 +990,7 @@
                 {/if}
 
                 <label for='price'>Price/month</label>
-                <input id='price' type='number' bind:value={stripePrice} step=1 min=1 on:input={validateStripePrice}/>
+                <input id='price' type='number' bind:value={stripePrice} step=1 min=1 on:input={validateStripePriceOnInput} on:change={validateStripePriceOnChange}/>
 
                 <label for='mode'>Mode</label>
                 <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} width=75>

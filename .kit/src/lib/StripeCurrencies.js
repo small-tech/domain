@@ -81,10 +81,12 @@ export const additionalCurrenciesSupportedInUnitedArabEmirates = [ "bhd", "jod",
 
 export const allSupportedCurrencies = standard135Currencies.concat(additionalCurrenciesSupportedInUnitedArabEmirates).sort()
 
-function currencyDetailsForCurrencyCode (currencyCode) {
+export function currencyDetailsForCurrencyCode (currencyCode) {
   const currency = currencyFormat[currencyCode.toUpperCase()]
   const currencySymbol = currency.uniqSymbol === null ? currency.symbol : currency.uniqSymbol
   return {
+    name: currency.name,
+    symbol: currencySymbol.grapheme,
     label: `${currency.name} (${currencySymbol.grapheme})`,
     template: currencySymbol.template
   }
