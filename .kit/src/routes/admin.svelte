@@ -106,8 +106,11 @@
   let passphraseSavedCheck = false
   let agreeToTerms = false
 
+  let stripePrice = 10
+  let previousStripePrice = stripePrice
   let stripeCurrency
   let stripeCurrencyOnlyValidInUnitedArabEmirates = false
+  let minimumStripePriceForCurrency = 1
 
   // Actual progress timings from Hetzner API.
   let serverInitialisationProgress = tweened(0, {
@@ -217,6 +220,17 @@
     creatingSite = true
     showSiteCreationModal = true
     serverCreationStep++
+  }
+
+  // Custom validation because the built-in browser form validation is useless.
+  // This simply does not allow an invalid value to be entered.
+  function validateStripePrice (event) {
+    const price = event.target.value
+    if (price < minimumStripePriceForCurrency || parseInt(price) === NaN) {
+      stripePrice = previousStripePrice
+    } else {
+      previousStripePrice = stripePrice
+    }
   }
 
   function validatePsl() {
@@ -956,7 +970,7 @@
                 {/if}
 
                 <label for='price'>Price/month</label>
-                <input id='price' type='number' value=10/>
+                <input id='price' type='number' bind:value={stripePrice} step=1 min=1 on:input={validateStripePrice}/>
 
                 <label for='mode'>Mode</label>
                 <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} width=75>
