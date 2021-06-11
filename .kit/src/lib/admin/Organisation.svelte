@@ -1,5 +1,8 @@
 <script>
   export let settings
+  export let ok
+
+  $: ok = settings === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
 </script>
 
 <h3 id='organisation'>Organisation settings</h3>

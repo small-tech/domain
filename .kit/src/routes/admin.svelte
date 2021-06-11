@@ -180,8 +180,6 @@
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
 
-  $: ok.org = settings === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
-
   $: ok.apps = settings === undefined ? false : settings.apps.length > 0
 
   $: ok.psl = settings === undefined ? false : settings.payment.provider === PAYMENT_PROVIDERS.none || isOnPublicSuffixList
@@ -675,7 +673,7 @@
           </TabList>
 
           <form on:submit|preventDefault>
-            <TabPanel><Organisation {settings} /></TabPanel>
+            <TabPanel><Organisation {settings} bind:ok={ok.org}/></TabPanel>
             <TabPanel><Apps {settings} /></TabPanel>
             <TabPanel><PSL {settings} {ok} {validatePslError} {PAYMENT_PROVIDERS} /></TabPanel>
             <TabPanel><DNS {settings} {ok} {validateDnsError} {validateDns} bind:dnsDomainInput={dnsDomainInput} bind:dnsAccountIdInput={dnsAccountIdInput} bind:dnsAccessTokenInput={dnsAccessTokenInput} /></TabPanel>
