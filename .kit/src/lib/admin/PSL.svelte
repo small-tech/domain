@@ -46,6 +46,7 @@
   <h3 id='psl'>Public Suffix List (PSL) Settings</h3>
 
   {#if settings.payment.provider === PAYMENT_PROVIDERS.none}
+
     <p><strong>✔️ Private instances do not have be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a>.</strong></p>
 
     <p>A private instance is one where the payment provider is set to “none” and where domains can only be registered using this administration panel.</p>
@@ -55,15 +56,16 @@
     <p>If you’re not on the PSL, realise that this will allow the domain to set privacy-violating “supercookies” that are valid for all subdomains.</p>
 
     <p><a href='https://publicsuffix.org/learn/'>Learn more.</a></p>
+
   {:else}
 
-  {#if validatePslError}
-    <p style='color: red;'><strong>❌️ {validatePslError}</strong></p>
-  {:else if ok.psl}
-    <p><strong>✔️ Your domain is on the Public Suffix List.</strong></p>
-  {:else}
-    <p><strong>You’ll be informed once we have verified that your domain is on the Public Suffix List.</strong></p>
-  {/if}
+    {#if validatePslError}
+      <p style='color: red;'><strong>❌️ {validatePslError}</strong></p>
+    {:else if ok}
+      <p><strong>✔️ Your domain is on the Public Suffix List.</strong></p>
+    {:else}
+      <p><strong>You’ll be informed once we have verified that your domain is on the Public Suffix List.</strong></p>
+    {/if}
 
     <p>Public instances must be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a> for privacy purposes.</p>
 
@@ -88,5 +90,6 @@
         <p><strong>Once your domain is on the public suffix list, we will automatically detect the fact and enable your Small Web Host for public access.</strong></p>
       </section>
     {/if}
+
   {/if}
 {/if}
