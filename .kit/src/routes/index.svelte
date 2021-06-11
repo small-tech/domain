@@ -109,16 +109,6 @@
         {/if}
       <a href='https://github.com/small-tech/basil'>View Source.</a></p>
     </footer>
-
-    <!-- {#if config.payment.provider === PAYMENT_PROVIDERS.none}
-      <p><strong>This is a private instance.</strong></p>
-      <p>Please use <a href='/admin'>the adminstration interface</a> to set up Small Web places on <strong>{config.dns.domain}</strong>.</p>
-    {:else if config.payment.provider === PAYMENT_PROVIDERS.token}
-      <p><strong>Token-based sign-ups not yet implemented.</strong></p>
-      <DomainChecker {config} />
-    {:else if config.payment.provider === PAYMENT_PROVIDERS.stripe}
-      <DomainChecker {config} />
-    {/if} -->
   {:else}
     <section id=server-error>
       <h1>Server error</h1>
