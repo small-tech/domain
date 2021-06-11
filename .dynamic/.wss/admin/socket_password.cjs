@@ -527,6 +527,12 @@ module.exports = function (client, request) {
     client.close()
   } else {
     console.log(`   🔓️    ❨Basil❩ Authorised password: ${password}`)
+    // Send a signal that sign in has succeeded.
+    client.send(JSON.stringify({
+      type: 'sign-in'
+    }))
+
+    // Next, send the settings.
     client.send(JSON.stringify({
       type: 'settings',
       body: db.settings

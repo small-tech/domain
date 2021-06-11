@@ -82,7 +82,6 @@
 
   let validateDnsError = null
   let validateVpsError = null
-  let validatePslError = null
 
   let vpsDetails = {}
   let vpsServerType
@@ -157,7 +156,6 @@
     live: null
   }
 
-  let isOnPublicSuffixList = false
   let signedIn = false
   let baseUrl
   let socket
@@ -176,8 +174,6 @@
 
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
-
-  $: ok.psl = settings === undefined ? false : settings.payment.provider === PAYMENT_PROVIDERS.none || isOnPublicSuffixList
 
   $: stripeCurrencyOnlyValidInUnitedArabEmirates = additionalCurrenciesSupportedInUnitedArabEmirates.includes(stripeCurrency)
 
@@ -250,15 +246,6 @@
     }
   }
 
-  function validatePsl() {
-    if (settings.payment.provider === PAYMENT_PROVIDERS.none) {
-      // Domain does not need to be on the Public Suffix List for private instances.
-      return true
-    }
-    socket.send(JSON.stringify({
-      type: 'validate-psl'
-    }))
-  }
 
   function validateVps() {
     validateVpsError = null
@@ -494,6 +481,11 @@
           //       (Even better, pull out the progress modal into its own component)
         break
 
+        case 'sign-in':
+          signingIn = false
+          signedIn = true
+        break
+
         case 'settings':
           settings = DataProxy.createDeepProxy(
             {
@@ -507,10 +499,7 @@
                 }))
               }
           }, message.body, 'settings')
-          signingIn = false
-          signedIn = true
           validatePayment()
-          validatePsl()
           validateDns()
           validateVps()
         break
@@ -544,17 +533,6 @@
         case 'validate-dns':
           validateDnsError = null
           ok.dns = true
-        break
-
-        case 'validate-psl':
-          isOnPublicSuffixList = true
-          ok.psl = true
-        break
-
-        case 'validate-psl-error':
-          isOnPublicSuffixList = false
-          validatePslError = message.error
-          ok.psl = false
         break
 
         case 'validate-vps-error':
@@ -622,7 +600,6 @@
 </script>
 
 <main>
-
   <h1>{config.dns.domain} admin</h1>
 
   {#if !signedIn}
@@ -670,7 +647,7 @@
           <form on:submit|preventDefault>
             <TabPanel><Organisation {settings} bind:ok={ok.org}/></TabPanel>
             <TabPanel><Apps {settings} bind:ok={ok.apps} /></TabPanel>
-            <TabPanel><PSL {settings} {ok} {validatePslError} /></TabPanel>
+            <TabPanel><PSL {settings} {socket} bind:ok={ok.psl} /></TabPanel>
             <TabPanel><DNS {settings} {ok} {validateDnsError} {validateDns} bind:dnsDomainInput={dnsDomainInput} bind:dnsAccountIdInput={dnsAccountIdInput} bind:dnsAccessTokenInput={dnsAccessTokenInput} /></TabPanel>
             <TabPanel><VPS {settings} {ok} {validateVps} {validateVpsError} {vpsSshKey} {vpsSshKeyChange} {vpsDetails} {vpsServerType} {serverTypeChange} {vpsLocation} {vpsLocationChange} {vpsImage} {vpsImageChange} /></TabPanel>
             <TabPanel><Payment {settings} {ok} {validatePayment} {stripeCurrency} {stripePrice} {stripeCurrencyOnlyValidInUnitedArabEmirates} {validateStripePriceOnInput} {validateStripePriceOnChange} {gotPrice} {priceError} /></TabPanel>
@@ -680,46 +657,48 @@
       </TabPanel>
 
       <TabPanel>
-        <h2>Places</h2>
-        <h3>Create a new Small Web place</h3>
-        <p>You can create a new place without requiring payment details from here (e.g., for your own organisation, for friends, etc.)</p>
+        {#if settings}
+          <h2>Places</h2>
+          <h3>Create a new Small Web place</h3>
+          <p>You can create a new place without requiring payment details from here (e.g., for your own organisation, for friends, etc.)</p>
 
-        <div id='createAppForm'>
-          <label for='appToCreate'>App</label>
-          <select
-            id='appToCreate'
-            bind:value={appToCreate}
-            size={settings.apps.length}
-            class='openSelectBox'
-          >
-            {#each settings.apps as app, index}
-              <option value={index}>{app.name}</option>
-            {/each}
-          </select>
+          <div id='createAppForm'>
+            <label for='appToCreate'>App</label>
+            <select
+              id='appToCreate'
+              bind:value={appToCreate}
+              size={settings.apps.length}
+              class='openSelectBox'
+            >
+              {#each settings.apps as app, index}
+                <option value={index}>{app.name}</option>
+              {/each}
+            </select>
 
-          <p class='label'>Passphrase</p>
-          <p><strong>Store this passphrase is your password manager.</strong> You will need it to manage this domain.</p>
-          <div class='passphrase'>{newPlacePassphrase}</div>
+            <p class='label'>Passphrase</p>
+            <p><strong>Store this passphrase is your password manager.</strong> You will need it to manage this domain.</p>
+            <div class='passphrase'>{newPlacePassphrase}</div>
 
-          <label class='checkbox-label'>
-            <Checkbox bind:checked={passphraseSavedCheck}/> I have stored this passphrase in my password manager.
-          </label>
+            <label class='checkbox-label'>
+              <Checkbox bind:checked={passphraseSavedCheck}/> I have stored this passphrase in my password manager.
+            </label>
 
-          <label class='checkbox-label'>
-            <Checkbox bind:checked={agreeToTerms}/> I agree to the terms of service.
-          </label>
+            <label class='checkbox-label'>
+              <Checkbox bind:checked={agreeToTerms}/> I agree to the terms of service.
+            </label>
 
 
-          <DomainChecker
-            config={settings}
-            buttonLabel='Create server'
-            on:create={createServer}
-          />
-        </div>
+            <DomainChecker
+              config={settings}
+              buttonLabel='Create server'
+              on:create={createServer}
+            />
+          </div>
 
-        <h3>Hosted places</h3>
-        <p>This is the list of Small Web places that are currently being hosted by you.</p>
-        <p><strong>Nothing yet.</strong></p>
+          <h3>Hosted places</h3>
+          <p>This is the list of Small Web places that are currently being hosted by you.</p>
+          <p><strong>Nothing yet.</strong></p>
+        {/if}
       </TabPanel>
     </TabbedInterface>
     {#if shouldShowSavedMessage}

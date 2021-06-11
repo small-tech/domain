@@ -7,42 +7,43 @@
   let app = 0
 </script>
 
-<h3>App Settings</h3>
+{#if settings}
+  <h3>App Settings</h3>
 
-<label for='app'>App</label>
-<select id='app' bind:value={app} size={settings.apps.length} class='openSelectBox'>
-  {#each settings.apps as app, index}
-    <option value={index}>{app.name}</option>
-  {/each}
-</select>
+  <label for='app'>App</label>
+  <select id='app' bind:value={app} size={settings.apps.length} class='openSelectBox'>
+    {#each settings.apps as app, index}
+      <option value={index}>{app.name}</option>
+    {/each}
+  </select>
 
-<label for='appName'>Name</label>
-<input
-  id='appName'
-  name='appName'
-  type='text'
-  bind:value={settings.apps[app].name}
-/>
+  <label for='appName'>Name</label>
+  <input
+    id='appName'
+    name='appName'
+    type='text'
+    bind:value={settings.apps[app].name}
+  />
 
-<label for='appDescription'>Description</label>
-<textarea id='appDescription' name='appDescription' bind:value={settings.apps[app].description} />
+  <label for='appDescription'>Description</label>
+  <textarea id='appDescription' name='appDescription' bind:value={settings.apps[app].description} />
 
-<label for='appLogo'>Logo (SVG)</label>
+  <label for='appLogo'>Logo (SVG)</label>
 
-<div>
-  <div class='appLogo'>{@html settings.apps[app].logo}</div>
-  <div class='appLogo'>{@html settings.apps[app].logo}</div>
-  <div class='appLogo'>{@html settings.apps[app].logo}</div>
-  <div class='appLogo'>{@html settings.apps[app].logo}</div>
-  <div class='appLogo'>{@html settings.apps[app].logo}</div>
-</div>
+  <div>
+    <div class='appLogo'>{@html settings.apps[app].logo}</div>
+    <div class='appLogo'>{@html settings.apps[app].logo}</div>
+    <div class='appLogo'>{@html settings.apps[app].logo}</div>
+    <div class='appLogo'>{@html settings.apps[app].logo}</div>
+    <div class='appLogo'>{@html settings.apps[app].logo}</div>
+  </div>
 
-<textarea id='appLogo' name='appLogo' bind:value={settings.apps[app].logo} />
+  <textarea id='appLogo' name='appLogo' bind:value={settings.apps[app].logo} />
 
-<label for='appCloudInit'>Cloud Init</label>
-<p>Please only change the Cloud Init configuration if you know what you’re doing.</p>
-<textarea id='appCloudInit' name='appCloudInit' bind:value={settings.apps[app].cloudInit} />
-
+  <label for='appCloudInit'>Cloud Init</label>
+  <p>Please only change the Cloud Init configuration if you know what you’re doing.</p>
+  <textarea id='appCloudInit' name='appCloudInit' bind:value={settings.apps[app].cloudInit} />
+{/if}
 
 <style>
   *:global(.appLogo) {
