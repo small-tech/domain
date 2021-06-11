@@ -18,52 +18,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-const os = require('os')
-const fs = require('fs')
-const path = require('path')
-
-// Courtesy: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval#never_use_eval!
-const parseJsObject = obj => Function('"use strict";return (' + obj + ')')()
-
-// Note: we are doing this manually as the configuration is an ESM file
-// (as it is used by the client also) and Site.js only supports CommonJS.
-const config = parseJsObject(fs.readFileSync('basil.config.js', 'utf-8').replace('export default ', ''))
-
-//
-// A records for domains are added via DNSimple.
-//
-// Place a file called dnsimple.json with your account details into ~/.small-tech.org/<your domain>/dnsimple.json with
-// the following structure:
-//
-// {
-//    "accountId": "Your DNSimple account ID (find it in the URL when you sign in or from Account → Automation).",
-//    "zoneId": "Find your zone ID by running: (async () => console.log(await require('dnsimple')({accessToken: '<TOKEN>'}).zones.allZones('<ACCOUNT ID>')))()",
-//    "accessToken": "Your access token. Generate it from DNSimple → Account → API tokens."
-// }
-//
-
-const selfDomain = config.domain
-
-console.log(`\n   🎈    ❨Basil❩ Configured to run on ${selfDomain}\n`)
-
-const configurationDirectory = path.join(os.homedir(), 'basil')
-const dnsimpleConfigurationFile = path.join(configurationDirectory, 'dnsimple.cjs')
-const domainsConfigurationFile = path.join(configurationDirectory, 'domains.cjs')
-
-if (!fs.existsSync(dnsimpleConfigurationFile)) {
-  console.error(`Panic: DNSimple configuration data not found in ${dnsimpleConfigurationFile}. Cannot continue.`)
-  process.exit(1)
-}
-
-const {accountId, zoneId, accessToken} = require(dnsimpleConfigurationFile)
-
 if (!db.domains) {
-  // If there are domains that you have manually added to the DNS
-  // (or that you want to reserve), add them to an object in a
-  // file called ~/basil/domains.cjs. Note: this list is only populated
-  // on first start. If you want to update it, you must first delete
-  // your .db folder.
-  db.domains = fs.existsSync(domainsConfigurationFile) ? require(domainsConfigurationFile) : []
+  db.domains =  []
 }
 
 function error (response, statusCode, errorCode, message) {
