@@ -22,7 +22,7 @@
 
   socket.addEventListener('message', event => {
     const message = JSON.parse(event.data)
-    console.log('>>>', message)
+
     switch (message.type) {
       case 'settings':
         validateSettings()

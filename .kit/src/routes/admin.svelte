@@ -645,9 +645,17 @@
           </TabList>
 
           <form on:submit|preventDefault>
-            <TabPanel><Organisation {settings} bind:ok={ok.org}/></TabPanel>
-            <TabPanel><Apps {settings} bind:ok={ok.apps} /></TabPanel>
-            <TabPanel><PSL {settings} {socket} bind:ok={ok.psl} /></TabPanel>
+            <TabPanel>
+              <Organisation {settings} bind:ok={ok.org} />
+            </TabPanel>
+            <TabPanel>
+              <Apps {settings} bind:ok={ok.apps} />
+            </TabPanel>
+            <TabPanel>
+              <PSL {settings} {socket} bind:ok={ok.psl} />
+            </TabPanel>
+
+            <!-- TODO: finish refactoring the remaining panels. -->
             <TabPanel><DNS {settings} {ok} {validateDnsError} {validateDns} bind:dnsDomainInput={dnsDomainInput} bind:dnsAccountIdInput={dnsAccountIdInput} bind:dnsAccessTokenInput={dnsAccessTokenInput} /></TabPanel>
             <TabPanel><VPS {settings} {ok} {validateVps} {validateVpsError} {vpsSshKey} {vpsSshKeyChange} {vpsDetails} {vpsServerType} {serverTypeChange} {vpsLocation} {vpsLocationChange} {vpsImage} {vpsImageChange} /></TabPanel>
             <TabPanel><Payment {settings} {ok} {validatePayment} {stripeCurrency} {stripePrice} {stripeCurrencyOnlyValidInUnitedArabEmirates} {validateStripePriceOnInput} {validateStripePriceOnChange} {gotPrice} {priceError} /></TabPanel>
