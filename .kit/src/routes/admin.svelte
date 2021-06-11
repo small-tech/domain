@@ -571,10 +571,6 @@
 
           ok.vps = true
         break
-
-        default:
-          console.error('Unknown message', message)
-        break
       }
     }
   }
