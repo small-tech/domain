@@ -28,8 +28,6 @@ function error (response, statusCode, errorCode, message) {
 }
 
 module.exports = async (request, response) => {
-  // const dnsHost = dnsimple({accessToken})
-
   const domain = request.params.domain
 
   // Disallow queries comprised solely of whitespace.
@@ -43,11 +41,6 @@ module.exports = async (request, response) => {
   if (!validHostnameCharacters.test(domain)) {
     return error(response, 400, 2, 'Requested hostname contains invalid characters. (RFC 3696)')
   }
-
-  // const zoneRecords = await dnsHost.zones.listZoneRecords(accountId, zoneId, {
-  //   name_like: domain
-  // })
-  // const available = zoneRecords.data.length === 0
 
   const available = (db.domains[domain] === undefined)
   response.json({domain, available})
