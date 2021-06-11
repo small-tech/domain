@@ -1,11 +1,12 @@
 <script>
+  import { PAYMENT_PROVIDERS } from '$lib/Constants'
+
   export let settings
+  export let ok
 
   // TODO: refactor this once all admin components have been pulled out so that
   // ===== (a) we are doing our own business logic (server calls, etc.)
   //       (b) we fire events on component status changes
-  export let PAYMENT_PROVIDERS
-  export let ok
   export let validatePslError
 </script>
 

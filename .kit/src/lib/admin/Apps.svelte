@@ -1,5 +1,8 @@
 <script>
   export let settings
+  export let ok
+
+  $: ok = settings === undefined ? false : settings.apps.length > 0
 
   let app = 0
 </script>

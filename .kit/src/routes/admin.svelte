@@ -49,6 +49,8 @@
   import VPS from '$lib/admin/VPS.svelte'
   import Payment from '$lib/admin/Payment.svelte'
 
+  import { PAYMENT_PROVIDERS } from '$lib/Constants'
+
   import {
     additionalCurrenciesSupportedInUnitedArabEmirates,
     currencyDetailsForCurrencyCode,
@@ -144,11 +146,6 @@
 
   $: siteCreationEnded = siteCreationSucceeded || siteCreationFailed
 
-  const PAYMENT_PROVIDERS = {
-    none: 0,
-    token: 1,
-    stripe: 2
-  }
 
   const gotPrice = {
     test: false,
@@ -179,8 +176,6 @@
 
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
-
-  $: ok.apps = settings === undefined ? false : settings.apps.length > 0
 
   $: ok.psl = settings === undefined ? false : settings.payment.provider === PAYMENT_PROVIDERS.none || isOnPublicSuffixList
 
@@ -674,8 +669,8 @@
 
           <form on:submit|preventDefault>
             <TabPanel><Organisation {settings} bind:ok={ok.org}/></TabPanel>
-            <TabPanel><Apps {settings} /></TabPanel>
-            <TabPanel><PSL {settings} {ok} {validatePslError} {PAYMENT_PROVIDERS} /></TabPanel>
+            <TabPanel><Apps {settings} bind:ok={ok.apps} /></TabPanel>
+            <TabPanel><PSL {settings} {ok} {validatePslError} /></TabPanel>
             <TabPanel><DNS {settings} {ok} {validateDnsError} {validateDns} bind:dnsDomainInput={dnsDomainInput} bind:dnsAccountIdInput={dnsAccountIdInput} bind:dnsAccessTokenInput={dnsAccessTokenInput} /></TabPanel>
             <TabPanel><VPS {settings} {ok} {validateVps} {validateVpsError} {vpsSshKey} {vpsSshKeyChange} {vpsDetails} {vpsServerType} {serverTypeChange} {vpsLocation} {vpsLocationChange} {vpsImage} {vpsImageChange} /></TabPanel>
             <TabPanel><Payment {settings} {ok} {validatePayment} {stripeCurrency} {stripePrice} {stripeCurrencyOnlyValidInUnitedArabEmirates} {validateStripePriceOnInput} {validateStripePriceOnChange} {gotPrice} {priceError} /></TabPanel>
