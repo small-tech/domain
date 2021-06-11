@@ -10,8 +10,6 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-const { payment } = require("../../.db/settings.cjs")
-
 module.exports = (request, response) => {
 
   const defaultSettings = {
