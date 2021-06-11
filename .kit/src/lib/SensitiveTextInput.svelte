@@ -18,13 +18,16 @@
 </script>
 
 
+<div/>
 <input name={name} type='password' bind:value={value} bind:this={input}/>
 <button on:click={click} bind:this={button}>Show</button>
 <div/>
 
 <style>
+  /* Why do we need !important here? One of the global-yet-scoped
+     styles must be leaking through */
   input {
-    display: inline;
+    display: inline-block !important;
   }
 
   button {
@@ -32,6 +35,6 @@
   }
 
   div {
-    margin-bottom: 1em;
+    margin-top: 0 !important;
   }
 </style>
