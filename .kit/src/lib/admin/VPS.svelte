@@ -41,7 +41,7 @@
   <p>You’ll be informed once you have the correct details set.</p>
 {/if}
 
-<label id='vpiApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
+<label id='vpsApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
 <SensitiveTextInput
   name='vpsApiToken'
   bind:value={settings.vps.apiToken}
@@ -107,3 +107,44 @@
     </AccordionItem>
   </Accordion>
 {/if}
+
+<style>
+  .vpsItemDetails {
+    margin-top: -0.75em;
+    font-size: smaller;
+    font-style: italic;
+  }
+
+  :global([data-accordion]) {
+    list-style: none;
+    margin:0;
+    padding: 0;
+  }
+
+  :global([data-accordion-item] button) {
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 1.25em;
+    font-weight: bold;
+    line-height: inherit;
+    color: inherit;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 0.75em;
+    border-radius: 0;
+    margin-top: 0.25em;
+    border-bottom: 2px dashed grey;
+  }
+
+  :global([data-accordion-item] button[aria-expanded='false']::before) {
+    content: ' ⯈ '
+  }
+
+  :global([data-accordion-item] button[aria-expanded='true']::before) {
+    content: ' ⯆ '
+  }
+</style>
