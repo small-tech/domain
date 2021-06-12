@@ -3,7 +3,7 @@
 // Helper methods for dealing with supported Stripe currencies, based on the
 // information available on https://stripe.com/docs/currencies#presentment-currencies
 //
-// Copyright ⓒ 2021-present Aral Balkan. Licensed under ISC.
+// Copyright ⓒ 2021-present Aral Balkan.
 // Shared with ♥ by the Small Technology Foundation.
 //
 // Like this? Fund us!
