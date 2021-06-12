@@ -1,32 +1,30 @@
 <script>
+  import State from '$lib/State'
   import { PAYMENT_PROVIDERS } from '$lib/Constants'
 
   export let settings
   export let socket
 
-  const state = { UNKNOWN: {}, OK: {}, NOT_OK: {} }
-  state.now = state.UNKNOWN
-
-  const setState = (_state, _context) => {
-    state[_state] = _context || {}
-    state.now = state[_state]
-    return state.now
-  }
+  const state = new State({
+    UNKNOWN: {},
+    OK: {},
+    NOT_OK: {}
+  })
 
   const type = {
     SETTINGS: 'settings',
     VALIDATE_SETTINGS: 'validate-psl'
   }
 
-  const success = (type) => type
-  const error = (type) => `${type}-error`
+  const messageIsOf = (type) => type
+  const errorIsOf = (type) => `${type}-error`
 
   function validateSettings() {
-    state.now = state.UNKNOWN
+    state.set(state.UNKNOWN)
 
     // Domain does not need to be on the Public Suffix List for private instances.
     if (settings.payment.provider === PAYMENT_PROVIDERS.none) {
-      return setState(state.OK, { isPrivateInstance: true })
+      return state.set(state.OK, { isPrivateInstance: true })
     }
 
     // Otherwise, carry out validation.
@@ -39,40 +37,36 @@
     const message = JSON.parse(event.data)
 
     switch (message.type) {
-      case success(type.SETTINGS):
+      case messageIsOf(type.SETTINGS):
         setTimeout(() => {
-          state.NOT_OK = { error: 'Fake error.' }
-          state.now = state.NOT_OK
+          state.set(state.NOT_OK, { error: 'Fake error.' })
+          console.log('>>>>', state)
+          console.log('>>>>', state.now)
+          console.log('>>>>', state.now === state.NOT_OK)
         }, 4000)
         // validateSettings()
       break
 
-      case success(type.VALIDATE_SETTINGS):
-        state.OK = { isPrivateInstance: false }
-        state.now = state.OK
+      case messageIsOf(type.VALIDATE_SETTINGS):
+        state.set(state.OK, { isPrivateInstance: false })
       break
 
-      case 'validate-psl-error':
-        state.NOT_OK = { error: message.error }
-        state.now = state.NOT_OK
+      case errorIsOf(type.VALIDATE_SETTINGS):
+        state.set(state.NOT_OK, { error: message.error })
       break
     }
   })
-
-  function checkAgainNowButtonHandler() {
-    validateSettings()
-  }
 </script>
 
 
 <h3 id='psl'>Public Suffix List (PSL) Settings</h3>
 
-{#if state.now === state.UNKNOWN}
+{#if $state.is(state.UNKNOWN)}
   <p><strong>Checking if domain is on the Public Suffix List…</strong></p>
 {/if}
 
-{#if state.now === state.OK}
-  {#if state.OK.privateInstance}
+{#if $state.is(state.OK)}
+  {#if state.OK.isPrivateInstance}
     <p><strong>✔️ Private instances do not have be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a>.</strong></p>
 
     <p>A private instance is one where the payment provider is set to “none” and where domains can only be registered using this administration panel.</p>
@@ -87,15 +81,15 @@
   {/if}
 {/if}
 
-{#if state.now === state.NOT_OK}
+{#if $state.now === state.NOT_OK}
   <p style='color: red;'><strong>❌️ {state.NOT_OK.error}</strong></p>
-  <button on:click={checkAgainNowButtonHandler}>Check again now</button>
+  <button on:click={validateSettings}>Check again now</button>
 {/if}
 
 {#if
-  state.now === state.UNKNOWN
-  || (state.now === state.OK && !state.OK.privateInstance)
-  || state.now === state.NOT_OK
+  $state.is(state.UNKNOWN)
+  || ($state.is(state.OK) && !state.OK.isPrivateInstance)
+  || $state.is(state.NOT_OK)
 }
   <p>Public instances must be registered on the <a href='https://publicsuffix.org'>Public Suffix List</a> for privacy purposes.</p>
 
@@ -108,7 +102,7 @@
   <p><a href='https://publicsuffix.org/learn/'>Learn more.</a></p>
 {/if}
 
-{#if state.now === state.UNKNOWN || state.now === state.NOT_OK}
+{#if $state.is(state.UNKNOWN) || $state.is(state.NOT_OK)}
   <section class='instructions'>
     <h3>Instructions</h3>
     <ol>
