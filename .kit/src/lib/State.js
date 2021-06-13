@@ -22,8 +22,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 // This is a Proxy class to ensure that new states cannot be added once
-// a state object has been created. (You can, however, update the context of
-// existing states). It acts as a guard.
+// a state object has been created. In other words, it acts as a guard.
+// (You can, however, update the context of existing states).
 export default class StateProxy {
   state = null
 
@@ -52,14 +52,11 @@ export default class StateProxy {
   }
 }
 
-// This is the actual state class that does the bulk of the work.
+// This is the actual state class that does the bulk of the work,
+// including providing a subscribe interface for Svelte-like stores.
 class State {
   now = null
-
-  // TODO: Make this a proper list of subscribers.
-  subscription = function () {
-    console.log('No subscription yet.')
-  }
+  subscribers = []
 
   constructor (state) {
     // Copy the state
@@ -76,24 +73,27 @@ class State {
   set (state, context = {}) {
     const key = Object.keys(this).find(key => this[key] === state)
 
-    if (key === undefined) {
-      throw new TypeError(`State does not exist (set): ${state}`)
-    }
-
     this[key] = context
     this.now = this[key]
 
-    // TODO: Iterate the proper list of subscribers.
-    this.subscription(this)
+    // Notify all subscribers.
+    this.subscribers.forEach(subscription => subscription.handler(this))
   }
 
-  subscribe (subscription) {
-    this.subscription = subscription
-    subscription(this)
+  unsubscribe (id) {
+    this.subscribers = this.subscribers.filter(subscription => subscription.id !== id)
+  }
 
-    // TODO: Make this a proper unsubscribe function.
-    return function () {
-      console.log('Not really unsubscribing')
-    }
+  subscribe (handler) {
+    const id = performance.now()
+    this.subscribers.push({ id, handler })
+
+    // Call the handler right away (as per the Svelte spec).
+    handler(this)
+
+    // Return an unsubscribe function.
+    return (() => {
+      this.unsubscribe(id)
+    }).bind(this)
   }
 }
