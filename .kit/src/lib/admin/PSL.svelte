@@ -71,7 +71,7 @@
 
     <p>A private instance is one where the payment provider is set to “none” and where domains can only be registered using this administration panel.</p>
 
-    <p>The assumption with private instances is that all subdomains registered on the domain belong to the organisation running the Small Web Host. If this assumption is incorrect for your use case (and domains are owned by separate entities even though you register them manually from here), you should <a href='https://github.com/publicsuffix/list/wiki/Guidelines'>apply to have your domain added to the PSL.</a></p>
+    <p>The assumption with private instances is that all subdomains registered on the domain belong to the organisation running the Small Web Domain. If this assumption is incorrect for your use case (and domains are owned by separate entities even though you register them manually from here), you should <a href='https://github.com/publicsuffix/list/wiki/Guidelines'>apply to have your domain added to the PSL.</a></p>
 
     <p>If you’re not on the PSL, realise that this will allow the domain to set privacy-violating “supercookies” that are valid for all subdomains.</p>
 
@@ -95,7 +95,7 @@
 
   <p>A public instance is one where the payment provider is set to anything but “none” where members of the public can register their own indepenedent Small Web places using tokens, money, etc.</p>
 
-  <p>Without this requirement, the organisation running the Small Web Host could set a “supercookie” on the main domain and violate the privacy of the people who own and control the subdomains.</p>
+  <p>Without this requirement, the organisation running the Small Web Domain could set a “supercookie” on the main domain and violate the privacy of the people who own and control the subdomains.</p>
 
   <p>Additionally, having the domain on the PSL enables browsers to highlight the most important part of a domain name when displaying it and accurately sort history entries by site.</p>
 
@@ -109,9 +109,9 @@
       <li><a href='https://github.com/publicsuffix/list/wiki/Guidelines'>Read the guidelines</a> for submitting a domain to the <a href='https://publicsuffix.org'>Public Suffix List</a>.</li>
       <li>
         <p><a href='https://github.com/publicsuffix/list/pulls'>Submit your pull request</a> to amend the PSL.</p>
-        <p>You can use <a href='https://small-web.org'>small-web.org’s pull request</a> as a template. You can also refer to that pull request in yours as an example of a precedent for acceptance of a Small Web Host onto the Public Suffix List.</p>
+        <p>You can use <a href='https://small-web.org'>small-web.org’s pull request</a> as a template. You can also refer to that pull request in yours as an example of a precedent for acceptance of a Small Web Domain onto the Public Suffix List.</p>
         <p>If you have any touble getting accepted, please contact <a href='https://small-tech.org'>Small Technology Foundation</a> at <a href='mailto:'>hello@small-tech.org</a> and we will help.</li>
     </ol>
-    <p><strong>Once your domain is on the public suffix list, we will automatically detect the fact and enable your Small Web Host for public access.</strong></p>
+    <p><strong>Once your domain is on the public suffix list, we will automatically detect the fact and enable your Small Web Domain for public access.</strong></p>
   </section>
 {/if}

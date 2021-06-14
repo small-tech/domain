@@ -18,7 +18,7 @@ module.exports = function (client, request) {
   })
 
   if (!authorised) {
-    console.log(`   ⛔️    ❨Basil❩ Unauthorised: token ${tokenShort}`)
+    console.log(`   ⛔️    ❨Domain❩ Unauthorised: token ${tokenShort}`)
     client.send(JSON.stringify({
       type: 'authorisation-failure',
       error: 'Unauthorised.'
@@ -26,7 +26,7 @@ module.exports = function (client, request) {
     client.close()
   } else {
     // TODO: add client to room, etc., etc.
-    console.log(`   🔓️    ❨Basil❩ Authorised: token ${tokenShort}`)
+    console.log(`   🔓️    ❨Domain❩ Authorised: token ${tokenShort}`)
     client.send(JSON.stringify({
       type: 'authorisation-success'
     }))

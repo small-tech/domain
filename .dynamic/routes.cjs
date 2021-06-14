@@ -12,5 +12,5 @@ module.exports = app => {
     db.admin.password = crypto.randomBytes(16).toString('hex')
   }
 
-  console.log(`   🔑️    ❨Basil❩ Admin password is ${db.admin.password}`)
+  console.log(`   🔑️    ❨Domain❩ Admin password is ${db.admin.password}`)
 }

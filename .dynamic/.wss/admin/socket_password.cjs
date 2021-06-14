@@ -15,7 +15,7 @@ const duration = (milliseconds) => {
 module.exports = function (client, request) {
   const password = request.params.password
 
-  console.log(`   🔐️    ❨Basil❩ Socket connection request.`)
+  console.log(`   🔐️    ❨Domain❩ Socket connection request.`)
 
   // Set the client’s room to limit private broadcasts to people who are authenticated.
   client.room = this.setRoom({url: '/admin'})
@@ -55,7 +55,7 @@ module.exports = function (client, request) {
           }
         })).json()
 
-        console.log(`   📡️    ❨Basil❩ Validating Payment Provider settings (${message.mode} mode).`)
+        console.log(`   📡️    ❨Domain❩ Validating Payment Provider settings (${message.mode} mode).`)
 
         if (priceDetails.error) {
           client.send(JSON.stringify({
@@ -74,11 +74,11 @@ module.exports = function (client, request) {
       break
 
       case 'validate-psl':
-        console.log('   📡️    ❨Basil❩ Validating that domain is on Public Suffix List (PSL).')
+        console.log('   📡️    ❨Domain❩ Validating that domain is on Public Suffix List (PSL).')
 
         let pslIsValid = false
 
-        // The Public Suffix List requirement for Small Web Host domains is only for
+        // The Public Suffix List requirement for Small Web Domains is only for
         // public instances, not private ones. Private instances are ones where there is no
         // payment type set and where all registrations must be done via the administration
         // interface. For more information on the rationale, please see the PSL tab in the
@@ -138,7 +138,7 @@ module.exports = function (client, request) {
       break
 
       case 'validate-vps':
-        console.log('   📡️    ❨Basil❩ Validating VPS Provider settings.')
+        console.log('   📡️    ❨Domain❩ Validating VPS Provider settings.')
 
         // Get server types. (In this first call we’ll know if the
         // authorisation token is correct or not.)
@@ -224,7 +224,7 @@ module.exports = function (client, request) {
       break
 
       case 'validate-dns':
-        console.log('   📡️    ❨Basil❩ Validating DNS Provider settings.')
+        console.log('   📡️    ❨Domain❩ Validating DNS Provider settings.')
         const retrieveDomainUrl = `https://api.dnsimple.com/v2/${db.settings.dns.accountId}/domains/${db.settings.dns.domain}`
         const dnsAccountDetails = await (await fetch(retrieveDomainUrl, {
           headers: {
@@ -316,7 +316,7 @@ module.exports = function (client, request) {
         //
         // According to the pertinent internet recommendations (RFC3986 section 2.2,
         // which in turn refers to: RFC1034 section 3.5 and RFC1123 section 2.1),
-        // a subdomain (which is a part of a DNS domain host name), must meet several requirements:
+        // a subdomain (which is a part of a DNS domain hostname), must meet several requirements:
         //
         // • Each subdomain part must have a length no greater than 63.
         // • Each subdomain part must begin and end with an alpha-numeric (i.e. letters [A-Za-z] or digits [0-9]).
@@ -519,14 +519,14 @@ module.exports = function (client, request) {
   })
 
   if (password !== db.admin.password) {
-    console.log(`   ⛔️    ❨Basil❩ Unauthorised password: ${password}`)
+    console.log(`   ⛔️    ❨Domain❩ Unauthorised password: ${password}`)
     client.send(JSON.stringify({
       type: 'error',
       body: 'Error: unauthorised.'
     }))
     client.close()
   } else {
-    console.log(`   🔓️    ❨Basil❩ Authorised password: ${password}`)
+    console.log(`   🔓️    ❨Domain❩ Authorised password: ${password}`)
     // Send a signal that sign in has succeeded.
     client.send(JSON.stringify({
       type: 'sign-in'

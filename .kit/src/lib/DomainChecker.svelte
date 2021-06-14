@@ -43,7 +43,7 @@
     // Client-side validation of valid subdomain names.
     // According to the pertinent internet recommendations (RFC3986 section 2.2,
     // which in turn refers to: RFC1034 section 3.5 and RFC1123 section 2.1),
-    // a subdomain (which is a part of a DNS domain host name), must meet several requirements:
+    // a subdomain (which is a part of a DNS domain hostname), must meet several requirements:
     //
     // • Each subdomain part must have a length no greater than 63.
     // • Each subdomain part must begin and end with an alpha-numeric (i.e. letters [A-Za-z] or digits [0-9]).

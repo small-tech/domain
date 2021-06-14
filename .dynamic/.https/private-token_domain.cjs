@@ -43,7 +43,7 @@ module.exports = (request, response) => {
   // prove its identity again so a sealed box will suffice.
   const encryptedPrivateToken = toHex(sealedBox.seal(Buffer.from(unencryptedPrivateToken), publicEncryptionKey))
 
-  console.log(`   🔑️    ❨Basil❩ Created new private token: ${unencryptedPrivateToken.slice(0,8).toLowerCase()}`)
+  console.log(`   🔑️    ❨Domain❩ Created new private token: ${unencryptedPrivateToken.slice(0,8).toLowerCase()}`)
 
   response.json({
     encryptedPrivateToken

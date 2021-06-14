@@ -85,7 +85,7 @@
         <p>{config.dns.domain}</p>
         <aside>
           <p><strong>This is a private instance.</strong></p>
-          <p>Please <a href='mailto:{config.org.email}'>contact your administrator</a> for help in setting up your own place or use a public host like <a href='https://small-web.org'>small-web.org</a>.</p>
+          <p>Please <a href='mailto:{config.org.email}'>contact your administrator</a> for help in setting up your own place or use a public domain like <a href='https://small-web.org'>small-web.org</a>.</p>
         </aside>
       {:else}
         <p>I {#if paymentIsToken}have a token and I{/if} want my own <select><option value='Place'>Place</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.{config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
@@ -101,7 +101,7 @@
 
     <footer>
       <!--<p><strong>Like this? <a href='https://small-tech.org/fund-us'>Help fund the folks who make it.</a></strong></p>-->
-      <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Host run by <a href='{config.org.site}'>{config.org.name}.</a>
+      <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Domain run by <a href='{config.org.site}'>{config.org.name}.</a>
         {#if !paymentIsNone}
           <br>
           <a href=''>Terms of Service</a>.

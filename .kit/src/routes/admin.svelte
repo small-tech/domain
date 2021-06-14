@@ -628,7 +628,7 @@
 
       <TabPanel>
         <h2>Setup</h2>
-        <p><strong><StatusMessage state={ok.all}>Your Small Web host {ok.all ? 'is fully configured and active' : 'needs configuration'}.</StatusMessage></strong></p>
+        <p><strong><StatusMessage state={ok.all}>Your Small Web Domain {ok.all ? 'is fully configured and active' : 'needs configuration'}.</StatusMessage></strong></p>
 
         <TabbedInterface>
           <TabList>
@@ -712,7 +712,7 @@
 
   <footer>
     <!--<p><strong>Like this? <a href='https://small-tech.org/fund-us'>Help fund the folks who make it.</a></strong></p>-->
-    <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Host run by <a href='{config.org.site}'>{config.org.name}.</a>
+    <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Domain run by <a href='{config.org.site}'>{config.org.name}.</a>
       {#if config.payment.provider !== PAYMENT_PROVIDERS.none}
         <br>
         <a href=''>Terms of Service</a>.

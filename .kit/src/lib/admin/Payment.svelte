@@ -77,7 +77,7 @@
 
     <h5>Subscription</h5>
 
-    <p>Please note that you can only have one plan, only set prices in whole numbers (no “psychological pricing”), and only support one currency (ideally, the one for the local region that your Small Web host is based in). These limitations are not bugs, they are features to encourage a Small Web. <a href='#payment-notes'>Learn more.</a></p>
+    <p>Please note that you can only have one plan, only set prices in whole numbers (no “psychological pricing”), and only support one currency (ideally, the one for the local region that your Small Web Domain is based in). These limitations are not bugs, they are features to encourage a Small Web. <a href='#payment-notes'>Learn more.</a></p>
 
     <label for='currency'>Currency</label>
 
@@ -134,15 +134,15 @@
           <section id='payment-notes'>
             <h5>A note on commerical payment support.</h5>
 
-            <p>When taking commercial payments for your Small Web Host via Stripe, you can only have one plan, only set prices in whole numbers (no “psychological pricing”), and only support one currency (ideally, the one for the local region that your Small Web host is based in). These limitations are not bugs, they are features to encourage a Small Web.</p>
+            <p>When taking commercial payments for your Small Web Domain via Stripe, you can only have one plan, only set prices in whole numbers (no “psychological pricing”), and only support one currency (ideally, the one for the local region that your Small Web Domain is based in). These limitations are not bugs, they are features to encourage a Small Web.</p>
 
-            <p>The idea is that no single Small Web host should scale beyond a certain point. Your Small Web host should be serving your community and you should let other Small Web hosts serve theirs. This is our <a href='https://small-web.org/about/#small-technology'>non-colonial approach</a> as per the <a href='https://small-web.org/about/#small-technology'>Small Technology Principles</a>.</p>
+            <p>The idea is that no single Small Web Domain should scale beyond a certain point. Your Small Web Domain should be serving your community and you should let other Small Web Domains serve theirs. This is our <a href='https://small-web.org/about/#small-technology'>non-colonial approach</a> as per the <a href='https://small-web.org/about/#small-technology'>Small Technology Principles</a>.</p>
 
             <p>Support for a commercial option is necessary for organisations that have to exist under capitalism. It doesn’t mean we have to play their shortsighted manipulative games or adopt their success criteria. The goal is for our organisations to provide a bridge to a post-capitalist future (e.g., on where cities can use tokens to provide their citizens with access to the commons from the commons).</p>
 
-            <p>You will not become rich by being a Small Web Host. If that’s your goal, please look elsewhere. However, you will hopefully be able to susbist under capitalism while helping bootstrap a kinder, fairer, and more caring world based on respect for human rights and democracy.</p>
+            <p>You will not become rich by running a Small Web Domain. If that’s your goal, please look elsewhere. However, you will hopefully be able to susbist under capitalism while helping bootstrap a kinder, fairer, and more caring world based on respect for human rights and democracy.</p>
 
-            <p><strong>If you are making money with your Small Web Host, please consider sharing a percentage of your earnings with <a href='https://small-tech.org/'>Small Technology Foundation</a> by <a href='https://small-tech.org/fund-us'>becoming a patron</a> so we can continue to develop the software you use to run yours.</strong></p>
+            <p><strong>If you are making money with your Small Web Domain, please consider sharing a percentage of your earnings with <a href='https://small-tech.org/'>Small Technology Foundation</a> by <a href='https://small-tech.org/fund-us'>becoming a patron</a> so we can continue to develop the software you use to run yours.</strong></p>
           </section>
         </TabPanel>
       {/each}
