@@ -1,18 +1,58 @@
 <script>
+  import ServiceState from './ServiceState.js'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
 
   export let settings
+  export let socket
+  export const state = new ServiceState()
 
-  // TODO: Refactor these once all sections have been pulled out.
-  export let validateDnsError
-  export let validateDns
-  export let ok
-  export let dnsDomainInput
-  export let dnsAccountIdInput
-  export let dnsAccessTokenInput
+  // Outlets (for referring to interface elements).
+  let domainInput
+  let accountIdInput
+  let accessTokenInput
+
+  const type = {
+    SETTINGS: 'settings',
+    VALIDATE_SETTINGS: 'validate-psl'
+  }
+
+  const messageIsOf = (type) => type
+  const errorIsOf = (type) => `${type}-error`
+
+  function validateSettings() {
+    state.set(state.UNKNOWN)
+
+    if (
+      settings.dns.domain !== ''
+      && parseInt(settings.dns.accountId) !== NaN
+      && settings.dns.accessToken !== ''
+    ) {
+      console.log('Validating DNS details…')
+      socket.send(JSON.stringify({
+        type: 'validate-dns'
+      }))
+    }
+  }
+
+  socket.addEventListener('message', event => {
+    const message = JSON.parse(event.data)
+
+    switch (message.type) {
+      case messageIsOf(type.SETTINGS):
+        validateSettings()
+      break
+
+      case messageIsOf(type.VALIDATE_SETTINGS):
+        state.set(state.OK)
+      break
+
+      case errorIsOf(type.VALIDATE_SETTINGS):
+        state.set(state.NOT_OK, { error: message.error })
+      break
+    }
+  })
 </script>
 
-{#if settings}
   <h3 id='dns'>DNS Settings</h3>
 
   <h4>DNSimple</h4>
@@ -26,12 +66,16 @@
     </ol>
   </section>
 
-  {#if validateDnsError}
-    <p style='color: red;'>❌️ {validateDnsError}</p>
-  {:else if ok.dns}
+  {#if $state.is(state.UNKNOWN)}
+    <p>You’ll be informed once you have the correct details are set.</p>
+  {/if}
+
+  {#if $state.is(state.OK)}
     <p>✔️ Your DNS settings are correct.</p>
-  {:else}
-    <p>You’ll be informed once you have the correct details set.</p>
+  {/if}
+
+  {#if $state.is(state.NOT_OK)}
+    <p style='color: red;'>❌️ {state.NOT_OK.error}</p>
   {/if}
 
   <label for='domain'>Domain</label>
@@ -40,23 +84,22 @@
     name='domain'
     type='text'
     bind:value={settings.dns.domain}
-    bind:this={dnsDomainInput}
-    on:input={validateDns}
+    bind:this={domainInput}
+    on:input={validateSettings}
   />
 
   <label id='accountIdLabel' for='dnsAccountId'>Account ID</label>
   <SensitiveTextInput
     name='dnsAccountId'
     bind:value={settings.dns.accountId}
-    bind:this={dnsAccountIdInput}
-    on:input={validateDns}
+    bind:this={accountIdInput}
+    on:input={validateSettings}
   />
 
   <label for='dnsAccessToken' class='block'>Access Token</label>
   <SensitiveTextInput
     name='dnsAccessToken'
     bind:value={settings.dns.accessToken}
-    bind:this={dnsAccessTokenInput}
-    on:input={validateDns}
+    bind:this={accessTokenInput}
+    on:input={validateSettings}
   />
-{/if}

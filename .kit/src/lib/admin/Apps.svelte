@@ -1,8 +1,17 @@
 <script>
-  export let settings
-  export let ok
+  import ServiceState from './ServiceState.js'
 
-  $: ok = settings === undefined ? false : settings.apps.length > 0
+  export let settings
+  export const state = new ServiceState()
+
+  $: switch(settings) {
+    case undefined:
+      state.set(state.UNKNOWN)
+    break
+
+    default:
+      state.set(settings.apps.length > 0 ? state.OK : state.NOT_OK)
+  }
 
   let app = 0
 </script>

@@ -41,6 +41,8 @@
   import { cubicOut } from 'svelte/easing'
   import EFFDicewarePassphrase from '@small-tech/eff-diceware-passphrase'
 
+  import ServiceState from '$lib/admin/ServiceState.js'
+
   // Admin panels.
   import Organisation from '$lib/admin/Organisation.svelte'
   import Apps from '$lib/admin/Apps.svelte'
@@ -57,6 +59,7 @@
 
   // Implement global Buffer support.
   import { Buffer } from 'buffer'
+import Dns from '../lib/admin/DNS.svelte'
   globalThis.Buffer = Buffer
 
   export let config
@@ -71,12 +74,6 @@
   let signingIn = false
   let rebuildingSite = false
 
-  // Outlets: DNSimple DNS settings
-  let dnsDomainInput
-  let dnsAccountIdInput
-  let dnsAccessTokenInput
-
-  let validateDnsError = null
   let validateVpsError = null
 
   let vpsDetails = {}
@@ -156,21 +153,39 @@
   let baseUrl
   let socket
 
-  let pslState = null
+  let organisationState = null
+  let appsState         = null
+  let pslState          = null
+  let dnsState          = null
+  let vpsState          = null
+  let paymentState      = null
 
-  const ok = {
-    all: false,
-    org: false,
-    apps: false,
-    psl: false,
-    dns: false,
-    vps: false,
-    payment: false
+  const state = new ServiceState()
+
+  $: if (
+    organisationState.is(organisationState.OK)
+    && appsState.is(appState.OK)
+    && pslState.is(pslState.OK)
+    && dnsState.is(dnsState.OK)
+    && vpsState.is(vpsState.OK)
+    && paymentState.is(paymentState.OK)
+  ) {
+    // All services are OK.
+    state.set(state.OK)
+  } else if (
+    organisationState.is(organisationState.NOT_OK)
+    || appsState.is(appState.NOT_OK)
+    || pslState.is(pslState.NOT_OK)
+    || dnsState.is(dnsState.NOT_OK)
+    || vpsState.is(vpsState.NOT_OK)
+    || paymentState.is(paymentState.NOT_OK)
+  ) {
+    // At least one service needs configuration.
+    state.set(state.NOT_OK)
+  } else {
+    // None of the service states is known.
+    state.set(state.UNKNOWN)
   }
-
-  $: ok.all = ok.org && ok.payment && ok.dns && ok.vps && ok.apps
-
-  $: if (pslState) { ok.psl = $pslState.is(pslState.OK)}
 
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
@@ -256,19 +271,6 @@
     }
   }
 
-  function validateDns() {
-    validateDnsError = null
-    if (
-      settings.dns.domain !== ''
-      && parseInt(settings.dns.accountId) !== NaN
-      && settings.dns.accessToken !== ''
-    ) {
-      console.log('Validating DNS details…')
-      socket.send(JSON.stringify({
-        type: 'validate-dns'
-      }))
-    }
-  }
 
   function validatePayment(modeId) {
 
@@ -276,12 +278,12 @@
       case PAYMENT_PROVIDERS.none:
         // The None payment provider doesn’t have any
         // settings so it’s always valid.
-        ok.payment = true
+        paymentState.set(paymentState.OK)
       break
 
       case PAYMENT_PROVIDERS.token:
         // TODO: Token payment type not implemented yet.
-        ok.payment = false
+        paymentState.set(paymentState.NOT_OK)
       break
 
       case PAYMENT_PROVIDERS.stripe:
@@ -509,7 +511,7 @@
           settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
           gotPrice[message.mode] = true
           priceError[message.mode] = null
-          ok.payment = true
+          paymentState.set(paymentState.OK)
         break
 
         case 'error':
@@ -525,19 +527,9 @@
           gotPrice[message.mode] = true
         break
 
-        case 'validate-dns-error':
-          validateDnsError = message.error
-          ok.dns = false
-        break
-
-        case 'validate-dns':
-          validateDnsError = null
-          ok.dns = true
-        break
-
         case 'validate-vps-error':
           validateVpsError = message.error
-          ok.vps = false
+          vpsState.set(vpsState.NOT_OK)
         break
 
         case 'validate-vps':
@@ -569,7 +561,7 @@
             return sshKey.name === settings.vps.sshKeyName
           })
 
-          ok.vps = true
+          vpsState.set(vpsState.OK)
         break
       }
     }
@@ -628,7 +620,19 @@
 
       <TabPanel>
         <h2>Setup</h2>
-        <p><strong><StatusMessage>Your Small Web Domain {ok.all ? 'is fully configured and active' : 'needs configuration'}.</StatusMessage></strong></p>
+        <p><strong>
+          <StatusMessage state={$state}>
+            {#if $state.is(state.UNKNOWN)}
+              Checking configuration state…
+            {/if}
+            {#if $state.is(state.OK)}
+              Your Small Web Domain is configured and ready for use.
+            {/if}
+            {#if $state.is(state.NOT_OK)}
+              Your Small Web Domain needs configuration.
+            {/if}
+          </StatusMessage>
+        </strong></p>
 
         <TabbedInterface>
           <TabList>
@@ -642,19 +646,19 @@
 
           <form on:submit|preventDefault>
             <TabPanel>
-              <Organisation {settings} bind:ok={ok.org} />
+              <Organisation {settings} bind:state={organisationState} />
             </TabPanel>
             <TabPanel>
-              <Apps {settings} bind:ok={ok.apps} />
+              <Apps {settings} bind:state={appsState} />
             </TabPanel>
             <TabPanel>
-              <PSL {settings} {socket} bind:ok={ok.psl} bind:state={pslState} />
+              <PSL {settings} {socket} bind:state={pslState} />
             </TabPanel>
 
             <!-- TODO: finish refactoring the remaining panels. -->
-            <TabPanel><DNS {settings} {ok} {validateDnsError} {validateDns} bind:dnsDomainInput={dnsDomainInput} bind:dnsAccountIdInput={dnsAccountIdInput} bind:dnsAccessTokenInput={dnsAccessTokenInput} /></TabPanel>
-            <TabPanel><VPS {settings} {ok} {validateVps} {validateVpsError} {vpsSshKey} {vpsSshKeyChange} {vpsDetails} {vpsServerType} {serverTypeChange} {vpsLocation} {vpsLocationChange} {vpsImage} {vpsImageChange} /></TabPanel>
-            <TabPanel><Payment {settings} {ok} {validatePayment} {stripeCurrency} {stripePrice} {stripeCurrencyOnlyValidInUnitedArabEmirates} {validateStripePriceOnInput} {validateStripePriceOnChange} {gotPrice} {priceError} /></TabPanel>
+            <TabPanel><DNS {settings} bind:dnsDomainInput={dnsDomainInput} bind:dnsAccountIdInput={dnsAccountIdInput} bind:dnsAccessTokenInput={dnsAccessTokenInput} /></TabPanel>
+            <TabPanel><VPS {settings} {validateVps} {validateVpsError} {vpsSshKey} {vpsSshKeyChange} {vpsDetails} {vpsServerType} {serverTypeChange} {vpsLocation} {vpsLocationChange} {vpsImage} {vpsImageChange} /></TabPanel>
+            <TabPanel><Payment {settings} {validatePayment} {stripeCurrency} {stripePrice} {stripeCurrencyOnlyValidInUnitedArabEmirates} {validateStripePriceOnInput} {validateStripePriceOnChange} {gotPrice} {priceError} /></TabPanel>
           </form>
 
         </TabbedInterface>
