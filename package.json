@@ -29,7 +29,9 @@
     "@sveltejs/kit": "next",
     "@zerodevx/svelte-toast": "^0.2.2",
     "svelte": "^3.38.2",
-    "vite": "^2.1.0"
+    "vite": "^2.1.0",
+    "svelte-accessible-accordion": "^1.0.0",
+    "svelte-switch": "^0.0.4"
   },
   "funding": {
     "type": "foundation",
@@ -50,8 +52,6 @@
     "node-fetch": "^2.6.1",
     "session25519": "^1.1.0",
     "showdown": "^1.9.1",
-    "svelte-accessible-accordion": "^1.0.0",
-    "svelte-switch": "^0.0.4",
     "tweetnacl": "^1.0.3",
     "tweetnacl-sealedbox-js": "^1.2.0",
     "tweetnacl-util": "^0.15.1"
