@@ -106,8 +106,8 @@
   <TabList>
     <Tab><StatusMessage bind:state={$organisationState}>Organisation</StatusMessage></Tab>
     <Tab><StatusMessage bind:state={$appsState}>Apps</StatusMessage></Tab>
-    <!-- <Tab><StatusMessage bind:state={$pslState}>PSL</StatusMessage></Tab>
-    <Tab><StatusMessage bind:state={$dnsState}>DNS</StatusMessage></Tab>
+    <Tab><StatusMessage bind:state={$pslState}>PSL</StatusMessage></Tab>
+    <!-- <Tab><StatusMessage bind:state={$dnsState}>DNS</StatusMessage></Tab>
     <Tab><StatusMessage bind:state={$vpsState}>VPS</StatusMessage></Tab>
     <Tab><StatusMessage bind:state={$paymentState}>Payment</StatusMessage></Tab> -->
   </TabList>
@@ -115,8 +115,8 @@
   <form on:submit|preventDefault>
     <TabPanel><Organisation {settings} bind:state={organisationState} /></TabPanel>
     <TabPanel><Apps {settings} bind:state={appsState} /></TabPanel>
-    <!-- <TabPanel><PSL {settings} {socket} bind:state={pslState} /></TabPanel>
-    <TabPanel><DNS {settings} {socket} bind:state={dnsState} /></TabPanel>
+    <TabPanel><PSL {settings} {socket} bind:state={pslState} /></TabPanel>
+    <!-- <TabPanel><DNS {settings} {socket} bind:state={dnsState} /></TabPanel>
     <TabPanel><VPS {settings} {socket} bind:state={vpsState} /></TabPanel>
     <TabPanel><Payment {settings} {socket} bind:state={paymentState} /></TabPanel> -->
   </form>
