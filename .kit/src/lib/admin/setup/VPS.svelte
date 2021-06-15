@@ -22,6 +22,7 @@
         type: 'validate-vps'
       }))
     }
+  }
 
   socket.addEventListener('message', event => {
     const message = JSON.parse(event.data)
@@ -122,7 +123,7 @@
 <SensitiveTextInput
   name='vpsApiToken'
   bind:value={settings.vps.apiToken}
-  on:input={validateVps}
+  on:input={validateSettings}
 />
 
 {#if $state.is(state.OK)}
@@ -153,7 +154,7 @@
           <option value={serverType}>{serverType.description}</option>
         {/each}
       </select>
-      <p class='vpsItemDetails'>{vpsServerType.cores} cores, {vpsServerType.memory}GB memory, {vpsServerType.disk}GB disk. Cost: €{parseFloat(vpsServerType.prices[0].price_monthly.net).toFixed(2)}/month (exc. VAT).</p>
+      <p class='vpsItemDetails'>{state.OK.vpsServerType.cores} cores, {state.OK.vpsServerType.memory}GB memory, {state.OK.vpsServerType.disk}GB disk. Cost: €{parseFloat(state.OK.vpsServerType.prices[0].price_monthly.net).toFixed(2)}/month (exc. VAT).</p>
 
       <!-- VPS Locations -->
       <label for='vpsLocation'>Location</label>

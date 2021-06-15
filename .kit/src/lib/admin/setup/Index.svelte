@@ -30,32 +30,34 @@
 
   const state = new ServiceState()
 
-  $: if (
-    organisationState.is(organisationState.OK)
-    && appsState.is(appState.OK)
-    && pslState.is(pslState.OK)
-    && dnsState.is(dnsState.OK)
-    && vpsState.is(vpsState.OK)
-    && paymentState.is(paymentState.OK)
-  ) {
-    // All services are OK.
-    state.set(state.OK)
-  } else if (
-    organisationState.is(organisationState.NOT_OK)
-    || appsState.is(appState.NOT_OK)
-    || pslState.is(pslState.NOT_OK)
-    || dnsState.is(dnsState.NOT_OK)
-    || vpsState.is(vpsState.NOT_OK)
-    || paymentState.is(paymentState.NOT_OK)
-  ) {
-    // At least one service needs configuration.
-    state.set(state.NOT_OK)
-  } else {
-    // None of the service states is known.
-    state.set(state.UNKNOWN)
-  }
+  // $: if (organisationState === null) {
+  //   /* not ready, ignore */
+  // } else if (
+  //   organisationState.is(organisationState.OK)
+  //   && appsState.is(appState.OK)
+  //   && pslState.is(pslState.OK)
+  //   && dnsState.is(dnsState.OK)
+  //   && vpsState.is(vpsState.OK)
+  //   && paymentState.is(paymentState.OK)
+  // ) {
+  //   // All services are OK.
+  //   state.set(state.OK)
+  // } else if (
+  //   organisationState.is(organisationState.NOT_OK)
+  //   || appsState.is(appState.NOT_OK)
+  //   || pslState.is(pslState.NOT_OK)
+  //   || dnsState.is(dnsState.NOT_OK)
+  //   || vpsState.is(vpsState.NOT_OK)
+  //   || paymentState.is(paymentState.NOT_OK)
+  // ) {
+  //   // At least one service needs configuration.
+  //   state.set(state.NOT_OK)
+  // } else {
+  //   // None of the service states is known.
+  //   state.set(state.UNKNOWN)
+  // }
 
-  socket.onmessage = async event => {
+  socket.addEventListener('message', event => {
     const message = JSON.parse(event.data)
 
     switch (message.type) {
@@ -74,7 +76,7 @@
         }, message.body, 'settings')
       break
     }
-  }
+  })
 
   function showSavedMessage() {
     if (shouldShowSavedMessage) return
@@ -102,21 +104,21 @@
 
 <TabbedInterface>
   <TabList>
-    <Tab><StatusMessage >Organisation</StatusMessage></Tab>
-    <Tab><StatusMessage >Apps</StatusMessage></Tab>
-    <Tab><StatusMessage state={$pslState}>PSL</StatusMessage></Tab>
-    <Tab><StatusMessage >DNS</StatusMessage></Tab>
-    <Tab><StatusMessage >VPS</StatusMessage></Tab>
-    <Tab><StatusMessage >Payment</StatusMessage></Tab>
+    <Tab><StatusMessage bind:state={$organisationState}>Organisation</StatusMessage></Tab>
+    <!-- <Tab><StatusMessage bind:state={$appsState}>Apps</StatusMessage></Tab>
+    <Tab><StatusMessage bind:state={$pslState}>PSL</StatusMessage></Tab>
+    <Tab><StatusMessage bind:state={$dnsState}>DNS</StatusMessage></Tab>
+    <Tab><StatusMessage bind:state={$vpsState}>VPS</StatusMessage></Tab>
+    <Tab><StatusMessage bind:state={$paymentState}>Payment</StatusMessage></Tab> -->
   </TabList>
 
   <form on:submit|preventDefault>
     <TabPanel><Organisation {settings} bind:state={organisationState} /></TabPanel>
-    <TabPanel><Apps {settings} bind:state={appsState} /></TabPanel>
+    <!-- <TabPanel><Apps {settings} bind:state={appsState} /></TabPanel>
     <TabPanel><PSL {settings} {socket} bind:state={pslState} /></TabPanel>
     <TabPanel><DNS {settings} {socket} bind:state={dnsState} /></TabPanel>
     <TabPanel><VPS {settings} {socket} bind:state={vpsState} /></TabPanel>
-    <TabPanel><Payment {settings} {socket} bind:state={paymentState} /></TabPanel>
+    <TabPanel><Payment {settings} {socket} bind:state={paymentState} /></TabPanel> -->
   </form>
 </TabbedInterface>
 

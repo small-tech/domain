@@ -87,7 +87,8 @@
        <button on:click|preventDefault={handleButton}>{#if paymentIsNone}Admin panel{:else}Get started!{/if}</button>
     </form>
 
-    <p class='sign-in'>Already have a place? <a href='sign-in'>Sign in.</a></p>
+    <!-- TODO: Add actual sign-in link. -->
+    <p class='sign-in'>Already have a place? <a href=''>Sign in.</a></p>
 
     {#if !paymentIsNone}
       <p><strong>Need help?</strong> Email Laura and Aral at <a href='mailto:{config.org.email}'>{config.org.email}.</a></p>

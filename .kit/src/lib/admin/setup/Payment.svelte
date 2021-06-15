@@ -173,7 +173,7 @@
     name='paymentProvider'
     id='paymentProvider'
     bind:value={settings.payment.provider}
-    on:change={validatePayment}
+    on:change={validateSettings}
     size={settings.payment.providers.length}
   >
     {#each settings.payment.providers as provider, index}
@@ -254,11 +254,11 @@
             <li><StatusMessage state={ok.stripeWebhook}>Webhook</StatusMessage></li> -->
           </ol>
           <label for={`${mode.id}PublishableKey`}>Publishable key</label>
-          <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePayment(mode.id)}/>
+          <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validateSettings(mode.id)}/>
 
           <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
           <!-- TODO: Implement input event on SensitiveTextInput component. -->
-          <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validatePayment(mode.id)}/>
+          <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validateSettings(mode.id)}/>
 
           {#if gotPrice[mode.id] && priceError[mode.id] !== null}
             <p style='color: red;'>❌️ {priceError[mode.id]}</p>
