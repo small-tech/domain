@@ -1,5 +1,5 @@
 <script>
-  import ServiceState from './ServiceState.js'
+  import ServiceState from '../ServiceState.js'
 
   export let settings
   export const state = new ServiceState()

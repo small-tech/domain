@@ -32,19 +32,6 @@ module.exports = function (client, request) {
         set(db, message.keyPath, message.value)
       break;
 
-      case 'rebuild':
-        // Rebuild the site.
-        console.log('Rebuilding site…')
-        exec('NODE_TLS_REJECT_UNAUTHORIZED=0 svelte-kit build', {env: process.env, cwd: process.cwd()}, (error, stdout, stderr) => {
-          if (error) {
-            console.log('ERROR', stderr)
-          } else {
-            console.log(stdout)
-            console.log('Done.')
-          }
-        })
-      break
-
       case 'get-price':
         // Return the price from the Stripe API.
         const stripeDetails = db.settings.payment.modeDetails[message.mode === 'live' ? 1 : 0]

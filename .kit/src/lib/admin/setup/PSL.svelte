@@ -1,5 +1,5 @@
 <script>
-  import ServiceState from '$lib/admin/ServiceState.js'
+  import ServiceState from './ServiceState.js'
   import { PAYMENT_PROVIDERS } from '$lib/Constants'
 
   export let settings

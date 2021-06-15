@@ -1,4 +1,5 @@
 <script context='module'>
+  // TODO: this is ugly, refactor.
   export async function load({page, fetch}) {
     const response = await fetch('ssr/config')
 
@@ -26,181 +27,35 @@
 
 <script>
   // @hmr:keep-all
-
   import { onMount } from 'svelte'
-  import { fade, scale } from 'svelte/transition'
-  import StatusMessage from '$lib/StatusMessage.svelte'
-  import DataProxy from '$lib/JSDB/DataProxy'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
-  import Jumper from '$lib/Jumper.svelte'
-  import DomainChecker from '$lib/DomainChecker.svelte'
-  import Modal from '$lib/Modal.svelte'
-  import { Checkbox } from '$lib/Checkbox'
-  import { getPublicKeysHex } from '$lib/keys.js'
-  import { tweened } from 'svelte/motion'
-  import { cubicOut } from 'svelte/easing'
-  import EFFDicewarePassphrase from '@small-tech/eff-diceware-passphrase'
 
-  import ServiceState from '$lib/admin/ServiceState.js'
+  import { PAYMENT_PROVIDERS } from '$lib/Constants'
 
   // Admin panels.
-  import Organisation from '$lib/admin/Organisation.svelte'
-  import Apps from '$lib/admin/Apps.svelte'
-  import PSL from '$lib/admin/PSL.svelte'
-  import DNS from '$lib/admin/DNS.svelte'
-  import VPS from '$lib/admin/VPS.svelte'
-  import Payment from '$lib/admin/Payment.svelte'
+  import Setup from '$lib/admin/setup/Index.svelte'
+  import Places from '$lib/admin/places/Index.svelte'
 
   // Implement global Buffer support.
   import { Buffer } from 'buffer'
   globalThis.Buffer = Buffer
 
+  // This property is set by the module script.
   export let config
-
-  let mounted = false
-  let settings
-
-  let shouldShowSavedMessage = false
 
   let errorMessage = null
   let password = null
   let signingIn = false
-  let rebuildingSite = false
-
-  let appToCreate = 0
-  let domainToCreate = ''
-  let newSiteUrl
-
-  let creatingSite = false
-  let showSiteCreationModal = false
-
-  let siteCreationSucceeded = false
-  let siteCreationFailed = false
-  let siteCreationEnded = false
-
-  let serverCreationStep = 0
-
-  let serverCreated = false
-  let domainNameRegistered = false
-  let serverInitialised = false
-  let appInstalled = false
-  let appRunning = false
-  let securityCertificateReady = false
-  let serverResponseReceived = false
-
-  let newPlacePassphrase
-  let passphraseSavedCheck = false
-  let agreeToTerms = false
-
-
-
-  // Actual progress timings from Hetzner API.
-  let serverInitialisationProgress = tweened(0, {
-    duration: 333,
-    easing: cubicOut
-  })
-
-  // Simulated progress timings for app install and app run.
-  let appInstallProgress = tweened(0, {
-    duration: 5000,
-    easing: cubicOut
-  })
-
-  let appRunProgress = tweened(0, {
-    duration: 8000,
-    easing: cubicOut
-  })
-
-  let certificateProvisioningProgress = tweened(0, {
-    duration: 10000,
-    easing: cubicOut
-  })
-
-  $: siteCreationEnded = siteCreationSucceeded || siteCreationFailed
 
   let signedIn = false
   let baseUrl
   let socket
 
-  let organisationState = null
-  let appsState         = null
-  let pslState          = null
-  let dnsState          = null
-  let vpsState          = null
-  let paymentState      = null
-
-  const state = new ServiceState()
-
-  $: if (
-    organisationState.is(organisationState.OK)
-    && appsState.is(appState.OK)
-    && pslState.is(pslState.OK)
-    && dnsState.is(dnsState.OK)
-    && vpsState.is(vpsState.OK)
-    && paymentState.is(paymentState.OK)
-  ) {
-    // All services are OK.
-    state.set(state.OK)
-  } else if (
-    organisationState.is(organisationState.NOT_OK)
-    || appsState.is(appState.NOT_OK)
-    || pslState.is(pslState.NOT_OK)
-    || dnsState.is(dnsState.NOT_OK)
-    || vpsState.is(vpsState.NOT_OK)
-    || paymentState.is(paymentState.NOT_OK)
-  ) {
-    // At least one service needs configuration.
-    state.set(state.NOT_OK)
-  } else {
-    // None of the service states is known.
-    state.set(state.UNKNOWN)
-  }
-
   $: if (signingIn) errorMessage = false
-  $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
 
   onMount(async () => {
     baseUrl = document.location.hostname
-
-    const generate = new EFFDicewarePassphrase()
-    newPlacePassphrase = generate.entropy(100).join(' ')
-    mounted = true
   })
-
-  const duration = (milliseconds) => {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
-  }
-
-  async function createServer(event) {
-    domainToCreate = event.detail.domain
-
-    const publicKeys = await getPublicKeysHex(domainToCreate, newPlacePassphrase)
-
-    console.log('Public keys (hex)', publicKeys)
-
-    socket.send(JSON.stringify({
-      type: 'create-server',
-      domain: domainToCreate,
-      app: appToCreate,
-      publicKeys
-    }))
-
-    // Show the progress modal.
-    // (It will be updated when we get progress messages from the server.)
-
-    siteCreationSucceeded = false
-    siteCreationFailed = false
-    creatingSite = true
-    showSiteCreationModal = true
-    serverCreationStep++
-  }
-
-
-  function showSavedMessage() {
-    if (shouldShowSavedMessage) return
-    shouldShowSavedMessage = true
-    setTimeout(() => shouldShowSavedMessage = false, 1500)
-  }
 
   async function signIn () {
     signingIn = true
@@ -230,132 +85,9 @@
     socket.onmessage = async event => {
       const message = JSON.parse(event.data)
       switch (message.type) {
-
-        case 'create-server-progress':
-
-          switch (message.subject) {
-            case 'vps':
-              if (message.status === 'initialising') {
-                serverCreated = true
-                await duration(700)
-                serverCreationStep++
-              } else if (message.status === 'running') {
-                serverInitialisationProgress.set(message.progress)
-              } else {
-                console.log('Warning: received unexpected status for create-server-progress subject VPS:', message.status)
-              }
-            break
-
-            case 'dns':
-              if (message.status === 'initialising') {
-                domainNameRegistered = true
-                await duration(700)
-                serverCreationStep++
-              } else {
-                console.log('Warning: received unexpected status for create-server-progress subject DNS:', message.status)
-              }
-            break
-
-            default:
-              console.log('Warning: unexpected create-server-progress subject received', message.subject)
-          }
-        break
-
-        case 'create-server-success':
-          if (message.status === 'done') {
-            serverInitialised = true
-            await duration(700)
-            serverCreationStep++
-
-            // From here, we simulate progress for the app install and app run staged based on
-            // actual timings taken from the same server configuration. There will be some variance and
-            // that’s why we wait for an actual response from the server at the end of the process.
-            // In the future, we might add an API to Site.js that sends progress information back so
-            // we can have more precise timings but this should, for the time being and for the
-            // supported apps, give us adequate timings/progress to within a couple of seconds.
-
-            // Wait for app install.
-
-            // Installing Site.js (the only supported app at the moment) takes on average 4 seconds,
-            // min: 2.995 seconds, max: 5.54 seconds. Sample size: 10 runs.
-            // To be on the safe side, let’s keep this at 5 seconds.
-            appInstallProgress.set(1)
-            await duration(5000)
-            appInstalled = true
-
-            await duration(700) // Wait for Checkbox animation to end.
-            serverCreationStep++
-
-            // Running site enable takes ~2-3 seconds.
-            // For Owncast, it takes longer as it has to download, install and run owncast (I have
-            // two timings so far: 7.4578 seconds and 9.046 seconds; average: 8.312 seconds).
-            //
-            // TODO: this is currently hard-coded for Site.js Owncast install. At least use the
-            // ===== right duration when running just Site.js.
-            appRunProgress.set(1)
-            await duration(8500)
-            appRunning = true
-
-            await duration(700) // Wait for Checkbox animation to end.
-            serverCreationStep++
-
-            certificateProvisioningProgress.set(1)
-            await duration(10000)
-            securityCertificateReady = true
-
-            await duration(700) // Wait for Checkbox animation to end.
-            serverCreationStep++
-
-            // Now we actually start polling the server to see if it is ready.
-            socket.send(JSON.stringify({
-              type: 'wait-for-server-response',
-              domain: domainToCreate
-            }))
-
-            newSiteUrl = `https://${domainToCreate}.${settings.dns.domain}`
-
-            // TODO: set the Visit button URL to new site’s URL.
-          } else {
-            console.log('Warning: received unexpected status for create-server-success subject task:', message.status)
-          }
-        break
-
-        case 'server-response-received':
-          // OK, server is ready!
-          serverResponseReceived = true
-
-          await duration(700) // Wait for Checkbox animation to end.
-          serverCreationStep++
-
-          siteCreationSucceeded = true
-          creatingSite = false
-
-          // TODO: Once the progress modal has been closed, make sure we
-          // ===== reset serverCreationStep, etc.
-          //       (Even better, pull out the progress modal into its own component)
-        break
-
         case 'sign-in':
           signingIn = false
           signedIn = true
-        break
-
-        case 'settings':
-          settings = DataProxy.createDeepProxy(
-            {
-              persistChange: change => {
-                // console.log('Persist', change)
-                showSavedMessage()
-                socket.send(JSON.stringify({
-                  type: 'update',
-                  keyPath: change.keyPath,
-                  value: change.value
-                }))
-              }
-          }, message.body, 'settings')
-          validatePayment()
-          validateDns()
-          validateVps()
         break
 
         case 'error':
@@ -363,21 +95,6 @@
         break
       }
     }
-  }
-
-  const originalSettingUpMessage = 'Setting up your place'
-  let settingUpMessage = originalSettingUpMessage
-  let settingUpMessageIntervalId
-  $: if (creatingSite) {
-    let dots = 0
-    settingUpMessageIntervalId = setInterval(() => {
-      dots++
-      if (dots > 3) dots = 0
-      settingUpMessage = originalSettingUpMessage + '<span style="color: inherit;">.<span>'.repeat(dots) + '<span style="color: white;">.</span>'.repeat(3-dots)
-    }, 700)
-  } else {
-    settingUpMessage = originalSettingUpMessage + '...'
-    clearInterval(settingUpMessageIntervalId)
   }
 
   function signOut () {
@@ -415,105 +132,9 @@
         <Tab navStyle={true}>Setup</Tab>
         <Tab navStyle={true}>Places</Tab>
       </TabList>
-
-      <TabPanel>
-        <h2>Setup</h2>
-        <p><strong>
-          <StatusMessage state={$state}>
-            {#if $state.is(state.UNKNOWN)}
-              Checking configuration state…
-            {/if}
-            {#if $state.is(state.OK)}
-              Your Small Web Domain is configured and ready for use.
-            {/if}
-            {#if $state.is(state.NOT_OK)}
-              Your Small Web Domain needs configuration.
-            {/if}
-          </StatusMessage>
-        </strong></p>
-
-        <TabbedInterface>
-          <TabList>
-            <Tab><StatusMessage >Organisation</StatusMessage></Tab>
-            <Tab><StatusMessage >Apps</StatusMessage></Tab>
-            <Tab><StatusMessage state={$pslState}>PSL</StatusMessage></Tab>
-            <Tab><StatusMessage >DNS</StatusMessage></Tab>
-            <Tab><StatusMessage >VPS</StatusMessage></Tab>
-            <Tab><StatusMessage >Payment</StatusMessage></Tab>
-          </TabList>
-
-          <form on:submit|preventDefault>
-            <TabPanel>
-              <Organisation {settings} bind:state={organisationState} />
-            </TabPanel>
-            <TabPanel>
-              <Apps {settings} bind:state={appsState} />
-            </TabPanel>
-            <TabPanel>
-              <PSL {settings} {socket} bind:state={pslState} />
-            </TabPanel>
-            <TabPanel>
-              <DNS {settings} {socket} bind:state={dnsState} />
-            </TabPanel>
-            <TabPanel>
-              <VPS {settings} {socket} bind:state={vpsState} />
-            </TabPanel>
-            <TabPanel>
-              <Payment {settings} {socket} bind:state={paymentState} />
-            </TabPanel>
-          </form>
-
-        </TabbedInterface>
-      </TabPanel>
-
-      <TabPanel>
-        {#if settings}
-          <h2>Places</h2>
-          <h3>Create a new Small Web place</h3>
-          <p>You can create a new place without requiring payment details from here (e.g., for your own organisation, for friends, etc.)</p>
-
-          <div id='createAppForm'>
-            <label for='appToCreate'>App</label>
-            <select
-              id='appToCreate'
-              bind:value={appToCreate}
-              size={settings.apps.length}
-              class='openSelectBox'
-            >
-              {#each settings.apps as app, index}
-                <option value={index}>{app.name}</option>
-              {/each}
-            </select>
-
-            <p class='label'>Passphrase</p>
-            <p><strong>Store this passphrase is your password manager.</strong> You will need it to manage this domain.</p>
-            <div class='passphrase'>{newPlacePassphrase}</div>
-
-            <label class='checkbox-label'>
-              <Checkbox bind:checked={passphraseSavedCheck}/> I have stored this passphrase in my password manager.
-            </label>
-
-            <label class='checkbox-label'>
-              <Checkbox bind:checked={agreeToTerms}/> I agree to the terms of service.
-            </label>
-
-
-            <DomainChecker
-              config={settings}
-              buttonLabel='Create server'
-              on:create={createServer}
-            />
-          </div>
-
-          <h3>Hosted places</h3>
-          <p>This is the list of Small Web places that are currently being hosted by you.</p>
-          <p><strong>Nothing yet.</strong></p>
-        {/if}
-      </TabPanel>
+      <TabPanel><Setup {socket} /></TabPanel>
+      <TabPanel><Places {socket} /></TabPanel>
     </TabbedInterface>
-    {#if shouldShowSavedMessage}
-      <div id='saved' transition:fade={{duration: 500}} tabindex='-1'>Auto-saved</div>
-    {/if}
   {/if}
 
   <footer>
@@ -526,64 +147,7 @@
       {/if}
     <a href='https://github.com/small-tech/basil'>View Source.</a></p>
   </footer>
-
 </main>
-
-<Modal show={showSiteCreationModal} title={settingUpMessage} hasCloseButton={siteCreationEnded} hasActionButton={siteCreationEnded} url={newSiteUrl}>
-
-  <p class='modalIntroduction'>Setting up {settings ? settings.apps[appToCreate].name : ''} on <strong>{domainToCreate}.{settings ? settings.dns.domain : ''}</strong>.</p>
-
-  <ol class='serverCreationProgress'>
-    <li>
-      <Checkbox checked={false} bind:checkedControlled={serverCreated} disabled={true}/>
-      <span class:currentStep={serverCreationStep === 1}>Commission server</span>
-    </li>
-    <li>
-      <Checkbox checked={false} bind:checkedControlled={domainNameRegistered} disabled={true}/>
-      <span class:currentStep={serverCreationStep === 2}>Register domain name</span>
-    </li>
-    <li>
-      <Checkbox checked={false} bind:checkedControlled={serverInitialised} disabled={true}/>
-      <span class:currentStep={serverCreationStep === 3}>Initialise server</span>
-      {#if serverCreationStep === 3}
-        <progress value={$serverInitialisationProgress} />
-      {/if}
-    </li>
-    <li>
-      <Checkbox checked={false} bind:checkedControlled={appInstalled} disabled={true}/>
-      <span class:currentStep={serverCreationStep === 4}>Install {settings ? settings.apps[appToCreate].name : ''}</span>
-      {#if serverCreationStep === 4}
-        <progress value={$appInstallProgress} />
-      {/if}
-    </li>
-    <li>
-      <Checkbox checked={false} bind:checkedControlled={appRunning} disabled={true}/>
-      <span class:currentStep={serverCreationStep === 5}>Run {settings ? settings.apps[appToCreate].name : ''}</span>
-      {#if serverCreationStep === 5}
-        <progress value={$appRunProgress} />
-      {/if}
-    </li>
-    <li>
-      <Checkbox checked={false} bind:checkedControlled={securityCertificateReady} disabled={true}/>
-      <span class:currentStep={serverCreationStep === 6}>Get security certificate</span>
-      {#if serverCreationStep === 6}
-        <progress value={$certificateProvisioningProgress} />
-      {/if}
-    </li>
-    <li>
-      <Checkbox checked={false} bind:checkedControlled={serverResponseReceived} disabled={true}/>
-      <span class:currentStep={serverCreationStep === 7}>Wait for response from server</span>
-      {#if serverCreationStep === 7}
-        <Jumper />
-      {/if}
-    </li>
-  </ol>
-
-  {#if siteCreationSucceeded}
-    <p class='appReady' in:scale={{duration: 600}}>🎉️ Your Small Web place is ready!</p>
-  {/if}
-</Modal>
-
 
 <style>
   main {
@@ -774,28 +338,6 @@
 
   #createAppForm {
     margin-bottom: 2em;
-  }
-
-  #rebuildSiteButton {
-    display: block;
-    min-width: 10em;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  *:global(#rebuildSiteButton:disabled) {
-    background: lightgray;
-    color: gray;
-  }
-
-  #rebuildSiteProgressIndicator {
-    position: fixed;
-    right: 1em;
-    top: 0.5em;
-    background: lightgray;
-    padding: 1em;
-    border-radius: 3em;
-    box-shadow: grey 1px 1px 4px;
   }
 
   #saved {

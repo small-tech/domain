@@ -1,6 +1,6 @@
 <script>
   // Icons courtesy of Bootstrap icons (https://icons.getbootstrap.com/)
-  import ServiceState from '$lib/admin/ServiceState.js'
+  import ServiceState from './ServiceState.js'
   export let state = new ServiceState()
 </script>
 
