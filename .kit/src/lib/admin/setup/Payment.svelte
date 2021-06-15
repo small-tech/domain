@@ -13,6 +13,7 @@
   } from '$lib/StripeCurrencies.js'
 
   export let settings
+  export let socket
   export let state = new ServiceState()
 
   const gotPrice = {
@@ -71,12 +72,12 @@
       case PAYMENT_PROVIDERS.none:
         // The None payment provider doesn’t have any
         // settings so it’s always valid.
-        paymentState.set(paymentState.OK)
+        state.set(state.OK)
       break
 
       case PAYMENT_PROVIDERS.token:
         // TODO: Token payment type not implemented yet.
-        paymentState.set(paymentState.NOT_OK)
+        state.set(state.NOT_OK)
       break
 
       case PAYMENT_PROVIDERS.stripe:
@@ -101,6 +102,7 @@
         ) {
           priceError[modeId] = 'That is not a valid price ID. It must start with price_'
           gotPrice[modeId] = true
+          state.set(state.NOT_OK)
           return
         }
 
@@ -125,6 +127,7 @@
 
     switch (message.type) {
       case messageIsOf(type.SETTINGS):
+        settings = message.body
         validateSettings()
       break
 
@@ -133,7 +136,7 @@
         settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
         gotPrice[message.mode] = true
         priceError[message.mode] = null
-        paymentState.set(paymentState.OK)
+        state.set(state.OK)
 
         state.set(state.OK)
       break

@@ -19,12 +19,12 @@
 
   let settings
 
-  let organisationState = null
-  let appsState         = null
-  let pslState          = null
-  let dnsState          = null
-  let vpsState          = null
-  let paymentState      = null
+  let organisationState
+  let appsState
+  let pslState
+  let dnsState
+  let vpsState
+  let paymentState
 
   let shouldShowSavedMessage = false
 
@@ -109,7 +109,7 @@
     <Tab><StatusMessage bind:state={$pslState}>PSL</StatusMessage></Tab>
     <Tab><StatusMessage bind:state={$dnsState}>DNS</StatusMessage></Tab>
     <Tab><StatusMessage bind:state={$vpsState}>VPS</StatusMessage></Tab>
-    <!-- <Tab><StatusMessage bind:state={$paymentState}>Payment</StatusMessage></Tab> -->
+    <Tab><StatusMessage bind:state={$paymentState}>Payment</StatusMessage></Tab>
   </TabList>
 
   <form on:submit|preventDefault>
@@ -118,7 +118,7 @@
     <TabPanel><PSL {settings} {socket} bind:state={pslState} /></TabPanel>
     <TabPanel><DNS {settings} {socket} bind:state={dnsState} /></TabPanel>
     <TabPanel><VPS {settings} {socket} bind:state={vpsState} /></TabPanel>
-    <!-- <TabPanel><Payment {settings} {socket} bind:state={paymentState} /></TabPanel> -->
+    <TabPanel><Payment {settings} {socket} bind:state={paymentState} /></TabPanel>
   </form>
 </TabbedInterface>
 
