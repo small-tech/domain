@@ -59,7 +59,6 @@
 
   // Implement global Buffer support.
   import { Buffer } from 'buffer'
-import Dns from '../lib/admin/DNS.svelte'
   globalThis.Buffer = Buffer
 
   export let config
@@ -74,7 +73,6 @@ import Dns from '../lib/admin/DNS.svelte'
   let signingIn = false
   let rebuildingSite = false
 
-  let validateVpsError = null
 
   let vpsDetails = {}
   let vpsServerType
@@ -261,17 +259,6 @@ import Dns from '../lib/admin/DNS.svelte'
     }
   }
 
-
-  function validateVps() {
-    validateVpsError = null
-    if (settings.vps.apiToken.length === 64) {
-      socket.send(JSON.stringify({
-        type: 'validate-vps'
-      }))
-    }
-  }
-
-
   function validatePayment(modeId) {
 
     switch (settings.payment.provider) {
@@ -325,23 +312,6 @@ import Dns from '../lib/admin/DNS.svelte'
         console.log(gotPrice, priceError)
       break
     }
-  }
-
-  function serverTypeChange () {
-    settings.vps.serverType = vpsServerType.name
-  }
-
-  function vpsLocationChange () {
-    settings.vps.location = vpsLocation.name
-  }
-
-  function vpsImageChange () {
-    settings.vps.image = vpsImage.name
-  }
-
-  function vpsSshKeyChange () {
-    settings.vps.sshKeyName = vpsSshKey.name
-    settings.vps.sshKey = vpsSshKey.public_key
   }
 
   function showSavedMessage() {

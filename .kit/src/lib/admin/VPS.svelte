@@ -1,113 +1,188 @@
 <script>
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
+  import ServiceState from './ServiceState.js'
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
 
   export let settings
+  export const state = new ServiceState()
 
-  // TODO: refactor these
-  export let ok
-  export let validateVps
-  export let validateVpsError
-  export let vpsSshKey
-  export let vpsSshKeyChange
-  export let vpsDetails
-  export let vpsServerType
-  export let serverTypeChange
-  export let vpsLocation
-  export let vpsLocationChange
-  export let vpsImage
-  export let vpsImageChange
+  const type = {
+    SETTINGS: 'settings',
+    VALIDATE_SETTINGS: 'validate-vps'
+  }
+
+  const messageIsOf = (type) => type
+  const errorIsOf = (type) => `${type}-error`
+
+  function validateSettings() {
+    state.set(state.UNKNOWN)
+
+    if (settings.vps.apiToken.length === 64) {
+      socket.send(JSON.stringify({
+        type: 'validate-vps'
+      }))
+    }
+
+  socket.addEventListener('message', event => {
+    const message = JSON.parse(event.data)
+
+    switch (message.type) {
+      case messageIsOf(type.SETTINGS):
+        validateSettings()
+      break
+
+      case messageIsOf(type.VALIDATE_SETTINGS):
+        vpsDetails = message.details
+
+        const serverTypes = vpsDetails.serverTypes
+        const locations = vpsDetails.locations
+        const images = vpsDetails.images
+        const sshKeys = vpsDetails.sshKeys
+
+        vpsServerType = serverTypes.find(serverType => {
+          return serverType.name === settings.vps.serverType
+        })
+
+        vpsLocation = locations.find(location => {
+          return location.name === settings.vps.location
+        })
+
+        vpsImage = images.find(image => {
+          return image.name === settings.vps.image
+        })
+
+        // FIX-ME: Unlike the others, initially this will be unset
+        // ======= so we have to handle this differently. Test
+        //         by removing SSH keys from Hetzner and starting
+        //         with a blank slate.
+        vpsSshKey = sshKeys.find(sshKey => {
+          return sshKey.name === settings.vps.sshKeyName
+        })
+
+        state.set(state.OK, {
+          vpsDetails,
+          vpsServerType,
+          vpsLocation,
+          vpsImage,
+          vpsSshKey
+        })
+      break
+
+      case errorIsOf(type.VALIDATE_SETTINGS):
+        state.set(state.NOT_OK, { error: message.error })
+      break
+    }
+  })
+
+  function serverTypeChange () {
+    settings.vps.serverType = vpsServerType.name
+  }
+
+  function vpsLocationChange () {
+    settings.vps.location = vpsLocation.name
+  }
+
+  function vpsImageChange () {
+    settings.vps.image = vpsImage.name
+  }
+
+  function vpsSshKeyChange () {
+    settings.vps.sshKeyName = vpsSshKey.name
+    settings.vps.sshKey = vpsSshKey.public_key
+  }
 </script>
 
-{#if settings}
-  <h3 id='vps'>VPS Host Settings</h3>
+<h3 id='vps'>VPS Host Settings</h3>
 
-  <h4>Hetzner</h4>
+<h4>Hetzner</h4>
 
-  <section class='instructions'>
-    <h5>Instructions</h5>
-    <ol>
-      <li>Create a <a href='https://www.hetzner.com/cloud'>Hetzner Cloud</a> account.</li>
-      <li><a href='https://accounts.hetzner.com/account/dpa'>Create a GDPR Data Protection Agreement</a>, accept it, download a copy, sign it, and keep it somewhere safe. (See <a href='https://docs.hetzner.com/general/general-terms-and-conditions/data-privacy-faq/'>Hetzner Data Privacy FAQ</a>)</li>
-      <li><a href='https://console.hetzner.cloud/projects'>Create a new project</a> to hold the sites you will be hosting.</li>
-      <li>Generate an API Token from <strong><em>your-project</em> → Security → API Tokens</strong> in your Hetzner dashboard and copy it below.</li>
-    </ol>
-  </section>
+<section class='instructions'>
+  <h5>Instructions</h5>
+  <ol>
+    <li>Create a <a href='https://www.hetzner.com/cloud'>Hetzner Cloud</a> account.</li>
+    <li><a href='https://accounts.hetzner.com/account/dpa'>Create a GDPR Data Protection Agreement</a>, accept it, download a copy, sign it, and keep it somewhere safe. (See <a href='https://docs.hetzner.com/general/general-terms-and-conditions/data-privacy-faq/'>Hetzner Data Privacy FAQ</a>)</li>
+    <li><a href='https://console.hetzner.cloud/projects'>Create a new project</a> to hold the sites you will be hosting.</li>
+    <li>Generate an API Token from <strong><em>your-project</em> → Security → API Tokens</strong> in your Hetzner dashboard and copy it below.</li>
+  </ol>
+</section>
 
-  {#if validateVpsError}
-    <p style='color: red;'>❌️ {validateVpsError}</p>
-  {:else if ok.vps}
-    <p>✔️ Your VPS settings are correct.</p>
-  {:else}
-    <p>You’ll be informed once you have the correct details set.</p>
-  {/if}
+{#if $state.is(state.UNKNOWN)}
+  <p>You’ll be informed once you have the correct details set.</p>
+{/if}
 
-  <label id='vpsApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
-  <SensitiveTextInput
-    name='vpsApiToken'
-    bind:value={settings.vps.apiToken}
-    on:input={validateVps}
-  />
+{#if $state.is(state.OK)}
+  <p>✔️ Your VPS settings are correct.</p>
+{/if}
 
-  {#if ok.vps}
-    <!-- SSH keys -->
-    <label for='vpsSshKey'>SSH Key Name</label>
-    <!-- svelte-ignore a11y-no-onchange -->
-    <select id='vpsSshKey' bind:value={vpsSshKey} on:change={vpsSshKeyChange}>
-      {#each vpsDetails.sshKeys as sshKey}
-        <option value={sshKey}>{sshKey.name}</option>
-      {/each}
-    </select>
-    <ul class='vpsItemDetails'>
-      <li>Created: {vpsSshKey.created}</li>
-      <li>Fingerprint: {vpsSshKey.fingerprint}</li>
-      <li>Public Key: <code>{vpsSshKey.public_key}</code></li>
-    </ul>
+{#if $state.is(state.NOT_OK)}
+  <p style='color: red;'>❌️ {state.NOT_OK.error}</p>
+{/if}
 
-    <Accordion>
-      <AccordionItem title='Advanced'>
-        <h3>Server details</h3>
-        <p>These settings will be used when setting up servers.</p>
+<label id='vpsApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
+<SensitiveTextInput
+  name='vpsApiToken'
+  bind:value={settings.vps.apiToken}
+  on:input={validateVps}
+/>
 
-        <!-- VPS Server Types -->
-        <label for='vpsServerType'>Server type</label>
-        <!-- svelte-ignore a11y-no-onchange -->
-        <select id='vpsServerType' bind:value={vpsServerType} on:change={serverTypeChange}>
-          {#each vpsDetails.serverTypes as serverType}
-            <option value={serverType}>{serverType.description}</option>
-          {/each}
-        </select>
-        <p class='vpsItemDetails'>{vpsServerType.cores} cores, {vpsServerType.memory}GB memory, {vpsServerType.disk}GB disk. Cost: €{parseFloat(vpsServerType.prices[0].price_monthly.net).toFixed(2)}/month (exc. VAT).</p>
+{#if $state.is(state.OK)}
+  <!-- SSH keys -->
+  <label for='vpsSshKey'>SSH Key Name</label>
+  <!-- svelte-ignore a11y-no-onchange -->
+  <select id='vpsSshKey' bind:value={state.OK.vpsSshKey} on:change={vpsSshKeyChange}>
+    {#each state.OK.vpsDetails.sshKeys as sshKey}
+      <option value={sshKey}>{sshKey.name}</option>
+    {/each}
+  </select>
+  <ul class='vpsItemDetails'>
+    <li>Created: {state.OK.vpsSshKey.created}</li>
+    <li>Fingerprint: {state.OK.vpsSshKey.fingerprint}</li>
+    <li>Public Key: <code>{state.OK.vpsSshKey.public_key}</code></li>
+  </ul>
 
-        <!-- VPS Locations -->
-        <label for='vpsLocation'>Location</label>
-        <!-- svelte-ignore a11y-no-onchange -->
-        <select id='vpsLocation' bind:value={vpsLocation} on:change={vpsLocationChange}>
-          {#each vpsDetails.locations as location}
-            <option value={location}>{location.description.replace('DC', 'Data Centre')}</option>
-          {/each}
-        </select>
-        <p class='vpsItemDetails'>{vpsLocation.city} ({vpsLocation.country}), {vpsLocation.network_zone.replace('eu-central', 'central EU')} network zone.</p>
+  <Accordion>
+    <AccordionItem title='Advanced'>
+      <h3>Server details</h3>
+      <p>These settings will be used when setting up servers.</p>
 
-        <!-- VPS Images -->
-        <label for='vpsImage'>Image</label>
-        <!-- svelte-ignore a11y-no-onchange -->
-        <select id='vpsImage' bind:value={vpsImage} on:change={vpsImageChange}>
-          {#each vpsDetails.images as image}
-            <option value={image}>{image.description}</option>
-          {/each}
-        </select>
-        <p class='vpsItemDetails'>
-          {#if vpsImage.name === 'ubuntu-20.04'}
-            <strong class='positive'>This is currently the only supported system for Small Web deployments.</strong>
-          {:else}
-            <strong class='warning'>This is an unsupported system for Small Web deployments.</strong>
-          {/if}
-            Any Linux with systemd should work but you might have to adjust the Cloud Init scripts for your apps.
-        </p>
-      </AccordionItem>
-    </Accordion>
-  {/if}
+      <!-- VPS Server Types -->
+      <label for='vpsServerType'>Server type</label>
+      <!-- svelte-ignore a11y-no-onchange -->
+      <select id='vpsServerType' bind:value={state.OK.vpsServerType} on:change={serverTypeChange}>
+        {#each state.OK.vpsDetails.serverTypes as serverType}
+          <option value={serverType}>{serverType.description}</option>
+        {/each}
+      </select>
+      <p class='vpsItemDetails'>{vpsServerType.cores} cores, {vpsServerType.memory}GB memory, {vpsServerType.disk}GB disk. Cost: €{parseFloat(vpsServerType.prices[0].price_monthly.net).toFixed(2)}/month (exc. VAT).</p>
+
+      <!-- VPS Locations -->
+      <label for='vpsLocation'>Location</label>
+      <!-- svelte-ignore a11y-no-onchange -->
+      <select id='vpsLocation' bind:value={state.OK.vpsLocation} on:change={vpsLocationChange}>
+        {#each state.OK.vpsDetails.locations as location}
+          <option value={location}>{location.description.replace('DC', 'Data Centre')}</option>
+        {/each}
+      </select>
+      <p class='vpsItemDetails'>{state.OK.vpsLocation.city} ({state.OK.vpsLocation.country}), {state.OK.vpsLocation.network_zone.replace('eu-central', 'central EU')} network zone.</p>
+
+      <!-- VPS Images -->
+      <label for='vpsImage'>Image</label>
+      <!-- svelte-ignore a11y-no-onchange -->
+      <select id='vpsImage' bind:value={state.OK.vpsImage} on:change={vpsImageChange}>
+        {#each state.OK.vpsDetails.images as image}
+          <option value={image}>{image.description}</option>
+        {/each}
+      </select>
+      <p class='vpsItemDetails'>
+        {#if state.OK.vpsImage.name === 'ubuntu-20.04'}
+          <strong class='positive'>This is currently the only supported system for Small Web deployments.</strong>
+        {:else}
+          <strong class='warning'>This is an unsupported system for Small Web deployments.</strong>
+        {/if}
+          Any Linux with systemd should work but you might have to adjust the Cloud Init scripts for your apps.
+      </p>
+    </AccordionItem>
+  </Accordion>
 {/if}
 
 <style>
