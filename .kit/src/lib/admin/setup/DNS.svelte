@@ -66,18 +66,19 @@
     </ol>
   </section>
 
-  {#if $state.is(state.UNKNOWN)}
-    <p>You’ll be informed once you have the correct details are set.</p>
-  {/if}
+{#if $state.is(state.UNKNOWN)}
+  <p>You’ll be informed once you have the correct details are set.</p>
+{/if}
 
-  {#if $state.is(state.OK)}
-    <p>✔️ Your DNS settings are correct.</p>
-  {/if}
+{#if $state.is(state.OK)}
+  <p>✔️ Your DNS settings are correct.</p>
+{/if}
 
-  {#if $state.is(state.NOT_OK)}
-    <p style='color: red;'>❌️ {state.NOT_OK.error}</p>
-  {/if}
+{#if $state.is(state.NOT_OK)}
+  <p style='color: red;'>❌️ {state.NOT_OK.error}</p>
+{/if}
 
+{#if settings}
   <label for='domain'>Domain</label>
   <input
     id='domain'
@@ -103,3 +104,4 @@
     bind:this={accessTokenInput}
     on:input={validateSettings}
   />
+{/if}
