@@ -1,5 +1,5 @@
 <script>
-  import State from '$lib/State'
+  import State from '@small-tech/state'
   import { PAYMENT_PROVIDERS } from '$lib/Constants'
 
   export let settings
