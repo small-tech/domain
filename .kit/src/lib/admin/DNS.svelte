@@ -13,7 +13,7 @@
 
   const type = {
     SETTINGS: 'settings',
-    VALIDATE_SETTINGS: 'validate-psl'
+    VALIDATE_SETTINGS: 'validate-dns'
   }
 
   const messageIsOf = (type) => type
