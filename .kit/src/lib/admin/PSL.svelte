@@ -34,13 +34,7 @@
 
     switch (message.type) {
       case messageIsOf(type.SETTINGS):
-        setTimeout(() => {
-          state.set(state.NOT_OK, { error: 'Fake error.' })
-          console.log('>>>>', state)
-          console.log('>>>>', state.now)
-          console.log('>>>>', state.now === state.NOT_OK)
-        }, 4000)
-        // validateSettings()
+        validateSettings()
       break
 
       case messageIsOf(type.VALIDATE_SETTINGS):
