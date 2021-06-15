@@ -52,11 +52,7 @@
   import { PAYMENT_PROVIDERS } from '$lib/Constants'
 
   import {
-    additionalCurrenciesSupportedInUnitedArabEmirates,
-    currencyDetailsForCurrencyCode,
-    alphabeticallySortedCurrencyDetails,
-    minimumChargeAmountsInWholeCurrencyUnits,
-    minimumChargeAmountsInWholeStripeUnits
+    additionalCurrenciesSupportedInUnitedArabEmirates
   } from '$lib/StripeCurrencies.js'
 
   // Implement global Buffer support.
@@ -160,6 +156,8 @@
   let baseUrl
   let socket
 
+  let pslState = null
+
   const ok = {
     all: false,
     org: false,
@@ -171,6 +169,8 @@
   }
 
   $: ok.all = ok.org && ok.payment && ok.dns && ok.vps && ok.apps
+
+  $: if (pslState) { ok.psl = $pslState.is(pslState.OK)}
 
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
@@ -628,16 +628,16 @@
 
       <TabPanel>
         <h2>Setup</h2>
-        <p><strong><StatusMessage state={ok.all}>Your Small Web Domain {ok.all ? 'is fully configured and active' : 'needs configuration'}.</StatusMessage></strong></p>
+        <p><strong><StatusMessage>Your Small Web Domain {ok.all ? 'is fully configured and active' : 'needs configuration'}.</StatusMessage></strong></p>
 
         <TabbedInterface>
           <TabList>
-            <Tab><StatusMessage state={ok.org}>Organisation</StatusMessage></Tab>
-            <Tab><StatusMessage state={ok.apps}>Apps</StatusMessage></Tab>
-            <Tab><StatusMessage state={ok.psl}>PSL</StatusMessage></Tab>
-            <Tab><StatusMessage state={ok.dns}>DNS</StatusMessage></Tab>
-            <Tab><StatusMessage state={ok.vps}>VPS</StatusMessage></Tab>
-            <Tab><StatusMessage state={ok.payment}>Payment</StatusMessage></Tab>
+            <Tab><StatusMessage >Organisation</StatusMessage></Tab>
+            <Tab><StatusMessage >Apps</StatusMessage></Tab>
+            <Tab><StatusMessage state={$pslState}>PSL</StatusMessage></Tab>
+            <Tab><StatusMessage >DNS</StatusMessage></Tab>
+            <Tab><StatusMessage >VPS</StatusMessage></Tab>
+            <Tab><StatusMessage >Payment</StatusMessage></Tab>
           </TabList>
 
           <form on:submit|preventDefault>
@@ -648,7 +648,7 @@
               <Apps {settings} bind:ok={ok.apps} />
             </TabPanel>
             <TabPanel>
-              <PSL {settings} {socket} bind:ok={ok.psl} />
+              <PSL {settings} {socket} bind:ok={ok.psl} bind:state={pslState} />
             </TabPanel>
 
             <!-- TODO: finish refactoring the remaining panels. -->

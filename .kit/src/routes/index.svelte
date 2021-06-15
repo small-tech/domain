@@ -37,12 +37,6 @@
 
   import {browser} from '$app/env'
 
-  // Doing this in two-steps to the SvelteKit static adapter
-  // doesn’t choke on it.
-  import showdown from 'showdown'
-  const { Converter } = showdown
-  const converter = new Converter()
-
   if (browser) {
     stretchy()
   }

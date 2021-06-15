@@ -1,15 +1,11 @@
 <script>
-  import State from '@small-tech/state'
+  import ServiceState from '$lib/admin/ServiceState.js'
   import { PAYMENT_PROVIDERS } from '$lib/Constants'
 
   export let settings
   export let socket
 
-  const state = new State({
-    UNKNOWN: {},
-    OK: {},
-    NOT_OK: {}
-  })
+  export const state = new ServiceState()
 
   const type = {
     SETTINGS: 'settings',

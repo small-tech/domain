@@ -2,14 +2,10 @@
   import Switch from 'svelte-switch'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
-  import StatusMessage from '$lib/StatusMessage.svelte'
+  // import StatusMessage from '$lib/StatusMessage.svelte'
 
   import {
-    additionalCurrenciesSupportedInUnitedArabEmirates,
-    currencyDetailsForCurrencyCode,
     alphabeticallySortedCurrencyDetails,
-    minimumChargeAmountsInWholeCurrencyUnits,
-    minimumChargeAmountsInWholeStripeUnits
   } from '$lib/StripeCurrencies.js'
 
   export let settings
@@ -112,9 +108,9 @@
           <p>The necesssary objects will be created for you automatically on Stripe once you add your Stripe keys.</p>
 
           <ol class='serverCreationProgress'>
-            <li><StatusMessage state={ok.stripeProduct}>Product</StatusMessage></li>
+            <!-- <li><StatusMessage state={ok.stripeProduct}>Product</StatusMessage></li>
             <li><StatusMessage state={ok.stripePrice}>Price</StatusMessage></li>
-            <li><StatusMessage state={ok.stripeWebhook}>Webhook</StatusMessage></li>
+            <li><StatusMessage state={ok.stripeWebhook}>Webhook</StatusMessage></li> -->
           </ol>
           <label for={`${mode.id}PublishableKey`}>Publishable key</label>
           <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePayment(mode.id)}/>
