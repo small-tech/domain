@@ -1,8 +1,23 @@
 <script>
-  export let settings
-  export let ok
+  import ServiceState from './ServiceState.js'
 
-  $: ok = settings === undefined ? false : settings.org.name !== '' && settings.org.address !== '' && settings.org.site !== '' && settings.org.email !== ''
+  export let settings
+  export const state = new ServiceState()
+
+  $: switch(settings) {
+    case undefined:
+      state.set(state.UNKNOWN)
+    break
+
+    default:
+      state.set(
+        settings.org.name !== ''
+        && settings.org.address !== ''
+        && settings.org.site !== ''
+        && settings.org.email !== ''
+        ? state.OK : state.NOT_OK
+      )
+  }
 </script>
 
 {#if settings}
