@@ -51,12 +51,6 @@
   import VPS from '$lib/admin/VPS.svelte'
   import Payment from '$lib/admin/Payment.svelte'
 
-  import { PAYMENT_PROVIDERS } from '$lib/Constants'
-
-  import {
-    additionalCurrenciesSupportedInUnitedArabEmirates
-  } from '$lib/StripeCurrencies.js'
-
   // Implement global Buffer support.
   import { Buffer } from 'buffer'
   globalThis.Buffer = Buffer
@@ -72,13 +66,6 @@
   let password = null
   let signingIn = false
   let rebuildingSite = false
-
-
-  let vpsDetails = {}
-  let vpsServerType
-  let vpsLocation
-  let vpsImage
-  let vpsSshKey
 
   let appToCreate = 0
   let domainToCreate = ''
@@ -105,12 +92,7 @@
   let passphraseSavedCheck = false
   let agreeToTerms = false
 
-  let stripePrice = 10
-  let previousStripePrice = stripePrice
-  let formattedMinimumPrice
-  let stripeCurrency
-  let stripeCurrencyOnlyValidInUnitedArabEmirates = false
-  let minimumStripePriceForCurrency = 1
+
 
   // Actual progress timings from Hetzner API.
   let serverInitialisationProgress = tweened(0, {
@@ -135,17 +117,6 @@
   })
 
   $: siteCreationEnded = siteCreationSucceeded || siteCreationFailed
-
-
-  const gotPrice = {
-    test: false,
-    live: false
-  }
-
-  const priceError = {
-    test: null,
-    live: null
-  }
 
   let signedIn = false
   let baseUrl
@@ -188,19 +159,6 @@
   $: if (signingIn) errorMessage = false
   $: if (rebuildingSite) socket.send(JSON.stringify({type: 'rebuild'}))
 
-  $: stripeCurrencyOnlyValidInUnitedArabEmirates = additionalCurrenciesSupportedInUnitedArabEmirates.includes(stripeCurrency)
-
-  // TODO: Implement this in index and then remove from here.
-  // $: {
-  //   if (stripeCurrency) {
-  //     const currencyDetails = currencyDetailsForCurrencyCode(stripeCurrency)
-  //     let output = currencyDetails.template
-  //     output = output.replace('$', currencyDetails.symbol)
-  //     output = output.replace('1', minimumStripePriceForCurrency)
-  //     formattedMinimumPrice = output
-  //   }
-  // }
-
   onMount(async () => {
     baseUrl = document.location.hostname
 
@@ -237,82 +195,6 @@
     serverCreationStep++
   }
 
-  // Custom validation because the built-in browser form validation is useless.
-  // This simply does not allow an invalid value to be entered.
-  function validateStripePriceOnInput (event) {
-    const price = event.target.value
-    if (price < 1 || parseInt(price) === NaN) {
-      // On input, do not force the validation so people
-      // can create temporarily invalid enties (e.g., when deleting an existing
-      // number)
-      return
-    } else {
-      previousStripePrice = stripePrice
-    }
-  }
-
-  // On change, actually force the value to be correct.
-  function validateStripePriceOnChange (event) {
-    const price = event.target.value
-    if (price < 1 || parseInt(price) === NaN) {
-      stripePrice = previousStripePrice
-    }
-  }
-
-  function validatePayment(modeId) {
-
-    switch (settings.payment.provider) {
-      case PAYMENT_PROVIDERS.none:
-        // The None payment provider doesn’t have any
-        // settings so it’s always valid.
-        paymentState.set(paymentState.OK)
-      break
-
-      case PAYMENT_PROVIDERS.token:
-        // TODO: Token payment type not implemented yet.
-        paymentState.set(paymentState.NOT_OK)
-      break
-
-      case PAYMENT_PROVIDERS.stripe:
-        gotPrice[modeId] = false
-        priceError[modeId] = null
-
-        const priceId = (settings.payment.providers[2].modeDetails[modeId === 'test' ? 0 : 1].priceId).trim()
-
-        if (priceId === '') {
-          return
-        }
-
-        if (
-          !(
-            (priceId.length === 1 && priceId === 'p') ||
-            (priceId.length === 2 && priceId === 'pr') ||
-            (priceId.length === 3 && priceId === 'pri') ||
-            (priceId.length === 4 && priceId === 'pric') ||
-            (priceId.length === 5 && priceId === 'price') ||
-            (priceId.length >= 6 && priceId.startsWith('price_'))
-          )
-        ) {
-          priceError[modeId] = 'That is not a valid price ID. It must start with price_'
-          gotPrice[modeId] = true
-          return
-        }
-
-        if (priceId.length !== 30) {
-          priceError[modeId] = null
-          gotPrice[modeId] = false
-          return
-        }
-
-        console.log('Getting price…')
-        socket.send(JSON.stringify({
-          type: 'get-price',
-          mode: modeId
-        }))
-        console.log(gotPrice, priceError)
-      break
-    }
-  }
 
   function showSavedMessage() {
     if (shouldShowSavedMessage) return
@@ -476,62 +358,8 @@
           validateVps()
         break
 
-        case 'price':
-          settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].currency = currencies[message.currency]
-          settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
-          gotPrice[message.mode] = true
-          priceError[message.mode] = null
-          paymentState.set(paymentState.OK)
-        break
-
         case 'error':
           errorMessage = message.body
-        break
-
-        case 'price-error':
-          if (message.error.param === 'price' && message.error.type === 'invalid_request_error') {
-            priceError[message.mode] = 'No price exists with that API ID.'
-          } else {
-            priceError[message.mode] = `${message.error.message} (${message.error.type})`
-          }
-          gotPrice[message.mode] = true
-        break
-
-        case 'validate-vps-error':
-          validateVpsError = message.error
-          vpsState.set(vpsState.NOT_OK)
-        break
-
-        case 'validate-vps':
-          validateVpsError = null
-          vpsDetails = message.details
-
-          const serverTypes = vpsDetails.serverTypes
-          const locations = vpsDetails.locations
-          const images = vpsDetails.images
-          const sshKeys = vpsDetails.sshKeys
-
-          vpsServerType = serverTypes.find(serverType => {
-            return serverType.name === settings.vps.serverType
-          })
-
-          vpsLocation = locations.find(location => {
-            return location.name === settings.vps.location
-          })
-
-          vpsImage = images.find(image => {
-            return image.name === settings.vps.image
-          })
-
-          // FIX-ME: Unlike the others, initially this will be unset
-          // ======= so we have to handle this differently. Test
-          //         by removing SSH keys from Hetzner and starting
-          //         with a blank slate.
-          vpsSshKey = sshKeys.find(sshKey => {
-            return sshKey.name === settings.vps.sshKeyName
-          })
-
-          vpsState.set(vpsState.OK)
         break
       }
     }
@@ -624,11 +452,15 @@
             <TabPanel>
               <PSL {settings} {socket} bind:state={pslState} />
             </TabPanel>
-
-            <!-- TODO: finish refactoring the remaining panels. -->
-            <TabPanel><DNS {settings} bind:dnsDomainInput={dnsDomainInput} bind:dnsAccountIdInput={dnsAccountIdInput} bind:dnsAccessTokenInput={dnsAccessTokenInput} /></TabPanel>
-            <TabPanel><VPS {settings} {validateVps} {validateVpsError} {vpsSshKey} {vpsSshKeyChange} {vpsDetails} {vpsServerType} {serverTypeChange} {vpsLocation} {vpsLocationChange} {vpsImage} {vpsImageChange} /></TabPanel>
-            <TabPanel><Payment {settings} {validatePayment} {stripeCurrency} {stripePrice} {stripeCurrencyOnlyValidInUnitedArabEmirates} {validateStripePriceOnInput} {validateStripePriceOnChange} {gotPrice} {priceError} /></TabPanel>
+            <TabPanel>
+              <DNS {settings} {socket} bind:state={dnsState} />
+            </TabPanel>
+            <TabPanel>
+              <VPS {settings} {socket} bind:state={vpsState} />
+            </TabPanel>
+            <TabPanel>
+              <Payment {settings} {socket} bind:state={paymentState} />
+            </TabPanel>
           </form>
 
         </TabbedInterface>

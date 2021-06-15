@@ -2,24 +2,165 @@
   import Switch from 'svelte-switch'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
+  import ServiceState from './ServiceState.js'
   // import StatusMessage from '$lib/StatusMessage.svelte'
+
+  import { PAYMENT_PROVIDERS } from '$lib/Constants'
 
   import {
     alphabeticallySortedCurrencyDetails,
+    additionalCurrenciesSupportedInUnitedArabEmirates
   } from '$lib/StripeCurrencies.js'
 
   export let settings
+  export let state = new ServiceState()
 
-  // Refactor these during second pass of pull-out.
-  export let ok
-  export let validatePayment
-  export let stripeCurrency
-  export let stripePrice
-  export let stripeCurrencyOnlyValidInUnitedArabEmirates
-  export let validateStripePriceOnInput
-  export let gotPrice
-  export let priceError
-  export let validateStripePriceOnChange
+  const gotPrice = {
+    test: false,
+    live: false
+  }
+
+  const priceError = {
+    test: null,
+    live: null
+  }
+
+  let stripePrice = 10
+  let previousStripePrice = stripePrice
+  let formattedMinimumPrice
+  let stripeCurrency
+  let stripeCurrencyOnlyValidInUnitedArabEmirates = false
+  let minimumStripePriceForCurrency = 1
+
+  $: stripeCurrencyOnlyValidInUnitedArabEmirates = additionalCurrenciesSupportedInUnitedArabEmirates.includes(stripeCurrency)
+
+  // Custom validation because the built-in browser form validation is useless.
+  // This simply does not allow an invalid value to be entered.
+  function validateStripePriceOnInput (event) {
+    const price = event.target.value
+    if (price < 1 || parseInt(price) === NaN) {
+      // On input, do not force the validation so people
+      // can create temporarily invalid enties (e.g., when deleting an existing
+      // number)
+      return
+    } else {
+      previousStripePrice = stripePrice
+    }
+  }
+
+  // On change, actually force the value to be correct.
+  function validateStripePriceOnChange (event) {
+    const price = event.target.value
+    if (price < 1 || parseInt(price) === NaN) {
+      stripePrice = previousStripePrice
+    }
+  }
+
+  const type = {
+    SETTINGS: 'settings',
+    VALIDATE_SETTINGS: 'price'
+  }
+
+  const messageIsOf = (type) => type
+  const errorIsOf = (type) => `${type}-error`
+
+  // TODO: Note: the logic here has changed since we’re going to create the price
+  // ===== via the Stripe API. Rewrite this.
+  function validateSettings(modeId) {
+    switch (settings.payment.provider) {
+      case PAYMENT_PROVIDERS.none:
+        // The None payment provider doesn’t have any
+        // settings so it’s always valid.
+        paymentState.set(paymentState.OK)
+      break
+
+      case PAYMENT_PROVIDERS.token:
+        // TODO: Token payment type not implemented yet.
+        paymentState.set(paymentState.NOT_OK)
+      break
+
+      case PAYMENT_PROVIDERS.stripe:
+        gotPrice[modeId] = false
+        priceError[modeId] = null
+
+        const priceId = (settings.payment.providers[2].modeDetails[modeId === 'test' ? 0 : 1].priceId).trim()
+
+        if (priceId === '') {
+          return
+        }
+
+        if (
+          !(
+            (priceId.length === 1 && priceId === 'p') ||
+            (priceId.length === 2 && priceId === 'pr') ||
+            (priceId.length === 3 && priceId === 'pri') ||
+            (priceId.length === 4 && priceId === 'pric') ||
+            (priceId.length === 5 && priceId === 'price') ||
+            (priceId.length >= 6 && priceId.startsWith('price_'))
+          )
+        ) {
+          priceError[modeId] = 'That is not a valid price ID. It must start with price_'
+          gotPrice[modeId] = true
+          return
+        }
+
+        if (priceId.length !== 30) {
+          priceError[modeId] = null
+          gotPrice[modeId] = false
+          return
+        }
+
+        console.log('Getting price…')
+        socket.send(JSON.stringify({
+          type: 'get-price',
+          mode: modeId
+        }))
+        console.log(gotPrice, priceError)
+      break
+    }
+  }
+
+  socket.addEventListener('message', event => {
+    const message = JSON.parse(event.data)
+
+    switch (message.type) {
+      case messageIsOf(type.SETTINGS):
+        validateSettings()
+      break
+
+      case messageIsOf(type.VALIDATE_SETTINGS):
+        settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].currency = currencies[message.currency]
+        settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
+        gotPrice[message.mode] = true
+        priceError[message.mode] = null
+        paymentState.set(paymentState.OK)
+
+        state.set(state.OK)
+      break
+
+      case errorIsOf(type.VALIDATE_SETTINGS):
+        if (message.error.param === 'price' && message.error.type === 'invalid_request_error') {
+          priceError[message.mode] = 'No price exists with that API ID.'
+        } else {
+          priceError[message.mode] = `${message.error.message} (${message.error.type})`
+        }
+        gotPrice[message.mode] = true
+
+        state.set(state.NOT_OK, { error: message.error })
+      break
+    }
+  })
+
+  // TODO: Implement this in index and then remove from here.
+  // $: {
+  //   if (stripeCurrency) {
+  //     const currencyDetails = currencyDetailsForCurrencyCode(stripeCurrency)
+  //     let output = currencyDetails.template
+  //     output = output.replace('$', currencyDetails.symbol)
+  //     output = output.replace('1', minimumStripePriceForCurrency)
+  //     formattedMinimumPrice = output
+  //   }
+  // }
 </script>
 
 {#if settings}
