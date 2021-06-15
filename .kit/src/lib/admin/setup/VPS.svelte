@@ -4,6 +4,7 @@
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
 
   export let settings
+  export let socket
   export const state = new ServiceState()
 
   const type = {
@@ -33,22 +34,22 @@
       break
 
       case messageIsOf(type.VALIDATE_SETTINGS):
-        vpsDetails = message.details
+        const vpsDetails = message.details
 
         const serverTypes = vpsDetails.serverTypes
         const locations = vpsDetails.locations
         const images = vpsDetails.images
         const sshKeys = vpsDetails.sshKeys
 
-        vpsServerType = serverTypes.find(serverType => {
+        const vpsServerType = serverTypes.find(serverType => {
           return serverType.name === settings.vps.serverType
         })
 
-        vpsLocation = locations.find(location => {
+        const vpsLocation = locations.find(location => {
           return location.name === settings.vps.location
         })
 
-        vpsImage = images.find(image => {
+        const vpsImage = images.find(image => {
           return image.name === settings.vps.image
         })
 
@@ -56,7 +57,7 @@
         // ======= so we have to handle this differently. Test
         //         by removing SSH keys from Hetzner and starting
         //         with a blank slate.
-        vpsSshKey = sshKeys.find(sshKey => {
+        const vpsSshKey = sshKeys.find(sshKey => {
           return sshKey.name === settings.vps.sshKeyName
         })
 
@@ -119,12 +120,14 @@
   <p style='color: red;'>❌️ {state.NOT_OK.error}</p>
 {/if}
 
-<label id='vpsApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
-<SensitiveTextInput
-  name='vpsApiToken'
-  bind:value={settings.vps.apiToken}
-  on:input={validateSettings}
-/>
+{#if settings}
+  <label id='vpsApiTokenLabel' for='vpsApiToken'>API Token (with read/write permissions)</label>
+  <SensitiveTextInput
+    name='vpsApiToken'
+    bind:value={settings.vps.apiToken}
+    on:input={validateSettings}
+  />
+{/if}
 
 {#if $state.is(state.OK)}
   <!-- SSH keys -->
