@@ -130,7 +130,6 @@
 
     switch (message.type) {
       case messageIsOf(type.SETTINGS):
-        settings = message.body
         validateSettings()
       break
 
