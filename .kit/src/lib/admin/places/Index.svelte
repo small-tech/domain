@@ -333,5 +333,48 @@
 </Modal>
 
 <style>
+  .checkbox-label {
+    display: inline-block;
+    margin: none;
+  }
+
+  .appReady {
+    text-align: center;
+    font-size: 1.5em;
+  }
+
+  .modalIntroduction {
+    font-size: 1.25em;
+  }
+
+  .passphrase {
+    margin-bottom: 1.5em;
+  }
+
+
+  .serverCreationProgress {
+    list-style-type: none;
+    font-size: 1.5em;
+  }
+
+  progress {
+    display: block;
+    width: 70%;
+    height: 5px;
+    margin-top: -0.5em;
+    margin-bottom: 0.3em;
+    margin-left: 2.75em;
+    background-color: #ccc;
+    border: 0;
+  }
+  
+  .currentStep {
+    font-weight: bold;
+  }
+
+  #createAppForm {
+    margin-bottom: 2em;
+  }
+
 
 </style>

@@ -240,20 +240,10 @@
     font-size: 1em;
   }
 
-
   /* Select the setup tabs */
   :global(ul:first-of-type) {
     margin-top: 3em;
     margin-bottom: 2em;
-  }
-
-  .checkbox-label {
-    display: inline-block;
-    margin: none;
-  }
-
-  .inline {
-    display: inline;
   }
 
   .block {
@@ -289,16 +279,6 @@
     margin-top: 0.5em;
   }
 
-
-  .appReady {
-    text-align: center;
-    font-size: 1.5em;
-  }
-
-  .modalIntroduction {
-    font-size: 1.25em;
-  }
-
   .signOut {
     text-align: right;
     font-size: 1.25em;
@@ -313,48 +293,9 @@
     max-width: 10em;
   }
 
-  .passphrase {
-    margin-bottom: 1.5em;
-  }
-
   * :global(.openSelectBox) {
     scrollbar-width: none;
     overflow: hidden;
-  }
-
-  .serverCreationProgress {
-    list-style-type: none;
-    font-size: 1.5em;
-  }
-
-  progress {
-    display: block;
-    width: 70%;
-    height: 5px;
-    margin-top: -0.5em;
-    margin-bottom: 0.3em;
-    margin-left: 2.75em;
-    background-color: #ccc;
-    border: 0;
-  }
-
-  .currentStep {
-    font-weight: bold;
-  }
-
-  #createAppForm {
-    margin-bottom: 2em;
-  }
-
-  #saved {
-    position: fixed;
-    right: 1em;
-    top: 1em;
-    text-align: center;
-    padding: 0.15em 1em;
-    background-color: green;
-    border-radius: 1em;
-    color: white;
   }
 
 </style>

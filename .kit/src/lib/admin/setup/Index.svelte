@@ -134,5 +134,14 @@
 {/if}
 
 <style>
-
+  #saved {
+    position: fixed;
+    right: 1em;
+    top: 1em;
+    text-align: center;
+    padding: 0.15em 1em;
+    background-color: green;
+    border-radius: 1em;
+    color: white;
+  }
 </style>
