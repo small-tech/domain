@@ -147,6 +147,12 @@
       {/if}
     <a href='https://github.com/small-tech/basil'>View Source.</a></p>
   </footer>
+
+  <!-- Not sure why but getting a “received an unexpected slot ‘default’” warning
+       in the console so this is a temporary measure to silence it. Nothing should
+       be slotting in here. 🤔️
+  -->
+  <slot></slot>
 </main>
 
 <style>
