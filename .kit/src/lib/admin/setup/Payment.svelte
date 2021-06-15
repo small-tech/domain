@@ -68,6 +68,8 @@
   // TODO: Note: the logic here has changed since we’re going to create the price
   // ===== via the Stripe API. Rewrite this.
   function validateSettings(modeId) {
+    state.set(state.UNKNOWN)
+
     switch (settings.payment.provider) {
       case PAYMENT_PROVIDERS.none:
         // The None payment provider doesn’t have any
@@ -109,6 +111,7 @@
         if (priceId.length !== 30) {
           priceError[modeId] = null
           gotPrice[modeId] = false
+          state.set(state.NOT_OK)
           return
         }
 
@@ -235,7 +238,8 @@
     <input id='price' type='number' bind:value={stripePrice} step=1 min=1 on:input={validateStripePriceOnInput} on:change={validateStripePriceOnChange}/>
 
     <label for='mode'>Mode</label>
-    <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} width=75>
+    <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} handleDiameter='' width=75>
+
       <span class='live' slot='checkedIcon'>Live</span>
       <span class='test' slot='unCheckedIcon'>Test</span>
     </Switch>
@@ -309,6 +313,9 @@
 		display: inline-block;
 		margin-top: 0.1em;
 	}
+  .test {
+    margin-right: 0.75em;
+  }
 
 	.live {
 		margin-left: 0.75em;

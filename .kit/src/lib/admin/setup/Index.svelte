@@ -30,32 +30,39 @@
 
   const state = new ServiceState()
 
-  // $: if (organisationState === null) {
-  //   /* not ready, ignore */
-  // } else if (
-  //   organisationState.is(organisationState.OK)
-  //   && appsState.is(appState.OK)
-  //   && pslState.is(pslState.OK)
-  //   && dnsState.is(dnsState.OK)
-  //   && vpsState.is(vpsState.OK)
-  //   && paymentState.is(paymentState.OK)
-  // ) {
-  //   // All services are OK.
-  //   state.set(state.OK)
-  // } else if (
-  //   organisationState.is(organisationState.NOT_OK)
-  //   || appsState.is(appState.NOT_OK)
-  //   || pslState.is(pslState.NOT_OK)
-  //   || dnsState.is(dnsState.NOT_OK)
-  //   || vpsState.is(vpsState.NOT_OK)
-  //   || paymentState.is(paymentState.NOT_OK)
-  // ) {
-  //   // At least one service needs configuration.
-  //   state.set(state.NOT_OK)
-  // } else {
-  //   // None of the service states is known.
-  //   state.set(state.UNKNOWN)
-  // }
+  $: if (
+    $organisationState === undefined
+    || $appsState === undefined
+    || $pslState === undefined
+    || $dnsState === undefined
+    || $vpsState === undefined
+    || $paymentState === undefined
+  ) {
+    state.set(state.UNKNOWN)
+  } else if (
+    organisationState.is(organisationState.OK)
+    && appsState.is(appsState.OK)
+    && pslState.is(pslState.OK)
+    && dnsState.is(dnsState.OK)
+    && vpsState.is(vpsState.OK)
+    && paymentState.is(paymentState.OK)
+  ) {
+    // All services are OK.
+    state.set(state.OK)
+  } else if (
+    organisationState.is(organisationState.NOT_OK)
+    || appsState.is(appsState.NOT_OK)
+    || pslState.is(pslState.NOT_OK)
+    || dnsState.is(dnsState.NOT_OK)
+    || vpsState.is(vpsState.NOT_OK)
+    || paymentState.is(paymentState.NOT_OK)
+  ) {
+    // At least one service needs configuration.
+    state.set(state.NOT_OK)
+  } else {
+    // None of the service states is known.
+    state.set(state.UNKNOWN)
+  }
 
   socket.addEventListener('message', event => {
     const message = JSON.parse(event.data)

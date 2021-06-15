@@ -27,7 +27,6 @@
       && parseInt(settings.dns.accountId) !== NaN
       && settings.dns.accessToken !== ''
     ) {
-      console.log('Validating DNS details…')
       socket.send(JSON.stringify({
         type: 'validate-dns'
       }))
