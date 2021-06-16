@@ -252,8 +252,11 @@
     </select>
 
     <p class='label'>Passphrase</p>
-    <p><strong>Store this passphrase is your password manager.</strong> You will need it to manage this domain.</p>
+    <p>You can share this password with people who you want to be able to manage this domain without full administrator access. <strong>Please ask them to store this passphrase is their password managers.</strong></p>
     <div class='passphrase'>{newPlacePassphrase}</div>
+
+    <!--
+    Move this to index.
 
     <label class='checkbox-label'>
       <Checkbox bind:checked={passphraseSavedCheck}/> I have stored this passphrase in my password manager.
@@ -262,7 +265,7 @@
     <label class='checkbox-label'>
       <Checkbox bind:checked={agreeToTerms}/> I agree to the terms of service.
     </label>
-
+    -->
 
     <DomainChecker
       config={settings}
