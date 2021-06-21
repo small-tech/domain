@@ -2,9 +2,8 @@ const crypto = require('crypto')
 
 module.exports = app => {
 
-  //
-  // Global initialisation.
-  //
+  // We’re (ab)using the custom routes feature in Site.js as
+  // an entry-point to perform global initialisation.
 
   if (db.admin === undefined) {
     db.admin = {}
