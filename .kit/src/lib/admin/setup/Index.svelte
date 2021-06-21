@@ -13,7 +13,7 @@
   import PSL from '$lib/admin/setup/PSL.svelte'
   import DNS from '$lib/admin/setup/DNS.svelte'
   import VPS from '$lib/admin/setup/VPS.svelte'
-  import Payment from '$lib/admin/setup/Payment.svelte'
+  import Payment from '$lib/admin/setup/payment/Index.svelte'
 
   export let socket
 

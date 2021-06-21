@@ -2,10 +2,14 @@
   import Switch from 'svelte-switch'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
-  import ServiceState from './ServiceState.js'
+  import ServiceState from '../ServiceState.js'
   // import StatusMessage from '$lib/StatusMessage.svelte'
 
   import { PAYMENT_PROVIDERS } from '$lib/Constants'
+
+  import PaymentProviderNone from './None.svelte'
+  import PaymentProviderTokens from './Tokens.svelte'
+  import PaymentProviderStripe from './Stripe.svelte'
 
   import {
     alphabeticallySortedCurrencyDetails,
@@ -188,18 +192,12 @@
 
   {#if settings.payment.provider === 0}
     <!-- None: no payment provider. All server setups must be done via the admin. -->
-    <section>
-      <h4>You’re all set!</h4>
-      <p>You do not need to set up a payment method to use Basil. When no payment method is set, all server deployments must be done here, from the administrator. You still need to set up the DNS and VPS settings. This is a good option if you just want to set up servers for yourself or for you and your family and friends, for example.</p>
-    </section>
+    <PaymentProviderNone />
   {/if}
 
   {#if settings.payment.provider === 1}
     <!-- Tokens -->
-    <section class='instructions'>
-      <h4>Instructions </h4>
-      <p><strong>Not implemented yet:</strong> Tokens are an alternative to using regular currency, credit/debit card transactions to provide access to servers. A munipicality, for example, might decide that it is a human right for every one of its citizens to have their own place on the Small Web. In this case, a munipicality might decide to issue tokens to every resident that they can use when setting up their place. The same municipality may also activate Stripe payments for those who want more than one site, etc.</p>
-    </section>
+    <PaymentProviderTokens />
   {/if}
 
   {#if settings.payment.provider === 2}
