@@ -23,6 +23,8 @@ module.exports = {
       },
       {
         name: 'Stripe',
+        currency: 'EUR',
+        price: 15,
         modes: ['test', 'live'],
         mode: 'test',
         modeDetails: [
@@ -42,11 +44,7 @@ module.exports = {
             productId: '',
             priceId: ''
           }
-        ],
-        // Note: as we progress, we will likely get this from the Stripe API
-        // instead of redundantly declaring it here.
-        currency: '€',
-        price: 15,
+        ]
       }
     ]
   },
