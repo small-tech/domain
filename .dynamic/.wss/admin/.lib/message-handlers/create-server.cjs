@@ -1,7 +1,7 @@
 const HetznerCloud = require('hcloud-js')
 const dnsimple = require('dnsimple')
 
-module.exports = async message => {
+module.exports = async (client, message) => {
   console.log('=====================================================================')
   console.log('Creating server…')
   console.log(message)
