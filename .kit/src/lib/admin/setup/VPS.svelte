@@ -7,20 +7,22 @@
   export let socket
   export const state = new ServiceState()
 
-  const type = {
-    SETTINGS: 'settings',
-    VALIDATE_SETTINGS: 'validate-vps'
+  const MessageType = {
+    settings: 'settings',
+    vps: {
+      validate: 'vps.validate'
+    }
   }
 
-  const messageIsOf = (type) => type
-  const errorIsOf = (type) => `${type}-error`
+  const resultOf = (type) => `${type}.result`
+  const errorOf = (type) => `${type}.error`
 
   function validateSettings() {
     state.set(state.UNKNOWN)
 
     if (settings.vps.apiToken.length === 64) {
       socket.send(JSON.stringify({
-        type: 'validate-vps'
+        type: MessageType.vps.validate
       }))
     }
   }
@@ -29,11 +31,11 @@
     const message = JSON.parse(event.data)
 
     switch (message.type) {
-      case messageIsOf(type.SETTINGS):
+      case MessageType.settings:
         validateSettings()
       break
 
-      case messageIsOf(type.VALIDATE_SETTINGS):
+      case resultOf(MessageType.vps.validate):
         const vpsDetails = message.details
 
         const serverTypes = vpsDetails.serverTypes
@@ -70,7 +72,7 @@
         })
       break
 
-      case errorIsOf(type.VALIDATE_SETTINGS):
+      case errorOf(MessageType.vps.validate):
         state.set(state.NOT_OK, { error: message.error })
       break
     }

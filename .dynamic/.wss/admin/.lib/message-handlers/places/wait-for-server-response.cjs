@@ -1,10 +1,19 @@
 const fetch = require('node-fetch')
 
+const MessageType = {
+  places: {
+    'wait-for-server-response': {
+      error: 'places.wait-for-server-response.error',
+      result: 'places.wait-for-server-response.result'
+    }
+  }
+}
+
 module.exports = async (client, message) => {
   // Validate request.
   if (db.domains[message.domain] === undefined) {
     client.send(JSON.stringify({
-      type: 'wait-for-server-response-error',
+      type: MessageType.places['wait-for-server-response'].error,
       error: 'Domain not found.'
     }))
     return
@@ -12,7 +21,7 @@ module.exports = async (client, message) => {
 
   if (db.domains[message.domain].status !== 'setup-vps-created') {
     client.send(JSON.stringify({
-      type: 'wait-for-server-response-error',
+      type: MessageType.places['wait-for-server-response'].error,
       error: `Incorrect domain status (${db.domains[message.domain].status}). Should be 'setup-vps-created'.`
     }))
     return
@@ -48,6 +57,6 @@ module.exports = async (client, message) => {
   console.log(`🎉️ ${newSiteUrl} is ready!`)
 
   client.send(JSON.stringify({
-    type: 'server-response-received'
+    type: MessageType.places['wait-for-server-response'].result
   }))
 }

@@ -4,7 +4,7 @@
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import ServiceState from '../ServiceState.js'
 
-  import { PAYMENT_PROVIDERS } from '$lib/Constants'
+  import { PaymentProviders } from '$lib/Constants'
 
   import {
     alphabeticallySortedCurrencyDetails,
@@ -70,18 +70,18 @@
     state.set(state.UNKNOWN)
 
     switch (settings.payment.provider) {
-      case PAYMENT_PROVIDERS.none:
+      case PaymentProviders.none:
         // The None payment provider doesn’t have any
         // settings so it’s always valid.
         state.set(state.OK)
       break
 
-      case PAYMENT_PROVIDERS.token:
+      case PaymentProviders.token:
         // TODO: Token payment type not implemented yet.
         state.set(state.NOT_OK)
       break
 
-      case PAYMENT_PROVIDERS.stripe:
+      case PaymentProviders.stripe:
         gotPrice[modeId] = false
         priceError[modeId] = null
 

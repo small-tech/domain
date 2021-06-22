@@ -89,6 +89,19 @@
     return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
 
+  const MessageType = {
+    settings: 'settings',
+    places: {
+      create: 'places.create',
+      waitForServerResponse: 'places.wait-for-server-response'
+    }
+  }
+
+  const progressOf = type => `${type}.progress`
+  const resultOf = type => `${type}.result`
+  const errorOf = type => `${type}.error`
+
+
   async function createServer(event) {
     domainToCreate = event.detail.domain
 
@@ -97,7 +110,7 @@
     console.log('Public keys (hex)', publicKeys)
 
     socket.send(JSON.stringify({
-      type: 'create-server',
+      type: MessageType.places.create,
       domain: domainToCreate,
       app: appToCreate,
       publicKeys
@@ -113,30 +126,37 @@
     serverCreationStep++
   }
 
+
   socket.onmessage = async event => {
     const message = JSON.parse(event.data)
     switch (message.type) {
 
-      case 'settings':
+      case MessageType.settings:
         settings = message.body
       break
 
-      case 'create-server-progress':
+      // TODO: Handle errorOf() messages.
+
+      case progressOf(MessageType.places.create):
+        const Subject = {
+          vps: 'vps',
+          dns: 'dns'
+        }
 
         switch (message.subject) {
-          case 'vps':
+          case Subject.vps:
             if (message.status === 'initialising') {
               serverCreated = true
               await duration(700)
               serverCreationStep++
-            } else if (message.status === 'running') {
+            } else if (message.status === 'running' || message.status === 'success') {
               serverInitialisationProgress.set(message.progress)
             } else {
               console.log('Warning: received unexpected status for create-server-progress subject VPS:', message.status)
             }
           break
 
-          case 'dns':
+          case Subject.dns:
             if (message.status === 'initialising') {
               domainNameRegistered = true
               await duration(700)
@@ -147,11 +167,11 @@
           break
 
           default:
-            console.log('Warning: unexpected create-server-progress subject received', message.subject)
+            console.log('Warning: unexpected places.create.progress message subject received', message.subject)
         }
       break
 
-      case 'create-server-success':
+      case resultOf(MessageType.places.create):
         if (message.status === 'done') {
           serverInitialised = true
           await duration(700)
@@ -198,7 +218,7 @@
 
           // Now we actually start polling the server to see if it is ready.
           socket.send(JSON.stringify({
-            type: 'wait-for-server-response',
+            type: MessageType.places.waitForServerResponse,
             domain: domainToCreate
           }))
 
@@ -210,7 +230,7 @@
         }
       break
 
-      case 'server-response-received':
+      case resultOf(MessageType.places.waitForServerResponse):
         // OK, server is ready!
         serverResponseReceived = true
 
@@ -370,7 +390,7 @@
     background-color: #ccc;
     border: 0;
   }
-  
+
   .currentStep {
     font-weight: bold;
   }
@@ -378,6 +398,4 @@
   #createAppForm {
     margin-bottom: 2em;
   }
-
-
 </style>

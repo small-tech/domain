@@ -30,7 +30,7 @@
   import { onMount } from 'svelte'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
 
-  import { PAYMENT_PROVIDERS } from '$lib/Constants'
+  import { PaymentProviders } from '$lib/Constants'
 
   // Admin panels.
   import Setup from '$lib/admin/setup/Index.svelte'
@@ -140,8 +140,9 @@
   <footer>
     <!--<p><strong>Like this? <a href='https://small-tech.org/fund-us'>Help fund the folks who make it.</a></strong></p>-->
     <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Domain run by <a href='{config.org.site}'>{config.org.name}.</a>
-      {#if config.payment.provider !== PAYMENT_PROVIDERS.none}
+      {#if config.payment.provider !== PaymentProviders.none}
         <br>
+        <!-- TODO: populate links. -->
         <a href=''>Terms of Service</a>.
         <a href=''>Privacy Policy.</a>
       {/if}

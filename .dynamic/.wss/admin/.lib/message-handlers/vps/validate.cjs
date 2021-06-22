@@ -1,5 +1,14 @@
 const fetch = require('node-fetch')
 
+const MessageType = {
+  vps: {
+    validate: {
+      error: 'vps.validate.error',
+      result: 'vps.validate.result'
+    }
+  }
+}
+
 module.exports = async (client, message) => {
   console.log('   📡️    ❨Domain❩ Validating VPS Provider settings.')
 
@@ -14,7 +23,7 @@ module.exports = async (client, message) => {
 
   if (response.status !== 200) {
     client.send(JSON.stringify({
-      type: 'validate-vps-error',
+      type: MessageType.vps.validate.error,
       error: `${response.status}: ${response.statusText}`
     }))
     return
@@ -24,7 +33,7 @@ module.exports = async (client, message) => {
 
   if (serverTypes.error) {
     client.send(JSON.stringify({
-      type: 'validate-vps-error',
+      type: MessageType.vps.validate.error,
       error: `${serverTypes.error.code}: ${serverTypes.error.message}`
     }))
   } else {
@@ -80,7 +89,7 @@ module.exports = async (client, message) => {
     }
 
     client.send(JSON.stringify({
-      type: 'validate-vps',
+      type: MessageType.vps.validate.result,
       details
     }))
   }

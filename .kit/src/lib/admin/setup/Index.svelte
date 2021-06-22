@@ -28,6 +28,13 @@
 
   let shouldShowSavedMessage = false
 
+  const MessageType = {
+    settings: 'settings',
+    database: {
+      update: 'database.update'
+    }
+  }
+
   const state = new ServiceState()
 
   $: if (
@@ -68,14 +75,14 @@
     const message = JSON.parse(event.data)
 
     switch (message.type) {
-      case 'settings':
+      case MessageType.settings:
         settings = DataProxy.createDeepProxy(
           {
             persistChange: change => {
               // console.log('Persist', change)
               showSavedMessage()
               socket.send(JSON.stringify({
-                type: 'update',
+                type: MessageType.database.update,
                 keyPath: change.keyPath,
                 value: change.value
               }))

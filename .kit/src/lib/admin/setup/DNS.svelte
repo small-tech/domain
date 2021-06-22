@@ -11,13 +11,15 @@
   let accountIdInput
   let accessTokenInput
 
-  const type = {
-    SETTINGS: 'settings',
-    VALIDATE_SETTINGS: 'validate-dns'
+  const MessageType = {
+    settings: 'settings',
+    dns: {
+      validate: 'dns.validate'
+    }
   }
 
-  const messageIsOf = (type) => type
-  const errorIsOf = (type) => `${type}-error`
+  const resultOf = (type) => `${type}.result`
+  const errorOf = (type) => `${type}.error`
 
   function validateSettings() {
     state.set(state.UNKNOWN)
@@ -28,7 +30,7 @@
       && settings.dns.accessToken !== ''
     ) {
       socket.send(JSON.stringify({
-        type: 'validate-dns'
+        type: MessageType.dns.validate
       }))
     }
   }
@@ -37,15 +39,15 @@
     const message = JSON.parse(event.data)
 
     switch (message.type) {
-      case messageIsOf(type.SETTINGS):
+      case MessageType.settings:
         validateSettings()
       break
 
-      case messageIsOf(type.VALIDATE_SETTINGS):
+      case resultOf(MessageType.dns.validate):
         state.set(state.OK)
       break
 
-      case errorIsOf(type.VALIDATE_SETTINGS):
+      case errorOf(MessageType.dns.validate):
         state.set(state.NOT_OK, { error: message.error })
       break
     }

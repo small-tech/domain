@@ -3,19 +3,25 @@ const path = require('path')
 
 const messageHandlers = {
   // General database updates (deltas).
-  'update': require('./.lib/message-handlers/update.cjs'),
+  'database.update': require('./.lib/message-handlers/database/update.cjs'),
 
-  // Validation
-  'validate-dns': require('./.lib/message-handlers/validate-dns.cjs'),
-  'validate-psl': require('./.lib/message-handlers/validate-psl.cjs'),
-  'validate-vps': require('./.lib/message-handlers/validate-vps.cjs'),
+  // DNS
+  'dns.validate': require('./.lib/message-handlers/dns/validate.cjs'),
 
-  // Server creation
-  'create-server': require('./.lib/message-handlers/create-server.cjs'),
-  'wait-for-server-response': require('./.lib/message-handlers/wait-for-server-response.cjs'),
+  // PSL
+  'psl.validate': require('./.lib/message-handlers/psl/validate.cjs'),
 
-  // TODO: This will no longer be required soon as we rewrite the Stripe stuff.
-  'get-price': require('./.lib/message-handlers/get-price.cjs'),
+  // VPS
+  'vps.validate': require('./.lib/message-handlers/vps/validate.cjs'),
+
+  // Places
+  'places.create': require('./.lib/message-handlers/places/create.cjs'),
+  'places.wait-for-server-response': require('./.lib/message-handlers/places/wait-for-server-response.cjs'),
+
+  // Payment provider: Stripe
+  'payment-providers.stripe.get-details': require('./.lib/message-handlers/payment-providers/stripe/get-details.cjs'),
+  'payment-providers.stripe.prices.create': require('./.lib/message-handlers/payment-providers/stripe/prices/create.cjs'),
+  'payment-providers.stripe.products.create': require('./.lib/message-handlers/payment-providers/stripe/products/create.cjs'),
 }
 
 const duration = (milliseconds) => {

@@ -1,31 +1,33 @@
 <script>
   import ServiceState from './ServiceState.js'
-  import { PAYMENT_PROVIDERS } from '$lib/Constants'
+  import { PaymentProviders } from '$lib/Constants'
 
   export let settings
   export let socket
 
   export const state = new ServiceState()
 
-  const type = {
-    SETTINGS: 'settings',
-    VALIDATE_SETTINGS: 'validate-psl'
+  const MessageType = {
+    settings: 'settings',
+    psl: {
+      validate: 'psl.validate'
+    }
   }
 
-  const messageIsOf = (type) => type
-  const errorIsOf = (type) => `${type}-error`
+  const resultOf = (type) => `${type}.result`
+  const errorOf = (type) => `${type}.error`
 
   function validateSettings() {
     state.set(state.UNKNOWN)
 
     // Domain does not need to be on the Public Suffix List for private instances.
-    if (settings.payment.provider === PAYMENT_PROVIDERS.none) {
+    if (settings.payment.provider === PaymentProviders.none) {
       return state.set(state.OK, { isPrivateInstance: true })
     }
 
     // Otherwise, carry out validation.
     socket.send(JSON.stringify({
-      type: type.VALIDATE_SETTINGS
+      type: MessageType.psl.validate
     }))
   }
 
@@ -33,7 +35,7 @@
     const message = JSON.parse(event.data)
 
     switch (message.type) {
-      case messageIsOf(type.SETTINGS):
+      case MessageType.settings:
         // setTimeout(() => {
         //   state.set(state.NOT_OK, { error: 'Fake error.' })
         //   console.log('>>>>', state)
@@ -43,11 +45,11 @@
         validateSettings()
       break
 
-      case messageIsOf(type.VALIDATE_SETTINGS):
+      case resultOf(MessageType.psl.validate):
         state.set(state.OK, { isPrivateInstance: false })
       break
 
-      case errorIsOf(type.VALIDATE_SETTINGS):
+      case errorOf(MessageType.psl.validate):
         state.set(state.NOT_OK, { error: message.error })
       break
     }

@@ -1,8 +1,17 @@
 const HetznerCloud = require('hcloud-js')
 const dnsimple = require('dnsimple')
 
+const MessageType = {
+  places: {
+    create: {
+      progress: 'places.create.progress',
+      result: 'places.create.result',
+      error: 'places.create.error'
+    }
+  }
+}
+
 module.exports = async (client, message) => {
-  console.log('=====================================================================')
   console.log('Creating server…')
   console.log(message)
 
@@ -28,7 +37,7 @@ module.exports = async (client, message) => {
   const validHostnameCharacters = /^[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?$/
   if (subdomain.trim() === '' || !validHostnameCharacters.test(subdomain)) {
     client.send(JSON.stringify({
-      type: 'create-server-error',
+      type: MessageType.places.create.error,
       subject: 'validation',
       error: 'Invalid domain'
     }))
@@ -38,7 +47,7 @@ module.exports = async (client, message) => {
   // Validate app.
   if (appIndex === NaN || appIndex < 0 || appIndex >= db.settings.apps.length) {
     client.send(JSON.stringify({
-      type: 'create-server-error',
+      type: MessageType.places.create.error,
       subject: 'validation',
       error: 'Invalid app'
     }))
@@ -48,7 +57,7 @@ module.exports = async (client, message) => {
   // Confirm that domain is not already registered.
   if (db.domains[subdomain] !== undefined) {
     client.send(JSON.stringify({
-      type: 'create-server-error',
+      type: MessageType.places.create.error,
       subject: 'validation',
       error: 'Domain already exists'
     }))
@@ -94,7 +103,7 @@ module.exports = async (client, message) => {
   } catch (error) {
     console.log('Create server VPS error', error)
     client.send(JSON.stringify({
-      type: 'create-server-error',
+      type: MessageType.places.create.error,
       subject: 'vps',
       error
     }))
@@ -109,7 +118,7 @@ module.exports = async (client, message) => {
   if (serverBuildResult.action.status === 'error') {
     db.domains[subdomain].status = `setup-create-server-error`
     client.send(JSON.stringify({
-      type: 'create-server-error',
+      type: MessageType.places.create.error,
       subject: 'vps',
       error: action.error
     }))
@@ -121,7 +130,7 @@ module.exports = async (client, message) => {
   console.log(' - Server initialising.')
 
   client.send(JSON.stringify({
-    type: 'create-server-progress',
+    type: MessageType.places.create.progress,
     subject: 'vps',
     status: 'initialising',
     progress: serverBuildResult.action.progress,
@@ -138,7 +147,7 @@ module.exports = async (client, message) => {
   console.log(' - Setting up the domain name…')
 
   client.send(JSON.stringify({
-    type: 'create-server-progress',
+    type: MessageType.places.create.progress,
     subject: 'dns',
     status: 'initialising'
   }))
@@ -162,7 +171,7 @@ module.exports = async (client, message) => {
     console.log('Create server DNS error', error)
     db.domains[subdomain].status = `setup-domain-creation-failed`
     client.send(JSON.stringify({
-      type: 'create-server-error',
+      type: MessageType.places.create.error,
       subject: 'dns',
       error
     }))
@@ -182,14 +191,14 @@ module.exports = async (client, message) => {
     if (action.status === 'error') {
       db.domains[subdomain].status = `setup-vps-creation-failed`
       client.send(JSON.stringify({
-        type: 'create-server-error',
+        type: MessageType.places.create.error,
         subject: 'vps',
         error: action.error
       }))
       break
     }
     client.send(JSON.stringify({
-      type: 'create-server-progress',
+      type: MessageType.places.create.progress,
       subject: 'vps',
       status: action.status,
       progress: action.progress,
@@ -204,7 +213,7 @@ module.exports = async (client, message) => {
   console.log(' - Server is ready.')
 
   client.send(JSON.stringify({
-    type: 'create-server-success',
+    type: MessageType.places.create.result,
     subject: 'task',
     status: 'done'
   }))
