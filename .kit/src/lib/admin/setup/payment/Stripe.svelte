@@ -3,6 +3,7 @@
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import ServiceState from '../ServiceState.js'
+  import StatusMessage from '../StatusMessage.svelte'
 
   import { PaymentProviders } from '$lib/Constants'
 
@@ -15,14 +16,15 @@
   export let socket
   export let state = new ServiceState()
 
-  const gotPrice = {
-    test: false,
-    live: false
-  }
-
-  const priceError = {
-    test: null,
-    live: null
+  const ok = {
+    test: {
+      publishableKey: false,
+      secretKey: false,
+    },
+    live: {
+      publishableKey: false,
+      secretKey: false
+    }
   }
 
   let stripePrice = 10
@@ -56,101 +58,66 @@
     }
   }
 
-  const type = {
-    SETTINGS: 'settings',
-    VALIDATE_SETTINGS: 'price'
+  const MessageType = {
+    settings: 'settings',
+    paymentProviders: {
+      stripe: {
+        validateSecretKey: 'payment-providers.stripe.validate-secret-key'
+      }
+    }
   }
 
-  const messageIsOf = (type) => type
-  const errorIsOf = (type) => `${type}-error`
+  const resultIs = type => `${type}.result`
+  const errorIs = type => `${type}.error`
 
-  // TODO: Note: the logic here has changed since we’re going to create the price
-  // ===== via the Stripe API. Rewrite this.
-  function validateSettings(modeId) {
+  async function validateSettings(modeId) {
     state.set(state.UNKNOWN)
 
-    switch (settings.payment.provider) {
-      case PaymentProviders.none:
-        // The None payment provider doesn’t have any
-        // settings so it’s always valid.
-        state.set(state.OK)
-      break
+    const modeDetails = settings.payment.providers[2].modeDetails[modeId]
 
-      case PaymentProviders.token:
-        // TODO: Token payment type not implemented yet.
-        state.set(state.NOT_OK)
-      break
+    // Validate the publishable key (we can only validate this client-side
+    // by creating a harmless dummy call and seeing if we get an error or not).
 
-      case PaymentProviders.stripe:
-        gotPrice[modeId] = false
-        priceError[modeId] = null
+    const stripe = Stripe(modeDetails.publishableKey)
+    const result = await stripe.createSource({
+      type: 'ideal',
+      amount: 1099,
+      currency: 'eur',
+      owner: {
+        name: 'Jenny Rosen',
+      },
+      redirect: {
+        return_url: 'https://shop.example.com/crtA6B28E1',
+      },
+    })
 
-        const priceId = (settings.payment.providers[2].modeDetails[modeId === 'test' ? 0 : 1].priceId).trim()
-
-        if (priceId === '') {
-          return
-        }
-
-        if (
-          !(
-            (priceId.length === 1 && priceId === 'p') ||
-            (priceId.length === 2 && priceId === 'pr') ||
-            (priceId.length === 3 && priceId === 'pri') ||
-            (priceId.length === 4 && priceId === 'pric') ||
-            (priceId.length === 5 && priceId === 'price') ||
-            (priceId.length >= 6 && priceId.startsWith('price_'))
-          )
-        ) {
-          priceError[modeId] = 'That is not a valid price ID. It must start with price_'
-          gotPrice[modeId] = true
-          state.set(state.NOT_OK)
-          return
-        }
-
-        if (priceId.length !== 30) {
-          priceError[modeId] = null
-          gotPrice[modeId] = false
-          state.set(state.NOT_OK)
-          return
-        }
-
-        console.log('Getting price…')
-        socket.send(JSON.stringify({
-          type: 'get-price',
+    if (result.error) {
+      if (result.error.type === 'invalid_request_error' && result.error.message.beginsWith('Invalid API Key provided')) {
+        state.set(state.NOT_OK, {error: {
+          type: 'publishable-key-error',
           mode: modeId
-        }))
-        console.log(gotPrice, priceError)
-      break
+        }})
+        ok[modeId].publishableKey = false
+        return
+      }
+    } else {
+      ok[modeId].publishableKey = true
     }
+
+    // Publishable key is OK for mode. Now let’s server-side verify the secret key.
+    socket.send(JSON.stringify({
+      type: 'payment-providers.stripe.validate-secret-key', // TODO: Implement server-side. LEFT OFF HERE.
+      mode: modeId
+    }))
   }
 
   socket.addEventListener('message', event => {
     const message = JSON.parse(event.data)
 
     switch (message.type) {
-      case messageIsOf(type.SETTINGS):
-        validateSettings()
-      break
-
-      case messageIsOf(type.VALIDATE_SETTINGS):
-        settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].currency = currencies[message.currency]
-        settings.payment.providers[2].modeDetails[message.mode === 'test' ? 0 : 1].amount = message.amount
-        gotPrice[message.mode] = true
-        priceError[message.mode] = null
-        state.set(state.OK)
-
-        state.set(state.OK)
-      break
-
-      case errorIsOf(type.VALIDATE_SETTINGS):
-        if (message.error.param === 'price' && message.error.type === 'invalid_request_error') {
-          priceError[message.mode] = 'No price exists with that API ID.'
-        } else {
-          priceError[message.mode] = `${message.error.message} (${message.error.type})`
-        }
-        gotPrice[message.mode] = true
-
-        state.set(state.NOT_OK, { error: message.error })
+      case MessageType.settings:
+        validateSettings('test')
+        validateSettings('live')
       break
     }
   })
@@ -166,6 +133,11 @@
   //   }
   // }
 </script>
+
+<svelte:head>
+  <!-- Include the stripe client-side library. -->
+  <script src="https://js.stripe.com/v3/"></script>
+</svelte:head>
 
 <section class='instructions'>
   <h4>Instructions</h4>
@@ -215,27 +187,21 @@
   {#each settings.payment.providers[2].modeDetails as mode}
     <TabPanel>
       <h4>{mode.title}</h4>
-      <p>The necesssary objects will be created for you automatically on Stripe once you add your Stripe keys.</p>
+      <p>Your Stripe account will be automatically configured once you add your Stripe keys.</p>
 
+      <!--
       <ol class='serverCreationProgress'>
-        <!-- <li><StatusMessage state={ok.stripeProduct}>Product</StatusMessage></li>
-        <li><StatusMessage state={ok.stripePrice}>Price</StatusMessage></li>
-        <li><StatusMessage state={ok.stripeWebhook}>Webhook</StatusMessage></li> -->
+        <li><StatusMessage>Product</StatusMessage></li>
+        <li><StatusMessage>Price</StatusMessage></li>
+        <li><StatusMessage>Webhook</StatusMessage></li>
       </ol>
+      -->
       <label for={`${mode.id}PublishableKey`}>Publishable key</label>
       <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validateSettings(mode.id)}/>
 
       <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
       <!-- TODO: Implement input event on SensitiveTextInput component. -->
       <SensitiveTextInput name={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validateSettings(mode.id)}/>
-
-      {#if gotPrice[mode.id] && priceError[mode.id] !== null}
-        <p style='color: red;'>❌️ {priceError[mode.id]}</p>
-      {:else if gotPrice[mode.id]}
-        <p>✔️ Based on your Stripe {mode.id} mode product settings, your hosting price is set for <strong>{mode.currency}{mode.amount}/month.</p>
-      {:else}
-        <p>ℹ️ <em>Please enter your API key details to create your monthly subscription.</em></p>
-      {/if}
 
       <section id='payment-notes'>
         <h5>A note on commerical payment support.</h5>
