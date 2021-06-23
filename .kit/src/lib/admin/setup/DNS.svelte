@@ -1,4 +1,5 @@
 <script>
+  import Remote from '@small-tech/remote'
   import ServiceState from './ServiceState.js'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
 
@@ -11,15 +12,7 @@
   let accountIdInput
   let accessTokenInput
 
-  const MessageType = {
-    settings: 'settings',
-    dns: {
-      validate: 'dns.validate'
-    }
-  }
-
-  const resultOf = (type) => `${type}.result`
-  const errorOf = (type) => `${type}.error`
+  let remote = new Remote(socket)
 
   function validateSettings() {
     state.set(state.UNKNOWN)
@@ -29,29 +22,13 @@
       && parseInt(settings.dns.accountId) !== NaN
       && settings.dns.accessToken !== ''
     ) {
-      socket.send(JSON.stringify({
-        type: MessageType.dns.validate
-      }))
+      remote.dns.validate.request.send()
     }
   }
 
-  socket.addEventListener('message', event => {
-    const message = JSON.parse(event.data)
-
-    switch (message.type) {
-      case MessageType.settings:
-        validateSettings()
-      break
-
-      case resultOf(MessageType.dns.validate):
-        state.set(state.OK)
-      break
-
-      case errorOf(MessageType.dns.validate):
-        state.set(state.NOT_OK, { error: message.error })
-      break
-    }
-  })
+  remote.settings.handler = () => validateSettings()
+  remote.dns.validate.response.handler = () => state.set(state.OK)
+  remote.dns.validate.error.handler = message => state.set(state.NOT_OK, { error: message.error })
 </script>
 
   <h3 id='dns'>DNS Settings</h3>

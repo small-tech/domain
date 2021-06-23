@@ -1,4 +1,5 @@
 <script>
+  import Remote from '@small-tech/remote'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import ServiceState from './ServiceState.js'
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
@@ -7,76 +8,60 @@
   export let socket
   export const state = new ServiceState()
 
-  const MessageType = {
-    settings: 'settings',
-    vps: {
-      validate: 'vps.validate'
-    }
-  }
-
-  const resultOf = (type) => `${type}.result`
-  const errorOf = (type) => `${type}.error`
+  let remote = new Remote(socket)
 
   function validateSettings() {
     state.set(state.UNKNOWN)
 
     if (settings.vps.apiToken.length === 64) {
-      socket.send(JSON.stringify({
-        type: MessageType.vps.validate
-      }))
+      remote.vps.validate.request.send()
     }
   }
 
-  socket.addEventListener('message', event => {
-    const message = JSON.parse(event.data)
+  // Remote event handlers.
 
-    switch (message.type) {
-      case MessageType.settings:
-        validateSettings()
-      break
+  remote.settings.handler = () => validateSettings()
 
-      case resultOf(MessageType.vps.validate):
-        const vpsDetails = message.details
+  remote.vps.validate.response.handler = message => {
+    const vpsDetails = message.details
 
-        const serverTypes = vpsDetails.serverTypes
-        const locations = vpsDetails.locations
-        const images = vpsDetails.images
-        const sshKeys = vpsDetails.sshKeys
+    const serverTypes = vpsDetails.serverTypes
+    const locations = vpsDetails.locations
+    const images = vpsDetails.images
+    const sshKeys = vpsDetails.sshKeys
 
-        const vpsServerType = serverTypes.find(serverType => {
-          return serverType.name === settings.vps.serverType
-        })
+    const vpsServerType = serverTypes.find(serverType => {
+      return serverType.name === settings.vps.serverType
+    })
 
-        const vpsLocation = locations.find(location => {
-          return location.name === settings.vps.location
-        })
+    const vpsLocation = locations.find(location => {
+      return location.name === settings.vps.location
+    })
 
-        const vpsImage = images.find(image => {
-          return image.name === settings.vps.image
-        })
+    const vpsImage = images.find(image => {
+      return image.name === settings.vps.image
+    })
 
-        // FIX-ME: Unlike the others, initially this will be unset
-        // ======= so we have to handle this differently. Test
-        //         by removing SSH keys from Hetzner and starting
-        //         with a blank slate.
-        const vpsSshKey = sshKeys.find(sshKey => {
-          return sshKey.name === settings.vps.sshKeyName
-        })
+    // FIX-ME: Unlike the others, initially this will be unset
+    // ======= so we have to handle this differently. Test
+    //         by removing SSH keys from Hetzner and starting
+    //         with a blank slate.
+    const vpsSshKey = sshKeys.find(sshKey => {
+      return sshKey.name === settings.vps.sshKeyName
+    })
 
-        state.set(state.OK, {
-          vpsDetails,
-          vpsServerType,
-          vpsLocation,
-          vpsImage,
-          vpsSshKey
-        })
-      break
+    state.set(state.OK, {
+      vpsDetails,
+      vpsServerType,
+      vpsLocation,
+      vpsImage,
+      vpsSshKey
+    })
+  }
 
-      case errorOf(MessageType.vps.validate):
-        state.set(state.NOT_OK, { error: message.error })
-      break
-    }
-  })
+  remote.vps.validate.error.handler = message => state.set(state.NOT_OK, { error: message.error })
+
+  // Local event handlers.
 
   function serverTypeChange () {
     settings.vps.serverType = vpsServerType.name

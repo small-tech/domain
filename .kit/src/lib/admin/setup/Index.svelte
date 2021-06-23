@@ -1,6 +1,8 @@
 <script>
   import { fade } from 'svelte/transition'
 
+  import Remote from '@small-tech/remote'
+
   import StatusMessage from './StatusMessage.svelte'
   import ServiceState from './ServiceState.js'
 
@@ -16,6 +18,8 @@
   import Payment from '$lib/admin/setup/payment/Index.svelte'
 
   export let socket
+
+  let remote = new Remote(socket)
 
   let settings
 
@@ -71,33 +75,24 @@
     state.set(state.UNKNOWN)
   }
 
-  socket.addEventListener('message', event => {
-    const message = JSON.parse(event.data)
-
-    switch (message.type) {
-      case MessageType.settings:
-        settings = DataProxy.createDeepProxy(
-          {
-            persistChange: change => {
-              // console.log('Persist', change)
-              showSavedMessage()
-              socket.send(JSON.stringify({
-                type: MessageType.database.update,
-                keyPath: change.keyPath,
-                value: change.value
-              }))
-            }
-        }, message.body, 'settings')
-      break
-    }
-  })
+  remote.settings.handler = message => {
+    settings = DataProxy.createDeepProxy({
+      persistChange: change => {
+        // console.log('Persist', change)
+        showSavedMessage()
+        remote.database.update.request.send({
+          keyPath: change.keyPath,
+          value: change.value
+        })
+      }
+    }, message.body, 'settings')
+  }
 
   function showSavedMessage() {
     if (shouldShowSavedMessage) return
     shouldShowSavedMessage = true
     setTimeout(() => shouldShowSavedMessage = false, 1500)
   }
-
 </script>
 
 <h2>Setup</h2>

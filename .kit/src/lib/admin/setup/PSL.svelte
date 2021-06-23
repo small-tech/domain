@@ -1,21 +1,14 @@
 <script>
+  import Remote from '@small-tech/remote'
   import ServiceState from './ServiceState.js'
   import { PaymentProviders } from '$lib/Constants'
 
   export let settings
   export let socket
 
+  let remote = new Remote(socket)
+
   export const state = new ServiceState()
-
-  const MessageType = {
-    settings: 'settings',
-    psl: {
-      validate: 'psl.validate'
-    }
-  }
-
-  const resultOf = (type) => `${type}.result`
-  const errorOf = (type) => `${type}.error`
 
   function validateSettings() {
     state.set(state.UNKNOWN)
@@ -26,34 +19,13 @@
     }
 
     // Otherwise, carry out validation.
-    socket.send(JSON.stringify({
-      type: MessageType.psl.validate
-    }))
+    remote.psl.validate.request.send()
   }
 
-  socket.addEventListener('message', event => {
-    const message = JSON.parse(event.data)
-
-    switch (message.type) {
-      case MessageType.settings:
-        // setTimeout(() => {
-        //   state.set(state.NOT_OK, { error: 'Fake error.' })
-        //   console.log('>>>>', state)
-        //   console.log('>>>>', state.now)
-        //   console.log('>>>>', state.now === state.NOT_OK)
-        // }, 4000)
-        validateSettings()
-      break
-
-      case resultOf(MessageType.psl.validate):
-        state.set(state.OK, { isPrivateInstance: false })
-      break
-
-      case errorOf(MessageType.psl.validate):
-        state.set(state.NOT_OK, { error: message.error })
-      break
-    }
-  })
+  // Remote message handlers.
+  remote.settings.handler = () => validateSettings()
+  remote.psl.validate.response = () => state.set(state.OK, { isPrivateInstance: false })
+  remote.psl.validate.error = message => state.set(state.NOT_OK, { error: message.error })
 </script>
 
 

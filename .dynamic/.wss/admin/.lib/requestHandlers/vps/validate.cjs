@@ -1,15 +1,6 @@
 const fetch = require('node-fetch')
 
-const MessageType = {
-  vps: {
-    validate: {
-      error: 'vps.validate.error',
-      result: 'vps.validate.result'
-    }
-  }
-}
-
-module.exports = async (client, message) => {
+module.exports = async (remote, message) => {
   console.log('   📡️    ❨Domain❩ Validating VPS Provider settings.')
 
   // Get server types. (In this first call we’ll know if the
@@ -22,20 +13,17 @@ module.exports = async (client, message) => {
   })
 
   if (response.status !== 200) {
-    client.send(JSON.stringify({
-      type: MessageType.vps.validate.error,
+    return remote.vps.validate.error.send({
       error: `${response.status}: ${response.statusText}`
-    }))
-    return
+    })
   }
 
   const serverTypes = await response.json()
 
   if (serverTypes.error) {
-    client.send(JSON.stringify({
-      type: MessageType.vps.validate.error,
+    return remote.vps.validate.error.send({
       error: `${serverTypes.error.code}: ${serverTypes.error.message}`
-    }))
+    })
   } else {
     // Filter down to relevant server types
     const relevantServerTypes = serverTypes.server_types.filter(serverType => {
@@ -88,9 +76,6 @@ module.exports = async (client, message) => {
       sshKeys
     }
 
-    client.send(JSON.stringify({
-      type: MessageType.vps.validate.result,
-      details
-    }))
+    remote.vps.validate.response.send({ details })
   }
 }

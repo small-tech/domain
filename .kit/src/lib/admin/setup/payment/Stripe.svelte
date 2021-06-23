@@ -106,7 +106,7 @@
 
     // Publishable key is OK for mode. Now let’s server-side verify the secret key.
     socket.send(JSON.stringify({
-      type: 'payment-providers.stripe.validate-secret-key', // TODO: Implement server-side. LEFT OFF HERE.
+      type: 'payment-providers.stripe.validate-secret-key',
       mode: modeId
     }))
   }

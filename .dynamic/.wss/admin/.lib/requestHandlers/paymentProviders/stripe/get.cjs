@@ -1,9 +1,8 @@
 // Retrieve and return the product and price details for the
 // requested Stripe mode (test or live).
-
 const stripeWithSecretKey = require('stripe')
 
-module.exports = async (client, message) => {
+module.exports = async (remote, message) => {
 
   const stripeDetails = db.settings.payment.modeDetails[message.mode === 'live' ? 1 : 0]
 
@@ -15,16 +14,9 @@ module.exports = async (client, message) => {
     product = await stripe.products.retrieve(stripeDetails.productId)
     price = await stripe.prices.retrieve(stripeDetails.priceId)
   } catch (error) {
-    client.send(JSON.stringify({
-      type: 'payment-providers.stripe.get.error',
-      error
-    }))
+    remote.paymentProviders.stripe.get.error.send({ error })
     return
   }
 
-  client.send(JSON.stringify({
-    type: 'payment-providers.stripe.get.result',
-    product,
-    price
-  }))
+  remote.paymentProviders.stripe.get.response.send({ product, price })
 }

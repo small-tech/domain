@@ -1,7 +1,7 @@
 {
-  "name": "@small-tech/basil",
+  "name": "@small-tech/domain",
   "version": "1.0.0",
-  "description": "Basil: small web host",
+  "description": "Domain: run your own Small Web domain.",
   "type": "module",
   "scripts": {
     "dev": "./dev.sh",
@@ -41,7 +41,9 @@
   "dependencies": {
     "@small-tech/eff-diceware-passphrase": "^1.0.1",
     "@small-tech/jsdb": "^1.2.0",
+    "@small-tech/remote": "^2.0.1",
     "@small-tech/state": "^1.0.0",
+    "@small-tech/web-routes-from-files": "^3.1.0",
     "blakejs": "^1.1.0",
     "buffer": "^6.0.3",
     "currency-format": "^1.0.13",

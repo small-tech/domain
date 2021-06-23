@@ -1,8 +1,7 @@
 // Create a new product.
-
 const stripeWithSecretKey = require('stripe')
 
-module.exports = async (client, message) => {
+module.exports = async (remote, message) => {
 
   const stripeDetails = db.settings.payment.modeDetails[message.mode === 'live' ? 1 : 0]
   const stripe = stripeWithSecretKey(stripeDetails.secretKey)
@@ -25,14 +24,8 @@ module.exports = async (client, message) => {
   try {
     product = await stripe.products.create(productDetails)
   } catch (error) {
-    client.send(JSON.stringify({
-      type: 'payment-providers.stripe.products.create.error',
-      error
-    }))
+    remote.paymentProviders.stripe.products.create.error.send({ error })
   }
 
-  client.send(JSON.stringify({
-    type: 'payment-providers.stripe.products.create.result',
-    product
-  }))
+  remote.paymentProviders.stripe.products.create.response.send({ product })
 }

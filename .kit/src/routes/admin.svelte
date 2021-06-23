@@ -27,6 +27,8 @@
 
 <script>
   // @hmr:keep-all
+  import Remote from '@small-tech/remote'
+
   import { onMount } from 'svelte'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
 
@@ -50,6 +52,7 @@
   let signedIn = false
   let baseUrl
   let socket
+  let remote
 
   $: if (signingIn) errorMessage = false
 
@@ -61,6 +64,7 @@
     signingIn = true
     try {
       socket = new WebSocket(`wss://${baseUrl}/admin/socket/${password}`)
+      remote = new Remote(socket)
     } catch (error) {
       errorMessage = `WebSocket ${error}.`
       signingIn = false
@@ -82,18 +86,13 @@
       console.log(`Socket closed.`)
     }
 
-    socket.onmessage = async event => {
-      const message = JSON.parse(event.data)
-      switch (message.type) {
-        case 'sign-in':
-          signingIn = false
-          signedIn = true
-        break
+    remote.signIn.response.handler = () => {
+      signingIn = false
+      signedIn = true
+    }
 
-        case 'error':
-          errorMessage = message.body
-        break
-      }
+    remote.signIn.error.handler = message => {
+      errorMessage = message.error
     }
   }
 

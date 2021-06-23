@@ -12,7 +12,10 @@
   import { cubicOut } from 'svelte/easing'
   import EFFDicewarePassphrase from '@small-tech/eff-diceware-passphrase'
 
+  import Remote from '@small-tech/remote'
+
   export let socket
+  let remote = new Remote(socket)
 
   const originalSettingUpMessage = 'Setting up your place'
 
@@ -89,19 +92,6 @@
     return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
 
-  const MessageType = {
-    settings: 'settings',
-    places: {
-      create: 'places.create',
-      waitForServerResponse: 'places.wait-for-server-response'
-    }
-  }
-
-  const progressOf = type => `${type}.progress`
-  const resultOf = type => `${type}.result`
-  const errorOf = type => `${type}.error`
-
-
   async function createServer(event) {
     domainToCreate = event.detail.domain
 
@@ -109,12 +99,11 @@
 
     console.log('Public keys (hex)', publicKeys)
 
-    socket.send(JSON.stringify({
-      type: MessageType.places.create,
+    remote.places.create.request.send({
       domain: domainToCreate,
       app: appToCreate,
       publicKeys
-    }))
+    })
 
     // Show the progress modal.
     // (It will be updated when we get progress messages from the server.)
@@ -126,125 +115,114 @@
     serverCreationStep++
   }
 
+  // Message handlers.
+  // TODO: handle error messages.
 
-  socket.onmessage = async event => {
-    const message = JSON.parse(event.data)
-    switch (message.type) {
+  remote.settings.handler = message => {
+    settings = message.body
+  }
 
-      case MessageType.settings:
-        settings = message.body
-      break
+  remote.places.create.response.handler = async message => {
+    if (message.status === 'done') {
+      serverInitialised = true
+      await duration(700)
+      serverCreationStep++
 
-      // TODO: Handle errorOf() messages.
+      // From here, we simulate progress for the app install and app run staged based on
+      // actual timings taken from the same server configuration. There will be some variance and
+      // that’s why we wait for an actual response from the server at the end of the process.
+      // In the future, we might add an API to Site.js that sends progress information back so
+      // we can have more precise timings but this should, for the time being and for the
+      // supported apps, give us adequate timings/progress to within a couple of seconds.
 
-      case progressOf(MessageType.places.create):
-        const Subject = {
-          vps: 'vps',
-          dns: 'dns'
-        }
+      // Wait for app install.
 
-        switch (message.subject) {
-          case Subject.vps:
-            if (message.status === 'initialising') {
-              serverCreated = true
-              await duration(700)
-              serverCreationStep++
-            } else if (message.status === 'running' || message.status === 'success') {
-              serverInitialisationProgress.set(message.progress)
-            } else {
-              console.log('Warning: received unexpected status for create-server-progress subject VPS:', message.status)
-            }
-          break
+      // Installing Site.js (the only supported app at the moment) takes on average 4 seconds,
+      // min: 2.995 seconds, max: 5.54 seconds. Sample size: 10 runs.
+      // To be on the safe side, let’s keep this at 5 seconds.
+      appInstallProgress.set(1)
+      await duration(5000)
+      appInstalled = true
 
-          case Subject.dns:
-            if (message.status === 'initialising') {
-              domainNameRegistered = true
-              await duration(700)
-              serverCreationStep++
-            } else {
-              console.log('Warning: received unexpected status for create-server-progress subject DNS:', message.status)
-            }
-          break
+      await duration(700) // Wait for Checkbox animation to end.
+      serverCreationStep++
 
-          default:
-            console.log('Warning: unexpected places.create.progress message subject received', message.subject)
-        }
-      break
+      // Running site enable takes ~2-3 seconds.
+      // For Owncast, it takes longer as it has to download, install and run owncast (I have
+      // two timings so far: 7.4578 seconds and 9.046 seconds; average: 8.312 seconds).
+      //
+      // TODO: this is currently hard-coded for Site.js Owncast install. At least use the
+      // ===== right duration when running just Site.js.
+      appRunProgress.set(1)
+      await duration(8500)
+      appRunning = true
 
-      case resultOf(MessageType.places.create):
-        if (message.status === 'done') {
-          serverInitialised = true
+      await duration(700) // Wait for Checkbox animation to end.
+      serverCreationStep++
+
+      certificateProvisioningProgress.set(1)
+      await duration(10000)
+      securityCertificateReady = true
+
+      await duration(700) // Wait for Checkbox animation to end.
+      serverCreationStep++
+
+      // Now we actually start polling the server to see if it is ready.
+      remote.places.waitForServerResponse.request.send({ domain: domainToCreate })
+
+      newSiteUrl = `https://${domainToCreate}.${settings.dns.domain}`
+    } else {
+      console.warn('Warning: received unexpected status for remote.places.create.response:', message.status)
+    }
+  }
+
+  remote.places.create.progress.handler = async message => {
+    const Subject = {
+      vps: 'vps',
+      dns: 'dns'
+    }
+
+    switch (message.subject) {
+      case Subject.vps:
+        if (message.status === 'initialising') {
+          serverCreated = true
           await duration(700)
           serverCreationStep++
-
-          // From here, we simulate progress for the app install and app run staged based on
-          // actual timings taken from the same server configuration. There will be some variance and
-          // that’s why we wait for an actual response from the server at the end of the process.
-          // In the future, we might add an API to Site.js that sends progress information back so
-          // we can have more precise timings but this should, for the time being and for the
-          // supported apps, give us adequate timings/progress to within a couple of seconds.
-
-          // Wait for app install.
-
-          // Installing Site.js (the only supported app at the moment) takes on average 4 seconds,
-          // min: 2.995 seconds, max: 5.54 seconds. Sample size: 10 runs.
-          // To be on the safe side, let’s keep this at 5 seconds.
-          appInstallProgress.set(1)
-          await duration(5000)
-          appInstalled = true
-
-          await duration(700) // Wait for Checkbox animation to end.
-          serverCreationStep++
-
-          // Running site enable takes ~2-3 seconds.
-          // For Owncast, it takes longer as it has to download, install and run owncast (I have
-          // two timings so far: 7.4578 seconds and 9.046 seconds; average: 8.312 seconds).
-          //
-          // TODO: this is currently hard-coded for Site.js Owncast install. At least use the
-          // ===== right duration when running just Site.js.
-          appRunProgress.set(1)
-          await duration(8500)
-          appRunning = true
-
-          await duration(700) // Wait for Checkbox animation to end.
-          serverCreationStep++
-
-          certificateProvisioningProgress.set(1)
-          await duration(10000)
-          securityCertificateReady = true
-
-          await duration(700) // Wait for Checkbox animation to end.
-          serverCreationStep++
-
-          // Now we actually start polling the server to see if it is ready.
-          socket.send(JSON.stringify({
-            type: MessageType.places.waitForServerResponse,
-            domain: domainToCreate
-          }))
-
-          newSiteUrl = `https://${domainToCreate}.${settings.dns.domain}`
-
-          // TODO: set the Visit button URL to new site’s URL.
+        } else if (message.status === 'running' || message.status === 'success') {
+          serverInitialisationProgress.set(message.progress)
         } else {
-          console.log('Warning: received unexpected status for create-server-success subject task:', message.status)
+          console.log('Warning: received unexpected status for create-server-progress subject VPS:', message.status)
         }
       break
 
-      case resultOf(MessageType.places.waitForServerResponse):
-        // OK, server is ready!
-        serverResponseReceived = true
-
-        await duration(700) // Wait for Checkbox animation to end.
-        serverCreationStep++
-
-        siteCreationSucceeded = true
-        creatingSite = false
-
-        // TODO: Once the progress modal has been closed, make sure we
-        // ===== reset serverCreationStep, etc.
-        //       (Even better, pull out the progress modal into its own component)
+      case Subject.dns:
+        if (message.status === 'initialising') {
+          domainNameRegistered = true
+          await duration(700)
+          serverCreationStep++
+        } else {
+          console.log('Warning: received unexpected status for create-server-progress subject DNS:', message.status)
+        }
       break
+
+      default:
+        console.log('Warning: unexpected places.create.progress message subject received', message.subject)
     }
+  }
+
+  remote.waitForServerResponse.response.handler = async message => {
+    // OK, server is ready!
+    serverResponseReceived = true
+
+    await duration(700) // Wait for Checkbox animation to end.
+    serverCreationStep++
+
+    siteCreationSucceeded = true
+    creatingSite = false
+
+    // TODO: Once the progress modal has been closed, make sure we
+    // ===== reset serverCreationStep, etc.
+    //       (Even better, pull out the progress modal into its own component)
   }
 </script>
 

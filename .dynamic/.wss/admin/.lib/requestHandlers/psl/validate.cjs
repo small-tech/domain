@@ -1,15 +1,6 @@
 const fetch = require('node-fetch')
 
-const MessageType = {
-  psl: {
-    validate: {
-      error: 'psl.validate.error',
-      result: 'psl.validate.result'
-    }
-  }
-}
-
-module.exports = async (client, message) => {
+module.exports = async (remote, message) => {
   console.log('   📡️    ❨Domain❩ Validating that domain is on Public Suffix List (PSL).')
 
   let pslIsValid = false
@@ -34,21 +25,16 @@ module.exports = async (client, message) => {
   // If we can determine that the PSL is valid without having to manually
   // verify it, we do so and return.
   if (pslIsValid) {
-    client.send(JSON.stringify({
-      type: MessageType.psl.validate.result
-    }))
-    return
+    return remote.psl.validate.response.send()
   }
 
   // PSL is not valid, we need to validate it by downloading the PSL
   // and searching for the domain in it.
   const response = await fetch('https://publicsuffix.org/list/public_suffix_list.dat')
   if (response.status !== 200) {
-    client.send(JSON.stringify({
-      type: MessageType.psl.validate.error,
+    return remote.psl.validate.error.send({
       error: `Could not download Public Suffix List. (${response.status}: ${response.statusText})`
-    }))
-    return
+    })
   }
 
   const publicSuffixList = await response.text()
@@ -61,14 +47,11 @@ module.exports = async (client, message) => {
 
   if (domainIsOnPublicSuffixList) {
     db.settings.psl.valid = true
-    client.send(JSON.stringify({
-      type: MessageType.psl.validate.result
-    }))
+    remote.psl.validate.response.send()
   } else {
     db.settings.psl.valid = false
-    client.send(JSON.stringify({
-      type: MessageType.psl.validate.error,
+    remote.psl.validate.error.send({
       error: `Domain (${db.settings.dns.domain}) is not on the Public Suffix List (https://publicsuffix.org/list/public_suffix_list.dat).`
-    }))
+    })
   }
 }
