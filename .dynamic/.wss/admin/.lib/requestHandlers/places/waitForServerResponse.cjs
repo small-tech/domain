@@ -1,5 +1,9 @@
 const fetch = require('node-fetch')
 
+const duration = (milliseconds) => {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
 module.exports = async (remote, message) => {
   // Validate request.
   if (db.domains[message.domain] === undefined) {

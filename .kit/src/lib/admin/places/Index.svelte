@@ -210,7 +210,7 @@
     }
   }
 
-  remote.waitForServerResponse.response.handler = async message => {
+  remote.places.waitForServerResponse.response.handler = async message => {
     // OK, server is ready!
     serverResponseReceived = true
 

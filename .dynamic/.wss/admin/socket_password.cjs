@@ -22,10 +22,6 @@ routes.forEach(route => {
 
 console.log('requestHandlers', requestHandlers)
 
-const duration = (milliseconds) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
-
 module.exports = function (client, request) {
   const password = request.params.password
 
