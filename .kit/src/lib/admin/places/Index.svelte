@@ -15,7 +15,7 @@
   import Remote from '@small-tech/remote'
 
   export let socket
-  let remote = new Remote(socket)
+  const remote = new Remote(socket)
 
   const originalSettingUpMessage = 'Setting up your place'
 

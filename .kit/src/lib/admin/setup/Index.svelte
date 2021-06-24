@@ -18,8 +18,7 @@
   import Payment from '$lib/admin/setup/payment/Index.svelte'
 
   export let socket
-
-  let remote = new Remote(socket)
+  const remote = new Remote(socket)
 
   let settings
 

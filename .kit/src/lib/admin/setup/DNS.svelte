@@ -4,15 +4,16 @@
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
 
   export let settings
+
   export let socket
+  const remote = new Remote(socket)
+
   export const state = new ServiceState()
 
   // Outlets (for referring to interface elements).
   let domainInput
   let accountIdInput
   let accessTokenInput
-
-  let remote = new Remote(socket)
 
   function validateSettings() {
     state.set(state.UNKNOWN)

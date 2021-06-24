@@ -5,10 +5,11 @@
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
 
   export let settings
-  export let socket
-  export const state = new ServiceState()
 
-  let remote = new Remote(socket)
+  export let socket
+  const remote = new Remote(socket)
+
+  export const state = new ServiceState()
 
   function validateSettings() {
     state.set(state.UNKNOWN)
@@ -23,6 +24,7 @@
   remote.settings.handler = () => validateSettings()
 
   remote.vps.validate.response.handler = message => {
+    console.log('VPS.VALIDATE.RESPONSE handler')
     const vpsDetails = message.details
 
     const serverTypes = vpsDetails.serverTypes

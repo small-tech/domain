@@ -4,9 +4,9 @@
   import { PaymentProviders } from '$lib/Constants'
 
   export let settings
-  export let socket
 
-  let remote = new Remote(socket)
+  export let socket
+  const remote = new Remote(socket)
 
   export const state = new ServiceState()
 
