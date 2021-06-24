@@ -41,7 +41,7 @@
   "dependencies": {
     "@small-tech/eff-diceware-passphrase": "^1.0.1",
     "@small-tech/jsdb": "^1.2.0",
-    "@small-tech/remote": "^2.0.1",
+    "@small-tech/remote": "^2.1.0",
     "@small-tech/state": "^1.0.0",
     "@small-tech/web-routes-from-files": "^3.1.0",
     "blakejs": "^1.1.0",
