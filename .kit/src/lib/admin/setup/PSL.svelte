@@ -24,8 +24,10 @@
 
   // Remote message handlers.
   remote.settings.handler = () => validateSettings()
-  remote.psl.validate.response = () => state.set(state.OK, { isPrivateInstance: false })
-  remote.psl.validate.error = message => state.set(state.NOT_OK, { error: message.error })
+  remote.psl.validate.response.handler = () => {
+    state.set(state.OK, { isPrivateInstance: false })
+  }
+  remote.psl.validate.error.handler = message => state.set(state.NOT_OK, { error: message.error })
 </script>
 
 
