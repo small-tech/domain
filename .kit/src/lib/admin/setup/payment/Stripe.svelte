@@ -16,14 +16,14 @@
   export let socket
   export let state = new ServiceState()
 
-  const ok = {
+  const innerState = {
     test: {
-      publishableKey: false,
-      secretKey: false,
+      publishableKey: new ServiceState(),
+      secretKey: new ServiceState(),
     },
     live: {
-      publishableKey: false,
-      secretKey: false
+      publishableKey: new ServiceState(),
+      secretKey: new ServiceState()
     }
   }
 
@@ -73,7 +73,12 @@
   async function validateSettings(modeId) {
     state.set(state.UNKNOWN)
 
-    const modeDetails = settings.payment.providers[2].modeDetails[modeId]
+    console.log('Stripe: validate settings: modeId:', modeId)
+
+    const modeDetails = settings.payment.providers[2].modeDetails.find(modeDetails => modeDetails.id === modeId)
+
+    console.log('1', settings.payment.providers[2])
+    console.log('2', settings.payment.providers[2].modeDetails)
 
     // Validate the publishable key (we can only validate this client-side
     // by creating a harmless dummy call and seeing if we get an error or not).
@@ -92,16 +97,18 @@
     })
 
     if (result.error) {
-      if (result.error.type === 'invalid_request_error' && result.error.message.beginsWith('Invalid API Key provided')) {
+      if (result.error.type === 'invalid_request_error' && result.error.message.startsWith('Invalid API Key provided')) {
         state.set(state.NOT_OK, {error: {
           type: 'publishable-key-error',
           mode: modeId
         }})
-        ok[modeId].publishableKey = false
+        console.log('publishable key NOT ok')
+        innerState[modeId].publishableKey.set(innerState[modeId].publishableKey.NOT_OK)
         return
       }
     } else {
-      ok[modeId].publishableKey = true
+      console.log('publishable key ok')
+      innerState[modeId].publishableKey.set(innerState[modeId].publishableKey.OK)
     }
 
     // Publishable key is OK for mode. Now let’s server-side verify the secret key.
@@ -196,7 +203,7 @@
         <li><StatusMessage>Webhook</StatusMessage></li>
       </ol>
       -->
-      <label for={`${mode.id}PublishableKey`}>Publishable key</label>
+      <label for={`${mode.id}PublishableKey`}><StatusMessage bind:state={innerState[mode.id].publishableKey}>Publishable key</StatusMessage></label>
       <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validateSettings(mode.id)}/>
 
       <label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
