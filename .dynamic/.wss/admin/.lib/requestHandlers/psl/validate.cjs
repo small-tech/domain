@@ -16,7 +16,7 @@ module.exports = async (remote, message) => {
 
   // Once a domain is on the PSL, there is very little chance that it will be
   // removed so we can use the cached value here and not download the actual
-  // list every time. If necesssary, in the future we can add a retry option that
+  // list every time. If necessary, in the future we can add a retry option that
   // forces us to reconnect and check.
   if (db.settings.psl && db.settings.psl.valid) {
     pslIsValid = true
