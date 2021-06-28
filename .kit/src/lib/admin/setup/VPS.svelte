@@ -184,10 +184,17 @@
     font-style: italic;
   }
 
+  /* TODO: Move these global styles elsewhere. Do they even need to be Svelte? */
+
   :global([data-accordion]) {
     list-style: none;
     margin:0;
     padding: 0;
+  }
+
+  :global([data-accordion-item] > div:first-of-type) {
+    padding-bottom: 1em;
+    border-bottom: 2px solid grey;
   }
 
   :global([data-accordion-item] button) {
@@ -206,7 +213,14 @@
     padding-bottom: 0.75em;
     border-radius: 0;
     margin-top: 0.25em;
+  }
+
+  :global([data-accordion-item] button[aria-expanded='false']) {
     border-bottom: 2px dashed grey;
+  }
+
+  :global([data-accordion-item] button[aria-expanded='true']) {
+    border-bottom: 2px solid grey;
   }
 
   :global([data-accordion-item] button[aria-expanded='false']::before) {

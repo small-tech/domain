@@ -1,8 +1,10 @@
 <script>
+  import { onMount } from 'svelte'
+
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import StatusMessage from '$lib/admin/setup/StatusMessage.svelte'
   import ServiceState from '$lib/admin/setup/ServiceState.js'
-  import { onMount } from 'svelte'
+  import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
 
   import { loadStripe } from '@stripe/stripe-js'
   import Remote from '@small-tech/remote'
@@ -68,7 +70,6 @@
   function validateSecretKeyForMode(modeId) {
     console.log('Stripe Mode component: validate secret key for mode:', modeId)
     secretKeyState.set(secretKeyState.UNKNOWN)
-    console.log('Set secret key state to unkown.')
     remote.paymentProviders.stripe.secretKey.validate.request.send({ modeId })
   }
 
@@ -87,10 +88,8 @@
   })
 
   remote.paymentProviders.stripe.secretKey.validate.response.handler = function (message) {
-    console.log('>>> ', mode.id)
     if (message.modeId === mode.id) {
       console.log(`Stripe Mode component: received secret key validation response:`, message)
-      console.log('message.ok? ', message.ok)
       secretKeyState.set(message.ok ? secretKeyState.OK : secretKeyState.NOT_OK)
     }
   }
@@ -113,3 +112,22 @@
 <label for={`${mode.id}SecretKey`}><StatusMessage state={secretKeyState}>Secret key</StatusMessage></label>
 <!-- TODO: Implement input event on SensitiveTextInput component. -->
 <SensitiveTextInput id={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validateSecretKeyForMode(mode.id)}/>
+
+<Accordion>
+  <AccordionItem title='Details'>
+    <h3>Stripe details</h3>
+    <p>These are the objects we’ve automatically configured in Stripe for you.</p>
+
+    <ul class='serverCreationProgress'>
+      <li><a href=''><StatusMessage>Product</StatusMessage></a></li>
+      <li><StatusMessage>Price</StatusMessage></li>
+      <li><StatusMessage>Webhook</StatusMessage></li>
+    </ul>
+  </AccordionItem>
+</Accordion>
+
+<style>
+  ul { list-style-type: none; font-size: 1.5em; line-height: 1.5; margin: 0; }
+  .bottom { margin-top: 1em; border-bottom: 2px solid grey; }
+</style>
+
