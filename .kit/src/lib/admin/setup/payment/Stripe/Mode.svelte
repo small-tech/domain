@@ -5,11 +5,13 @@
   import { onMount } from 'svelte'
 
   import { loadStripe } from '@stripe/stripe-js'
+  import Remote from '@small-tech/remote'
 
   export let mode
-  export let remote
+  export let socket
   export let settings
 
+  const remote = new Remote(socket)
   let state = new ServiceState()
 
   const publishableKeyState = new ServiceState()
@@ -85,9 +87,12 @@
   })
 
   remote.paymentProviders.stripe.secretKey.validate.response.handler = function (message) {
-    console.log(`Stripe Mode component: received secret key validation response:`, message)
-    console.log('message.ok? ', message.ok)
-    secretKeyState.set(message.ok ? secretKeyState.OK : secretKeyState.NOT_OK)
+    console.log('>>> ', mode.id)
+    if (message.modeId === mode.id) {
+      console.log(`Stripe Mode component: received secret key validation response:`, message)
+      console.log('message.ok? ', message.ok)
+      secretKeyState.set(message.ok ? secretKeyState.OK : secretKeyState.NOT_OK)
+    }
   }
 </script>
 

@@ -14,7 +14,7 @@
   } from '$lib/StripeCurrencies.js'
 
   export let settings
-  export let remote
+  export let socket
   export let state = new ServiceState()
 
   const stripeModeStates = {
@@ -121,7 +121,7 @@
   </TabList>
   {#each settings.payment.providers[2].modeDetails as mode}
     <TabPanel>
-      <StripeMode {remote} {settings} {mode} bind:state={stripeModeStates[mode]}/>
+      <StripeMode {socket} {settings} {mode} bind:state={stripeModeStates[mode.id]}/>
     </TabPanel>
   {/each}
 </TabbedInterface>

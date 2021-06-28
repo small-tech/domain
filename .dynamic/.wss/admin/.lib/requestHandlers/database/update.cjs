@@ -3,6 +3,5 @@ const set = require('keypather/set')
 
 module.exports = (remote, message) => {
   // Update the value at a specific key path.
-  // console.log('Update', message)
   set(db, message.keyPath, message.value)
 }

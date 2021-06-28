@@ -4,6 +4,7 @@
 
   export let name
   export let value
+  export let id
 
   let input
   let button
@@ -27,7 +28,7 @@
 
 
 <div/>
-<input name={name} type='password' bind:value={value} bind:this={input} on:input={bubbleInputEvent}/>
+<input id={id} name={name} type='password' bind:value={value} bind:this={input} on:input={bubbleInputEvent}/>
 <button on:click={click} bind:this={button}>Show</button>
 <div/>
 
