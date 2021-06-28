@@ -1,10 +1,14 @@
 <svelte:options accessors={true}/>
 <script>
+  import { createEventDispatcher } from 'svelte'
+
   export let name
   export let value
 
   let input
   let button
+
+  const dispatch = createEventDispatcher()
 
   const click = () => {
     if (input.type === 'password') {
@@ -15,11 +19,15 @@
       button.innerText = 'Show'
     }
   }
+
+  function bubbleInputEvent () {
+    dispatch('input', {target: input, value: input.value})
+  }
 </script>
 
 
 <div/>
-<input name={name} type='password' bind:value={value} bind:this={input}/>
+<input name={name} type='password' bind:value={value} bind:this={input} on:input={bubbleInputEvent}/>
 <button on:click={click} bind:this={button}>Show</button>
 <div/>
 

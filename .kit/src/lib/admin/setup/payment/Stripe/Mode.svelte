@@ -99,6 +99,6 @@
 
 <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePublishableKeyForMode(mode.id)}/>
 
-<label class='block' for={`${mode.id}SecretKey`}>Secret Key</label>
+<label class='block' for={`${mode.id}SecretKey`}><StatusMessage bind:state={secretKeyState}>Secret key</StatusMessage></label>
 <!-- TODO: Implement input event on SensitiveTextInput component. -->
 <SensitiveTextInput id={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validateSecretKeyForMode(mode.id)}/>
