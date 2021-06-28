@@ -24,7 +24,6 @@
   remote.settings.handler = () => validateSettings()
 
   remote.vps.validate.response.handler = message => {
-    console.log('VPS.VALIDATE.RESPONSE handler')
     const vpsDetails = message.details
 
     const serverTypes = vpsDetails.serverTypes

@@ -3,10 +3,10 @@
 
   import PaymentProviderNone from './None.svelte'
   import PaymentProviderTokens from './Tokens.svelte'
-  import PaymentProviderStripe from './Stripe.svelte'
+  import PaymentProviderStripe from './Stripe/Index.svelte'
 
   export let settings
-  export let socket
+  export let remote
   export let state = new ServiceState()
 </script>
 
@@ -32,11 +32,11 @@
   {/if}
 
   {#if settings.payment.provider === 1}
-    <PaymentProviderTokens {settings} {socket} bind:state={state}/>
+    <PaymentProviderTokens {settings} {remote} bind:state={state}/>
   {/if}
 
   {#if settings.payment.provider === 2}
-    <PaymentProviderStripe {settings} {socket} bind:state={state} />
+    <PaymentProviderStripe {settings} {remote} bind:state={state} />
   {/if}
 {/if}
 
