@@ -44,6 +44,7 @@
     "@small-tech/remote": "^2.1.0",
     "@small-tech/state": "^1.0.0",
     "@small-tech/web-routes-from-files": "^3.1.0",
+    "@stripe/stripe-js": "^1.15.1",
     "blakejs": "^1.1.0",
     "buffer": "^6.0.3",
     "currency-format": "^1.0.13",

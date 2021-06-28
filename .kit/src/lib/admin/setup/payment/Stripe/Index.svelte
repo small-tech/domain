@@ -75,11 +75,6 @@
   // }
 </script>
 
-<svelte:head>
-  <!-- Include the stripe client-side library. -->
-  <script src="https://js.stripe.com/v3/"></script>
-</svelte:head>
-
 <section class='instructions'>
   <h4>Instructions</h4>
 
