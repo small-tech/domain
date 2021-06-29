@@ -145,4 +145,10 @@
     border-radius: 1em;
     color: white;
   }
+
+  /* Select the setup tabs */
+  :global(ul[role='tablist']) {
+    margin-top: 2.5em;
+  }
+
 </style>

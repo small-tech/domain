@@ -240,26 +240,8 @@
     font-size: 1em;
   }
 
-  /* Select the setup tabs */
-  :global(ul:first-of-type) {
-    margin-top: 3em;
+  * :global(ul[role='tablist']) {
     margin-bottom: 2em;
-  }
-
-  .block {
-    display: block;
-  }
-
-  .positive {
-    color: green;
-  }
-
-  .warning {
-    color: orange;
-  }
-
-  .negative {
-    color: red;
   }
 
   * :global(.instructions) {
