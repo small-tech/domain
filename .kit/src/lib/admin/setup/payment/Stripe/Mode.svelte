@@ -19,6 +19,16 @@
   const publishableKeyState = new ServiceState()
   const secretKeyState = new ServiceState()
 
+  const stripeObjectsCreated = new ServiceState()
+
+  const productState = new ServiceState()
+  const priceState = new ServiceState()
+  const webhookState = new ServiceState()
+
+  let productLink
+  let priceLink
+  let webhookLink
+
   let stripe
 
   $: if (publishableKeyState.is(publishableKeyState.UNKNOWN) && secretKeyState.is(secretKeyState.UNKNOWN)) {
@@ -29,6 +39,12 @@
     state.set(state.OK)
   } else {
     console.log('Warning: unexpected state. publishableKeyState, secretKeyState:', publishableKeyState, secretKeyState)
+  }
+
+  $: if (state.is(state.OK) && !stripeObjectsCreated) {
+    // Create stripe objects.
+
+    // Price
   }
 
   async function validatePublishableKeyForMode(modeId) {
@@ -119,9 +135,27 @@
     <p>These are the objects we’ve automatically configured in Stripe for you.</p>
 
     <ul class='serverCreationProgress'>
-      <li><a href=''><StatusMessage>Product</StatusMessage></a></li>
-      <li><StatusMessage>Price</StatusMessage></li>
-      <li><StatusMessage>Webhook</StatusMessage></li>
+      <li>
+        {#if productState.is(productState.OK)}
+          <a href={productLink}><StatusMessage>Product</StatusMessage></a>
+        {:else}
+          <StatusMessage>Product</StatusMessage>
+        {/if}
+      </li>
+      <li>
+        {#if priceState.is(priceState.OK)}
+          <a href={priceLink}><StatusMessage>Price</StatusMessage></a>
+        {:else}
+          <StatusMessage>Price</StatusMessage>
+        {/if}
+      </li>
+      <li>
+        {#if webhookState.is(webhookState.OK)}
+          <a href={webhookLink}><StatusMessage>Webhook</StatusMessage></a>
+        {:else}
+          <StatusMessage>Webhook</StatusMessage>
+        {/if}
+      </li>
     </ul>
   </AccordionItem>
 </Accordion>
