@@ -1,4 +1,5 @@
 <script>
+  // Adapted from: https://github.com/Schum123/svelte-loading-spinners/blob/master/src/Jumper.svelte
   import { range, durationUnitRegex } from "$lib/utils.js";
   export let size = 60;
   export let color = "#1F75FE";

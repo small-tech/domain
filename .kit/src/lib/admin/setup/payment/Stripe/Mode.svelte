@@ -1,10 +1,13 @@
 <script>
   import { onMount } from 'svelte'
 
+  import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
+
+  import Dots from '$lib/spinners/Dots.svelte'
+  import Lines from '$lib/spinners/Lines.svelte'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import StatusMessage from '$lib/admin/setup/StatusMessage.svelte'
   import ServiceState from '$lib/admin/setup/ServiceState.js'
-  import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
 
   import { loadStripe } from '@stripe/stripe-js'
   import Remote from '@small-tech/remote'
@@ -41,11 +44,12 @@
     console.log('Warning: unexpected state. publishableKeyState, secretKeyState:', publishableKeyState, secretKeyState)
   }
 
-  $: if (state.is(state.OK) && !stripeObjectsCreated) {
-    // Create stripe objects.
+  $: if (state.is(state.OK) && !stripeObjectsCreated) (async () => {
+    // Create the Stripe objects.
 
-    // Price
-  }
+
+    const price = await remote.paymentProviders.stripe.prices.create()
+  })()
 
   async function validatePublishableKeyForMode(modeId) {
     publishableKeyState.set(publishableKeyState.UNKNOWN)
@@ -114,13 +118,6 @@
 <h4>{mode.title}</h4>
 <p>Your Stripe account will be automatically configured once you add your Stripe keys.</p>
 
-<!--
-<ol class='serverCreationProgress'>
-  <li><StatusMessage>Product</StatusMessage></li>
-  <li><StatusMessage>Price</StatusMessage></li>
-  <li><StatusMessage>Webhook</StatusMessage></li>
-</ol>
--->
 <label for={`${mode.id}PublishableKey`}><StatusMessage state={publishableKeyState}>Publishable key</StatusMessage></label>
 
 <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePublishableKeyForMode(mode.id)}/>
@@ -141,6 +138,7 @@
         {:else}
           <StatusMessage>Product</StatusMessage>
         {/if}
+        <Dots size=2em colour=salmon/>
       </li>
       <li>
         {#if priceState.is(priceState.OK)}
@@ -148,6 +146,7 @@
         {:else}
           <StatusMessage>Price</StatusMessage>
         {/if}
+        <Lines />
       </li>
       <li>
         {#if webhookState.is(webhookState.OK)}
@@ -155,13 +154,17 @@
         {:else}
           <StatusMessage>Webhook</StatusMessage>
         {/if}
+        <Dots />
       </li>
     </ul>
   </AccordionItem>
 </Accordion>
 
 <style>
-  ul { list-style-type: none; font-size: 1.5em; line-height: 1.5; margin: 0; }
-  .bottom { margin-top: 1em; border-bottom: 2px solid grey; }
+  ul {
+    list-style-type: none;
+    font-size: 1.5em;
+    line-height: 1.5;
+    margin: 0;
+  }
 </style>
-

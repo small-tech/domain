@@ -2,7 +2,8 @@
   import { onMount } from 'svelte'
   import { scale } from 'svelte/transition'
 
-  import Jumper from '$lib/Jumper.svelte'
+  import Lines from '$lib/spinners/Lines.svelte'
+
   import DomainChecker from '$lib/DomainChecker.svelte'
   import Modal from '$lib/Modal.svelte'
   import { Checkbox } from '$lib/Checkbox'
@@ -323,7 +324,8 @@
       <Checkbox checked={false} bind:checkedControlled={serverResponseReceived} disabled={true}/>
       <span class:currentStep={serverCreationStep === 7}>Wait for response from server</span>
       {#if serverCreationStep === 7}
-        <Jumper />
+        <!-- TODO: style this better. Perhaps move to checkbox component as progress state? -->
+        <Lines size=2em/>
       {/if}
     </li>
   </ol>
