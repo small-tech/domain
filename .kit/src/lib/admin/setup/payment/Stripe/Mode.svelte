@@ -52,7 +52,7 @@
   })()
 
   async function validatePublishableKeyForMode(modeId) {
-    publishableKeyState.set(publishableKeyState.UNKNOWN)
+    publishableKeyState.set(publishableKeyState.PROCESSING)
 
     console.log('Stripe Mode component: validate publishable key for mode:', modeId)
 
@@ -89,7 +89,7 @@
 
   function validateSecretKeyForMode(modeId) {
     console.log('Stripe Mode component: validate secret key for mode:', modeId)
-    secretKeyState.set(secretKeyState.UNKNOWN)
+    secretKeyState.set(secretKeyState.PROCESSING)
     remote.paymentProviders.stripe.secretKey.validate.request.send({ modeId })
   }
 
