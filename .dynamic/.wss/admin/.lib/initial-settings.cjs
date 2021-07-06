@@ -34,7 +34,8 @@ module.exports = {
             publishableKey: '',
             secretKey: '',
             productId: '',
-            priceId: ''
+            priceId: '',
+            webHookId: ''
           },
           {
             id: 'live',
@@ -42,7 +43,8 @@ module.exports = {
             publishableKey: '',
             secretKey: '',
             productId: '',
-            priceId: ''
+            priceId: '',
+            webHookId: ''
           }
         ]
       }
@@ -175,9 +177,9 @@ module.exports = {
       `
     },
     {
-      name: 'Place + Henry (work-in-progress)',
+      name: 'Place (work-in-progress)',
       link: 'https://github.com/small-tech/place',
-      description: 'Prototype Small Web server and client.',
+      description: 'A Small Web Place',
       logo: '<svg></svg>',
       cloudInit: ''
     }
