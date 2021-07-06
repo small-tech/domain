@@ -51,6 +51,10 @@
     const price = await remote.paymentProviders.stripe.prices.create()
   })()
 
+  async function validateStripeObjectsForMode(modeId) {
+
+  }
+
   async function validatePublishableKeyForMode(modeId) {
     publishableKeyState.set(publishableKeyState.PROCESSING)
 
@@ -126,10 +130,9 @@
 <!-- TODO: Implement input event on SensitiveTextInput component. -->
 <SensitiveTextInput id={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validateSecretKeyForMode(mode.id)}/>
 
-<Accordion>
-  <AccordionItem title='Details'>
-    <h3>Stripe details</h3>
-    <p>These are the objects we’ve automatically configured in Stripe for you.</p>
+<details>
+  <summary>Stripe objects</summary>
+    <p>These objects are automatically configured in Stripe for you.</p>
 
     <ul class='serverCreationProgress'>
       <li>
@@ -154,10 +157,23 @@
         {/if}
       </li>
     </ul>
-  </AccordionItem>
-</Accordion>
+</details>
 
 <style>
+  summary {
+    font-size: 1.5em;
+    border-bottom: 2px dashed grey;
+    padding-bottom:0.5em;
+  }
+
+  details {
+    padding-bottom: 0.75em;
+  }
+
+  details[open], details[open] summary {
+    border-bottom: 2px solid grey;
+  }
+
   ul {
     list-style-type: none;
     font-size: 1.5em;
