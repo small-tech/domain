@@ -12,7 +12,7 @@
   export const state = new ServiceState()
 
   function validateSettings() {
-    state.set(state.UNKNOWN)
+    state.set(state.PROCESSING)
 
     if (settings.vps.apiToken.length === 64) {
       remote.vps.validate.request.send()

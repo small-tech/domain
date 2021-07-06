@@ -16,7 +16,7 @@
   let accessTokenInput
 
   function validateSettings() {
-    state.set(state.UNKNOWN)
+    state.set(state.PROCESSING)
 
     if (
       settings.dns.domain !== ''

@@ -18,6 +18,9 @@
       return state.set(state.OK, { isPrivateInstance: true })
     }
 
+    // Only enter processing state if we need to do a remote call.
+    state.set(state.PROCESSING)
+
     // Otherwise, carry out validation.
     remote.psl.validate.request.send()
   }
