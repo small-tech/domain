@@ -40,7 +40,7 @@
 
   /* Align icon to text */
   .statusMessage {
-    display: flex;
+    display: inline-flex;
     align-items:center;
   }
 
