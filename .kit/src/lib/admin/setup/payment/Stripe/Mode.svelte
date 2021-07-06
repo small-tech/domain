@@ -9,6 +9,8 @@
 
   import { loadStripe } from '@stripe/stripe-js'
 
+  import { slide } from 'svelte/transition'
+
   export let mode
   export let socket
   export let settings
@@ -16,6 +18,7 @@
   const remote = new Remote(socket)
   let state = new ServiceState()
 
+  const keysState = new ServiceState()
   const publishableKeyState = new ServiceState()
   const secretKeyState = new ServiceState()
 
@@ -31,25 +34,22 @@
 
   let stripe
 
-  $: if (publishableKeyState.is(publishableKeyState.UNKNOWN) && secretKeyState.is(secretKeyState.UNKNOWN)) {
-    state.set(state.UNKNOWN)
-  } else if (publishableKeyState.is(publishableKeyState.NOT_OK) || secretKeyState.is(secretKeyState.NOT_OK)) {
-    state.set(state.NOT_OK)
-  } else if (publishableKeyState.is(publishableKeyState.OK) && secretKeyState.is(secretKeyState.OK)) {
-    state.set(state.OK)
-  } else {
-    console.log('Warning: unexpected state. publishableKeyState, secretKeyState:', publishableKeyState, secretKeyState)
-  }
+  $: if (keysState.is(keysState.OK)) (async () => {
 
-  $: if (state.is(state.OK) && !stripeObjectsCreated) (async () => {
-    // Create the Stripe objects.
+    // Validate Stripe objects
 
-
-    const price = await remote.paymentProviders.stripe.prices.create()
+    // If not valid, create Stripe objects.
+    // const price = await remote.paymentProviders.stripe.prices.create()
   })()
 
   async function validateStripeObjectsForMode(modeId) {
 
+  }
+
+  function validateKeys (modeId) {
+    if (publishableKeyState.is(publishableKeyState.OK) && secretKeyState.is(secretKeyState.OK)) {
+      keysState.set(keysState.OK)
+    }
   }
 
   async function validatePublishableKeyForMode(modeId) {
@@ -80,11 +80,13 @@
       if (result.error.type === 'invalid_request_error' && result.error.message.startsWith('Invalid API Key provided')) {
         console.log('publishable key NOT ok')
         publishableKeyState.set(publishableKeyState.NOT_OK)
+        validateKeys()
         return
       }
     } else {
       console.log('publishable key ok')
       publishableKeyState.set(publishableKeyState.OK)
+      validateKeys()
     }
   }
 
@@ -112,6 +114,7 @@
     if (message.modeId === mode.id) {
       console.log(`Stripe Mode component: received secret key validation response:`, message)
       secretKeyState.set(message.ok ? secretKeyState.OK : secretKeyState.NOT_OK)
+      validateKeys()
     }
   }
 </script>
@@ -124,37 +127,38 @@
 <input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePublishableKeyForMode(mode.id)}/>
 
 <label for={`${mode.id}SecretKey`}><StatusMessage state={secretKeyState}>Secret key</StatusMessage></label>
-<!-- TODO: Implement input event on SensitiveTextInput component. -->
 <SensitiveTextInput id={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validateSecretKeyForMode(mode.id)}/>
 
-<details>
-  <summary>Stripe objects</summary>
-    <p>These objects are automatically configured in Stripe for you.</p>
+{#if $keysState.is(keysState.OK)}
+  <details open transition:slide>
+    <summary>Stripe objects</summary>
+      <p>These objects are automatically configured in Stripe for you.</p>
 
-    <ul class='serverCreationProgress'>
-      <li>
-        {#if productState.is(productState.OK)}
-          <a href={productLink}><StatusMessage>Product</StatusMessage></a>
-        {:else}
-          <StatusMessage>Product</StatusMessage>
-        {/if}
-      </li>
-      <li>
-        {#if priceState.is(priceState.OK)}
-          <a href={priceLink}><StatusMessage>Price</StatusMessage></a>
-        {:else}
-          <StatusMessage>Price</StatusMessage>
-        {/if}
-      </li>
-      <li>
-        {#if webhookState.is(webhookState.OK)}
-          <a href={webhookLink}><StatusMessage>Webhook</StatusMessage></a>
-        {:else}
-          <StatusMessage>Webhook</StatusMessage>
-        {/if}
-      </li>
-    </ul>
-</details>
+      <ul class='serverCreationProgress'>
+        <li>
+          {#if productState.is(productState.OK)}
+            <a href={productLink}><StatusMessage>Product</StatusMessage></a>
+          {:else}
+            <StatusMessage>Product</StatusMessage>
+          {/if}
+        </li>
+        <li>
+          {#if priceState.is(priceState.OK)}
+            <a href={priceLink}><StatusMessage>Price</StatusMessage></a>
+          {:else}
+            <StatusMessage>Price</StatusMessage>
+          {/if}
+        </li>
+        <li>
+          {#if webhookState.is(webhookState.OK)}
+            <a href={webhookLink}><StatusMessage>Webhook</StatusMessage></a>
+          {:else}
+            <StatusMessage>Webhook</StatusMessage>
+          {/if}
+        </li>
+      </ul>
+  </details>
+{/if}
 
 <style>
   summary {
