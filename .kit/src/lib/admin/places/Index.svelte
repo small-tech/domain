@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { scale } from 'svelte/transition'
 
-  import Lines from '$lib/spinners/Lines.svelte'
+  import { Lines } from '@small-tech/spinners'
 
   import DomainChecker from '$lib/DomainChecker.svelte'
   import Modal from '$lib/Modal.svelte'
