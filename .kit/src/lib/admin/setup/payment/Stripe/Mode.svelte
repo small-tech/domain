@@ -3,14 +3,14 @@
 
   import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
 
-  import Dots from '$lib/spinners/Dots.svelte'
-  import Lines from '$lib/spinners/Lines.svelte'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import StatusMessage from '$lib/admin/setup/StatusMessage.svelte'
   import ServiceState from '$lib/admin/setup/ServiceState.js'
 
-  import { loadStripe } from '@stripe/stripe-js'
+  import { Dots, Lines } from '@small-tech/spinners'
   import Remote from '@small-tech/remote'
+
+  import { loadStripe } from '@stripe/stripe-js'
 
   export let mode
   export let socket
@@ -138,7 +138,6 @@
         {:else}
           <StatusMessage>Product</StatusMessage>
         {/if}
-        <Dots size=2em colour=salmon/>
       </li>
       <li>
         {#if priceState.is(priceState.OK)}
@@ -146,7 +145,6 @@
         {:else}
           <StatusMessage>Price</StatusMessage>
         {/if}
-        <Lines />
       </li>
       <li>
         {#if webhookState.is(webhookState.OK)}
@@ -154,7 +152,6 @@
         {:else}
           <StatusMessage>Webhook</StatusMessage>
         {/if}
-        <Dots />
       </li>
     </ul>
   </AccordionItem>
