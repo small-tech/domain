@@ -29,9 +29,8 @@
     "@sveltejs/kit": "next",
     "@zerodevx/svelte-toast": "^0.2.2",
     "svelte": "^3.38.2",
-    "vite": "^2.1.0",
-    "svelte-accessible-accordion": "^1.0.0",
-    "svelte-switch": "^0.0.4"
+    "svelte-switch": "^0.0.4",
+    "vite": "^2.1.0"
   },
   "funding": {
     "type": "foundation",

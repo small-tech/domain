@@ -2,7 +2,6 @@
   import Remote from '@small-tech/remote'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import ServiceState from './ServiceState.js'
-  import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
 
   export let settings
 
@@ -132,8 +131,8 @@
     <li>Public Key: <code>{state.OK.vpsSshKey.public_key}</code></li>
   </ul>
 
-  <Accordion>
-    <AccordionItem title='Advanced'>
+  <details>
+    <summary>Advanced</summary>
       <h3>Server details</h3>
       <p>These settings will be used when setting up servers.</p>
 
@@ -173,61 +172,28 @@
         {/if}
           Any Linux with systemd should work but you might have to adjust the Cloud Init scripts for your apps.
       </p>
-    </AccordionItem>
-  </Accordion>
+  </details>
 {/if}
 
 <style>
+  summary {
+    font-size: 1.5em;
+    border-bottom: 2px dashed grey;
+    padding-bottom:0.5em;
+  }
+
+  details {
+    margin-top: 1.5em;
+    padding-bottom: 0.75em;
+  }
+
+  details[open], details[open] summary {
+    border-bottom: 2px solid grey;
+  }
+
   .vpsItemDetails {
     margin-top: -0.75em;
     font-size: smaller;
     font-style: italic;
-  }
-
-  /* TODO: Move these global styles elsewhere. Do they even need to be Svelte? */
-
-  :global([data-accordion]) {
-    list-style: none;
-    margin:0;
-    padding: 0;
-  }
-
-  :global([data-accordion-item] > div:first-of-type) {
-    padding-bottom: 1em;
-    border-bottom: 2px solid grey;
-  }
-
-  :global([data-accordion-item] button) {
-    border: 0;
-    background: none;
-    font: inherit;
-    font-size: 1.25em;
-    font-weight: bold;
-    line-height: inherit;
-    color: inherit;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    margin: 0;
-    padding: 0;
-    padding-bottom: 0.75em;
-    border-radius: 0;
-    margin-top: 0.25em;
-  }
-
-  :global([data-accordion-item] button[aria-expanded='false']) {
-    border-bottom: 2px dashed grey;
-  }
-
-  :global([data-accordion-item] button[aria-expanded='true']) {
-    border-bottom: 2px solid grey;
-  }
-
-  :global([data-accordion-item] button[aria-expanded='false']::before) {
-    content: ' ⯈ '
-  }
-
-  :global([data-accordion-item] button[aria-expanded='true']::before) {
-    content: ' ⯆ '
   }
 </style>

@@ -1,13 +1,10 @@
 <script>
   import { onMount } from 'svelte'
 
-  import { Accordion, AccordionItem } from 'svelte-accessible-accordion'
-
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import StatusMessage from '$lib/admin/setup/StatusMessage.svelte'
   import ServiceState from '$lib/admin/setup/ServiceState.js'
 
-  import { Dots, Lines } from '@small-tech/spinners'
   import Remote from '@small-tech/remote'
 
   import { loadStripe } from '@stripe/stripe-js'
