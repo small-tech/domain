@@ -99,7 +99,7 @@
   </TabList>
   {#each settings.payment.providers[2].modeDetails as mode}
     <TabPanel>
-      <StripeMode {socket} {settings} {mode} bind:state={stripeModeStates[mode.id]}/>
+      <StripeMode {socket} {settings} model={mode} bind:state={stripeModeStates[mode.id]}/>
     </TabPanel>
   {/each}
 </TabbedInterface>

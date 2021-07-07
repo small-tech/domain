@@ -2,7 +2,8 @@
 const stripeWithSecretKey = require('stripe')
 
 module.exports = async (remote, message) => {
-  const stripeDetails = db.settings.payment.modeDetails[message.modeId === 'live' ? 1 : 0]
+  console.log('message', message)
+  const stripeDetails = db.settings.payment.providers[2].modeDetails[message.modeId === 'live' ? 1 : 0]
   const stripe = stripeWithSecretKey(stripeDetails.secretKey)
 
   const domain = db.settings.dns.domain
@@ -20,6 +21,8 @@ module.exports = async (remote, message) => {
     },
     tax_behavior: 'inclusive'
   }
+
+  console.log(priceDetails)
 
   let price
   try {

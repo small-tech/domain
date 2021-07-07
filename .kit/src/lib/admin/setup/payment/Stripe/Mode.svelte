@@ -11,11 +11,11 @@
 
   import { slide } from 'svelte/transition'
 
-  export let mode
-  export let socket
-  export let settings
+  export let model
 
+  export let socket
   const remote = new Remote(socket)
+
   let state = new ServiceState()
 
   const keysState = new ServiceState()
@@ -24,8 +24,8 @@
 
   const stripeObjectsState = new ServiceState()
 
-  const productState = new ServiceState()
   const priceState = new ServiceState()
+  const productState = new ServiceState()
   const webhookState = new ServiceState()
 
   let productLink
@@ -34,28 +34,56 @@
 
   let stripe
 
-  $: if (keysState.is(keysState.OK)) (async () => {
+  async function validateStripeObjects() {
+    console.log('~~~ validateStripeObjects ~~~')
 
-    // Validate Stripe objects
+    // Don’t fire off another validation request if one is already active.
+    if (stripeObjectsState.is(stripeObjectsState.PROCESSING)) {
+      console.log('============ stripe object validation request active, not firing new one =============')
+      return
+    }
 
-    // If not valid, create Stripe objects.
-    // const price = await remote.paymentProviders.stripe.prices.create()
-  })()
-
-  async function validateStripeObjectsForMode(modeId) {
     stripeObjectsState.set(stripeObjectsState.UNKNOWN)
-    if (mode.productId === '' || mode.priceId === '' || mode.webhookId === '') {
+    if (model.productId === '' || model.priceId === '' || model.webhookId === '') {
       stripeObjectsState.set(stripeObjectsState.PROCESSING)
 
-      // const price = await remote.paymentProviders.stripe.prices.create({modeId})
+      console.log('MODE ID', model.id)
+
+      let product
+      productState.set(productState.PROCESSING)
+      try {
+        price = await remote.paymentProviders.stripe.products.create.request.await({modeId: model.id})
+      } catch (error) {
+        productState.set(productState.NOT_OK)
+        console.log('Product error', error)
+        return
+      }
+      productState.set(productState.OK)
+      console.log('product', product)
+
+      // let price
+      // priceState.set(priceState.PROCESSING)
+      // try {
+      //   price = await remote.paymentProviders.stripe.prices.create.request.await({modeId: model.id})
+      // } catch (error) {
+      //   priceState.set(priceState.NOT_OK)
+      //   console.log('Price error', error)
+      //   return
+      // }
+      // priceState.set(priceState.OK)
+      // console.log('price', price)
+
+      // const product = await remote.paymentProviders.stripe.products.create({modeId: model.id})
+
+      // const webhook = await remote.paymentProviders.stripe.webhooks.create({modeId: model.id})
 
     }
   }
 
-  function validateKeys (modeId) {
+  function validateKeys () {
     if (publishableKeyState.is(publishableKeyState.OK) && secretKeyState.is(secretKeyState.OK)) {
       keysState.set(keysState.OK)
-      validateStripeObjectsForMode(modeId)
+      validateStripeObjects()
     } else if (publishableKeyState.is(publishableKeyState.NOT_OK) || (secretKeyState.is(secretKeyState.NOT_OK))) {
       keysState.set(keysState.NOT_OK)
     } else {
@@ -63,17 +91,15 @@
     }
   }
 
-  async function validatePublishableKeyForMode(modeId) {
+  async function validatePublishableKey() {
     publishableKeyState.set(publishableKeyState.PROCESSING)
 
-    console.log('Stripe Mode component: validate publishable key for mode:', modeId)
-
-    const modeDetails = settings.payment.providers[2].modeDetails.find(modeDetails => modeDetails.id === modeId)
+    console.log('Stripe Mode component: validate publishable key for mode:', model.id)
 
     // Validate the publishable key (we can only validate this client-side
     // by creating a harmless dummy call and seeing if we get an error or not).
 
-    stripe = await loadStripe(modeDetails.publishableKey)
+    stripe = await loadStripe(model.publishableKey)
 
     const result = await stripe.createSource({
       type: 'ideal',
@@ -101,28 +127,28 @@
     }
   }
 
-  function validateSecretKeyForMode(modeId) {
-    console.log('Stripe Mode component: validate secret key for mode:', modeId)
+  function validateSecretKey() {
+    console.log('Stripe Mode component: validate secret key for mode:', model.id)
     secretKeyState.set(secretKeyState.PROCESSING)
-    remote.paymentProviders.stripe.secretKey.validate.request.send({ modeId })
+    remote.paymentProviders.stripe.secretKey.validate.request.send({ modeId: model.id })
   }
 
-  async function validateSettingsForMode(modeId) {
-    console.log('Stripe Mode component: validate settings for mode:', modeId)
+  async function validateSettings() {
+    console.log('Stripe Mode component: validate settings for mode:', model.id)
 
-    await validatePublishableKeyForMode(modeId)
-    validateSecretKeyForMode(modeId)
+    await validatePublishableKey()
+    validateSecretKey()
   }
 
   // Event handlers.
 
   onMount(() => {
-    console.log(`Stripe Mode component: settings loaded. Validating settings for mode ${mode.id}`)
-    validateSettingsForMode(mode.id)
+    console.log(`Stripe Mode component: settings loaded. Validating settings for mode ${model.id}`)
+    validateSettings()
   })
 
   remote.paymentProviders.stripe.secretKey.validate.response.handler = function (message) {
-    if (message.modeId === mode.id) {
+    if (message.modeId === model.id) {
       console.log(`Stripe Mode component: received secret key validation response:`, message)
       secretKeyState.set(message.ok ? secretKeyState.OK : secretKeyState.NOT_OK)
       validateKeys()
@@ -130,15 +156,15 @@
   }
 </script>
 
-<h4>{mode.title}</h4>
+<h4>{model.title}</h4>
 <p>Your Stripe account will be automatically configured once you add your Stripe keys.</p>
 
-<label for={`${mode.id}PublishableKey`}><StatusMessage state={publishableKeyState}>Publishable key</StatusMessage></label>
+<label for={`${model.id}PublishableKey`}><StatusMessage state={publishableKeyState}>Publishable key</StatusMessage></label>
 
-<input id={`${mode.id}PublishableKey`} type='text' bind:value={mode.publishableKey} on:input={validatePublishableKeyForMode(mode.id)}/>
+<input id={`${model.id}PublishableKey`} type='text' bind:value={model.publishableKey} on:input={validatePublishableKey()}/>
 
-<label for={`${mode.id}SecretKey`}><StatusMessage state={secretKeyState}>Secret key</StatusMessage></label>
-<SensitiveTextInput id={`${mode.id}SecretKey`} bind:value={mode.secretKey} on:input={validateSecretKeyForMode(mode.id)}/>
+<label for={`${model.id}SecretKey`}><StatusMessage state={secretKeyState}>Secret key</StatusMessage></label>
+<SensitiveTextInput id={`${model.id}SecretKey`} bind:value={model.secretKey} on:input={validateSecretKey()}/>
 
 {#if $keysState.is(keysState.OK)}
   <details open transition:slide>
@@ -147,25 +173,13 @@
 
       <ul class='serverCreationProgress'>
         <li>
-          {#if productState.is(productState.OK)}
-            <a href={productLink}><StatusMessage>Product</StatusMessage></a>
-          {:else}
-            <StatusMessage>Product</StatusMessage>
-          {/if}
+          <StatusMessage state={productState}>Product</StatusMessage>
         </li>
         <li>
-          {#if priceState.is(priceState.OK)}
-            <a href={priceLink}><StatusMessage>Price</StatusMessage></a>
-          {:else}
-            <StatusMessage>Price</StatusMessage>
-          {/if}
+          <StatusMessage state={priceState}>Price</StatusMessage>
         </li>
         <li>
-          {#if webhookState.is(webhookState.OK)}
-            <a href={webhookLink}><StatusMessage>Webhook</StatusMessage></a>
-          {:else}
-            <StatusMessage>Webhook</StatusMessage>
-          {/if}
+          <StatusMessage state={webhookState}>Webhook</StatusMessage>
         </li>
       </ul>
   </details>
@@ -192,6 +206,4 @@
     line-height: 1.5;
     margin: 0;
   }
-
-
 </style>

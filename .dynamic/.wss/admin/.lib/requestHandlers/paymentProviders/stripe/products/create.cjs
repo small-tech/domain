@@ -3,13 +3,16 @@ const stripeWithSecretKey = require('stripe')
 
 module.exports = async (remote, message) => {
 
-  const stripeDetails = db.settings.payment.modeDetails[message.mode === 'live' ? 1 : 0]
+  const stripeDetails = db.settings.payment.providers[2].modeDetails[message.modeId === 'live' ? 1 : 0]
   const stripe = stripeWithSecretKey(stripeDetails.secretKey)
 
   const domain = db.settings.dns.domain
 
   const productDetails = {
-    id: `prod_small-web_${domain}`,
+    // Note: product ids must not have dots in them.
+    // Must match pattern: (/\A[a-zA-Z0-9_\-]+\z/)
+    id: `prod_domain_${domain.replace(/\./g, '_')}`,
+
     name: `${domain} (monthly)`,
     description: 'Monthly fee for your Small Web place',
     statement_descriptor: domain,
@@ -24,8 +27,10 @@ module.exports = async (remote, message) => {
   try {
     product = await stripe.products.create(productDetails)
   } catch (error) {
-    remote.paymentProviders.stripe.products.create.error.send({ error })
+    console.log('STRIPE error', error)
+    remote.paymentProviders.stripe.products.create.request.respond({ error })
+    return
   }
-
-  remote.paymentProviders.stripe.products.create.response.send({ product })
+  console.log('STRIPE OK', product)
+  remote.paymentProviders.stripe.products.create.request.respond({ product })
 }
