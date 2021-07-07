@@ -23,8 +23,8 @@ module.exports = {
       },
       {
         name: 'Stripe',
-        currency: 'EUR',
-        price: 15,
+        currency: 'eur',
+        price: 10,
         modes: ['test', 'live'],
         mode: 'test',
         modeDetails: [
@@ -35,7 +35,7 @@ module.exports = {
             secretKey: '',
             productId: '',
             priceId: '',
-            webHookId: ''
+            webhookId: ''
           },
           {
             id: 'live',
@@ -44,7 +44,7 @@ module.exports = {
             secretKey: '',
             productId: '',
             priceId: '',
-            webHookId: ''
+            webhookId: ''
           }
         ]
       }

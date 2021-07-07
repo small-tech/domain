@@ -2,7 +2,7 @@
 const stripeWithSecretKey = require('stripe')
 
 module.exports = async (remote, message) => {
-  const stripeDetails = db.settings.payment.modeDetails[message.mode === 'live' ? 1 : 0]
+  const stripeDetails = db.settings.payment.modeDetails[message.modeId === 'live' ? 1 : 0]
   const stripe = stripeWithSecretKey(stripeDetails.secretKey)
 
   const domain = db.settings.dns.domain
@@ -25,9 +25,9 @@ module.exports = async (remote, message) => {
   try {
     price = await stripe.prices.create(priceDetails)
   } catch (error) {
-    remote.paymentProviders.stripe.prices.create.error.send({ error })
+    remote.paymentProviders.stripe.prices.create.respond({ error })
     return
   }
 
-  remote.paymentProviders.stripe.prices.create.response.send({ price })
+  remote.paymentProviders.stripe.prices.create.respond({ price })
 }

@@ -36,7 +36,7 @@
   {/if}
 
   {#if settings.payment.provider === 2}
-    <PaymentProviderStripe {settings} {socket} bind:state={state} />
+    <PaymentProviderStripe {settings} {socket} model={settings.payment.providers[2]} bind:state={state} />
   {/if}
 {/if}
 

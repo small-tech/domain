@@ -22,7 +22,7 @@
   const publishableKeyState = new ServiceState()
   const secretKeyState = new ServiceState()
 
-  const stripeObjectsCreated = new ServiceState()
+  const stripeObjectsState = new ServiceState()
 
   const productState = new ServiceState()
   const priceState = new ServiceState()
@@ -43,12 +43,23 @@
   })()
 
   async function validateStripeObjectsForMode(modeId) {
+    stripeObjectsState.set(stripeObjectsState.UNKNOWN)
+    if (mode.productId === '' || mode.priceId === '' || mode.webhookId === '') {
+      stripeObjectsState.set(stripeObjectsState.PROCESSING)
 
+      // const price = await remote.paymentProviders.stripe.prices.create({modeId})
+
+    }
   }
 
   function validateKeys (modeId) {
     if (publishableKeyState.is(publishableKeyState.OK) && secretKeyState.is(secretKeyState.OK)) {
       keysState.set(keysState.OK)
+      validateStripeObjectsForMode(modeId)
+    } else if (publishableKeyState.is(publishableKeyState.NOT_OK) || (secretKeyState.is(secretKeyState.NOT_OK))) {
+      keysState.set(keysState.NOT_OK)
+    } else {
+      keysState.set(keysState.UNKNOWN)
     }
   }
 
@@ -131,7 +142,7 @@
 
 {#if $keysState.is(keysState.OK)}
   <details open transition:slide>
-    <summary>Stripe objects</summary>
+    <summary><StatusMessage state={stripeObjectsState}>Stripe Objects</StatusMessage></summary>
       <p>These objects are automatically configured in Stripe for you.</p>
 
       <ul class='serverCreationProgress'>
@@ -181,4 +192,6 @@
     line-height: 1.5;
     margin: 0;
   }
+
+
 </style>

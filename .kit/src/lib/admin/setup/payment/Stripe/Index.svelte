@@ -2,9 +2,6 @@
   import Switch from 'svelte-switch'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
   import ServiceState from '$lib/admin/setup/ServiceState.js'
-  import StatusMessage from '$lib/admin/setup/StatusMessage.svelte'
-
-  import { PaymentProviders } from '$lib/Constants'
 
   import StripeMode from './Mode.svelte'
 
@@ -14,6 +11,7 @@
   } from '$lib/StripeCurrencies.js'
 
   export let settings
+  export let model
   export let socket
   export let state = new ServiceState()
 
@@ -22,46 +20,26 @@
     live: new ServiceState()
   }
 
-  let stripePrice = 10
+  let stripePrice = model.price
   let previousStripePrice = stripePrice
   let formattedMinimumPrice
-  let stripeCurrency
   let stripeCurrencyOnlyValidInUnitedArabEmirates = false
   let minimumStripePriceForCurrency = 1
 
-  $: stripeCurrencyOnlyValidInUnitedArabEmirates = additionalCurrenciesSupportedInUnitedArabEmirates.includes(stripeCurrency)
+  $: stripeCurrencyOnlyValidInUnitedArabEmirates = additionalCurrenciesSupportedInUnitedArabEmirates.includes(model.currency)
 
-  // Custom validation because the built-in browser form validation is useless.
-  // This simply does not allow an invalid value to be entered.
-  function validateStripePriceOnInput (event) {
-    const price = event.target.value
-    if (price < 1 || parseInt(price) === NaN) {
-      // On input, do not force the validation so people
-      // can create temporarily invalid enties (e.g., when deleting an existing
-      // number)
-      return
-    } else {
-      previousStripePrice = stripePrice
+
+
+  function priceValidator(node, value) {
+    return {
+      update(value) {
+				stripePrice = value === null || value < node.min ? previousStripePrice : parseInt(value)
+        previousStripePrice = stripePrice
+        model.price = stripePrice
+      }
     }
   }
 
-  // On change, actually force the value to be correct.
-  function validateStripePriceOnChange (event) {
-    const price = event.target.value
-    if (price < 1 || parseInt(price) === NaN) {
-      stripePrice = previousStripePrice
-    }
-  }
-
-  function validateSettings() {
-    state.set(state.UNKNOWN)
-
-    console.log('Stripe: validateSettings()')
-
-    settings.paymentProviders[2].modes.forEach(async modeId => {
-      await validateSettingsForMode(modeId)
-    })
-  }
 
   // TODO: Implement this in index and then remove from here.
   // $: {
@@ -94,7 +72,7 @@
 
 <label for='currency'>Currency</label>
 
-<select id='currency' bind:value={stripeCurrency}>
+<select id='currency' bind:value={model.currency}>
   {#each alphabeticallySortedCurrencyDetails as currency, index}
     <option value={currency.code} selected={currency.code === 'eur'}>{currency.label}</option>
   {/each}
@@ -105,7 +83,7 @@
 {/if}
 
 <label for='price'>Price/month</label>
-<input id='price' type='number' bind:value={stripePrice} step=1 min=1 on:input={validateStripePriceOnInput} on:change={validateStripePriceOnChange}/>
+<input id='price' type='number' bind:value={stripePrice} use:priceValidator={stripePrice} step='1' min='1' autocomplete='off'/>
 
 <label for='mode'>Mode</label>
 <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} handleDiameter='' width=75>
