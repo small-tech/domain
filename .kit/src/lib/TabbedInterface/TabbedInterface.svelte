@@ -1,5 +1,5 @@
 <script>
-  import { onMount, setContext } from 'svelte'
+  import { setContext } from 'svelte'
   import { writable } from 'svelte/store'
 
   // export let selectedIndex = 0
@@ -14,13 +14,7 @@
   setContext('activeTabIndex', activeTabIndex)
   setContext('focusedTabPanelIndex', focusedTabPanelIndex)
 
-  // $: $activeTabIndex = selectedIndex
-
   export let navStyle = false
-
-  onMount(() => {
-  })
-
 </script>
 
 <div class='tabbed' class:navStyle>

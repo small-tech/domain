@@ -126,7 +126,7 @@
     <TabPanel><PSL {settings} {socket} bind:state={pslState} /></TabPanel>
     <TabPanel><DNS {settings} {socket} bind:state={dnsState} /></TabPanel>
     <TabPanel><VPS {settings} {socket} bind:state={vpsState} /></TabPanel>
-    <TabPanel><Payment {settings} {socket} bind:state={paymentState} /></TabPanel>
+    <TabPanel let:active><Payment {active} {settings} {socket} bind:state={paymentState} /></TabPanel>
   </form>
 </TabbedInterface>
 

@@ -34,7 +34,7 @@
   tabindex={mounted ? -1 : undefined}
   aria-labelledby={mounted ? `tab${index}` : undefined}
   bind:this={section}>
-  <slot></slot>
+  <slot active={$activeTabIndex === index}></slot>
 </section>
 
 <style>

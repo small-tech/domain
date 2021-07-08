@@ -1,7 +1,14 @@
 <script>
+  import { onMount } from 'svelte'
+
+  import Remote from '@small-tech/remote'
   import Switch from 'svelte-switch'
+
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
   import ServiceState from '$lib/admin/setup/ServiceState.js'
+  import validateDns from '$lib/admin/setup/validateDns.js'
+
+  import StatusMessage from '$lib/admin/setup/StatusMessage.svelte'
 
   import StripeMode from './Mode.svelte'
 
@@ -12,8 +19,14 @@
 
   export let settings
   export let model
+  export let active
+
   export let socket
+  const remote = new Remote(socket)
+
   export let state = new ServiceState()
+
+  const dnsState = new ServiceState()
 
   const stripeModeStates = {
     test: new ServiceState(),
@@ -27,6 +40,16 @@
   let minimumStripePriceForCurrency = 1
 
   $: stripeCurrencyOnlyValidInUnitedArabEmirates = additionalCurrenciesSupportedInUnitedArabEmirates.includes(model.currency)
+
+  // Domain and DNS settings must be configured correctly before you can
+  // set up Stripe. Check every time the view becomes active.
+  // TODO: We need a way to implement two-way communication between sections
+  // ===== as hitting the server on every show isn’t really a great experience.
+
+  $: if (active) {
+    dnsState.set(dnsState.PROCESSING)
+    validateDns(dnsState, settings, remote)
+  }
 
   function priceValidator(node, value) {
     return {
@@ -50,10 +73,16 @@
   // }
 </script>
 
-{#if settings.dns.domain === ''}
-  <h3>Please set your domain under the DNS tab first.</h3>
-  <p>A number of Stripe configuration options depend on your domain name.</p>
-{:else}
+{#if $dnsState.is(dnsState.UNKNOWN) || dnsState.is(dnsState.PROCESSING)}
+  <StatusMessage state={dnsState}>Loading…</StatusMessage>
+{/if}
+
+{#if $dnsState.is(dnsState.NOT_OK)}
+  <h3>Please fix your DNS settings first.</h3>
+  <p>A number of Stripe configuration options depend on your domain name and DNS settings being correct.</p>
+{/if}
+
+{#if $dnsState.is(dnsState.OK)}
   <section class='instructions'>
     <h4>Instructions</h4>
 

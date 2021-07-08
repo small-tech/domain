@@ -8,6 +8,8 @@
   export let settings
   export let socket
   export let state = new ServiceState()
+
+  export let active
 </script>
 
 {#if settings}
@@ -36,7 +38,7 @@
   {/if}
 
   {#if settings.payment.provider === 2}
-    <PaymentProviderStripe {settings} {socket} model={settings.payment.providers[2]} bind:state={state} />
+    <PaymentProviderStripe {active} {settings} {socket} model={settings.payment.providers[2]} bind:state={state} />
   {/if}
 {/if}
 
