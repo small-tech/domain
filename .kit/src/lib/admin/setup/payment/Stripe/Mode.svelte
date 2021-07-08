@@ -98,8 +98,9 @@
 
     // Validate the publishable key (we can only validate this client-side
     // by creating a harmless dummy call and seeing if we get an error or not).
-
-    stripe = await loadStripe(model.publishableKey)
+    stripe = await loadStripe(model.publishableKey, {
+      apiVersion: '2020-08-27'
+    })
 
     const result = await stripe.createSource({
       type: 'ideal',

@@ -4,7 +4,10 @@ const stripeWithSecretKey = require('stripe')
 module.exports = async (remote, message) => {
   console.log('message', message)
   const stripeDetails = db.settings.payment.providers[2].modeDetails[message.modeId === 'live' ? 1 : 0]
-  const stripe = stripeWithSecretKey(stripeDetails.secretKey)
+
+  const stripe = stripeWithSecretKey(stripeDetails.secretKey, {
+    apiVersion: '2020-08-27'
+  })
 
   const domain = db.settings.dns.domain
 
