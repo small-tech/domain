@@ -1,8 +1,6 @@
 
 export default async function (state, settings, remote) {
   state.set(state.PROCESSING)
-
-  console.log('validating DNS…')
   if (
     settings.dns.domain !== ''
     && parseInt(settings.dns.accountId) !== NaN

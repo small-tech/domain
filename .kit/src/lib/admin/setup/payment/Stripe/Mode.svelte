@@ -4,6 +4,7 @@
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import StatusMessage from '$lib/admin/setup/StatusMessage.svelte'
   import ServiceState from '$lib/admin/setup/ServiceState.js'
+  import validateDns from '$lib/admin/setup/validateDns.js'
 
   import Remote from '@small-tech/remote'
 
@@ -17,6 +18,8 @@
   const remote = new Remote(socket)
 
   let state = new ServiceState()
+
+  let dnsState = new ServiceState()
 
   const keysState = new ServiceState()
   const publishableKeyState = new ServiceState()
@@ -51,14 +54,19 @@
     }
   }
 
-  function validateKeys () {
-    if (publishableKeyState.is(publishableKeyState.OK) && secretKeyState.is(secretKeyState.OK)) {
-      keysState.set(keysState.OK)
-      getStripeObjects()
-    } else if (publishableKeyState.is(publishableKeyState.NOT_OK) || (secretKeyState.is(secretKeyState.NOT_OK))) {
-      keysState.set(keysState.NOT_OK)
-    } else {
-      keysState.set(keysState.UNKNOWN)
+  async function validateKeys () {
+    keysState.set(keysState.PROCESSING)
+
+    await validatePublishableKey()
+
+    if (publishableKeyState.is(publishableKeyState.NOT_OK)) {
+      return keysState.set(keysState.NOT_OK)
+    }
+
+    await validateSecretKey()
+
+    if (secretKeyState.is(secretKeyState.NOT_OK)) {
+      return keysState.set(keysState.NOT_OK)
     }
   }
 
@@ -86,46 +94,41 @@
     })
 
     if (result.error) {
-      if (result.error.type === 'invalid_request_error' && result.error.message.startsWith('Invalid API Key provided')) {
-        console.log('publishable key NOT ok')
-        publishableKeyState.set(publishableKeyState.NOT_OK)
-        validateKeys()
-        return
+      if (result.error.type !== 'invalid_request_error' || !result.error.message.startsWith('Invalid API Key provided')) {
+        console.log('Unexpected error encountered while checking validity of publishable key:', result.error)
       }
-    } else {
-      console.log('publishable key ok')
-      publishableKeyState.set(publishableKeyState.OK)
-      validateKeys()
+      return publishableKeyState.set(publishableKeyState.NOT_OK)
     }
+
+    publishableKeyState.set(publishableKeyState.OK)
   }
 
-  function validateSecretKey() {
+  async function validateSecretKey() {
     console.log('Stripe Mode component: validate secret key for mode:', model.id)
+
     secretKeyState.set(secretKeyState.PROCESSING)
-    remote.paymentProviders.stripe.secretKey.validate.request.send({ modeId: model.id })
+
+    const response = await remote.paymentProviders.stripe.secretKey.validate.request.await({ modeId: model.id })
+    console.log(`Stripe Mode component: received secret key validation response:`, response)
+
+    secretKeyState.set(response.ok ? secretKeyState.OK : secretKeyState.NOT_OK)
   }
 
   async function validateSettings() {
     console.log('Stripe Mode component: validate settings for mode:', model.id)
 
-    await validatePublishableKey()
-    validateSecretKey()
+    await validateKeys()
   }
 
   // Event handlers.
 
-  onMount(() => {
+  onMount(async () => {
     console.log(`Stripe Mode component: settings loaded. Validating settings for mode ${model.id}`)
-    validateSettings()
-  })
+    // validateSettings()
 
-  remote.paymentProviders.stripe.secretKey.validate.response.handler = function (message) {
-    if (message.modeId === model.id) {
-      console.log(`Stripe Mode component: received secret key validation response:`, message)
-      secretKeyState.set(message.ok ? secretKeyState.OK : secretKeyState.NOT_OK)
-      validateKeys()
-    }
-  }
+    // await validateDns(dnsState, settings, remote)
+
+  })
 </script>
 
 <h4>{model.title}</h4>
