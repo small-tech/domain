@@ -23,7 +23,7 @@ module.exports = async (remote, message) => {
   try {
     await validateDns()
   } catch (error) {
-    remote.paymentProviders.stripe.objects.get.request.respond({ error })
+    remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
     return
   }
 
@@ -39,7 +39,7 @@ module.exports = async (remote, message) => {
     try {
       product = await createProduct(domain, stripe)
     } catch (error) {
-      return remote.paymentProviders.stripe.objects.get.request.respond({ error })
+      return remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
     }
     stripeDetails.productId = product.id
   }
@@ -49,7 +49,7 @@ module.exports = async (remote, message) => {
     try {
       price = await createPrice(domain, stripe)
     } catch (error) {
-      return remote.paymentProviders.stripe.objects.get.request.respond({ error })
+      return remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
     }
     stripeDetails.priceId = price.id
   }
@@ -59,7 +59,7 @@ module.exports = async (remote, message) => {
     try {
       webhook = await createWebhook(domain, webhookUrl, stripe)
     } catch (error) {
-      return remote.paymentProviders.stripe.objects.get.request.respond({ error })
+      return remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
     }
     stripeDetails.webhookId = webhook.id
   }
@@ -78,7 +78,7 @@ module.exports = async (remote, message) => {
       try {
         product = await createProduct(domain, stripe)
       } catch (error) {
-        return remote.paymentProviders.stripe.objects.get.request.respond({ error })
+        return remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
       }
     }
   }
@@ -92,7 +92,7 @@ module.exports = async (remote, message) => {
       try {
         price = await createPrice(domain, stripe)
       } catch (error) {
-        return remote.paymentProviders.stripe.objects.get.request.respond({ error })
+        return remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
       }
     }
   }
@@ -106,14 +106,14 @@ module.exports = async (remote, message) => {
       try {
         webhook = await createWebhook(domain, webhookUrl, stripe)
       } catch (error) {
-        remote.paymentProviders.stripe.objects.get.request.respond({ error })
+        remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
       }
     }
   }
 
   // OK, if we made it here, all should be good and we have the Stripe objects to return.
 
-  remote.paymentProviders.stripe.objects.get.request.respond({ product, price, webhook})
+  remote.paymentProviders.stripe.objects.get.request.respond(message, { product, price, webhook})
 }
 
 
