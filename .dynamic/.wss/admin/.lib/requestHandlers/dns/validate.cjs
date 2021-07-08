@@ -5,11 +5,11 @@ module.exports = async (remote, message) => {
 
   let dnsAccountDetails
   try {
-    dnsAccountDetails = validateDns()
-    remote.dns.validate.response.send({
+    dnsAccountDetails = await validateDns()
+    remote.dns.validate.request.respond(message, {
       details: dnsAccountDetails
     })
   } catch (error) {
-    remote.dns.validate.error.send({ error })
+    remote.dns.validate.request.respond(message, { error: error.message })
   }
 }

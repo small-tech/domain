@@ -2,6 +2,7 @@
   import Remote from '@small-tech/remote'
   import ServiceState from './ServiceState.js'
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
+  import validateDns from './validateDns.js'
 
   export let settings
 
@@ -15,21 +16,11 @@
   let accountIdInput
   let accessTokenInput
 
-  function validateSettings() {
-    state.set(state.PROCESSING)
-
-    if (
-      settings.dns.domain !== ''
-      && parseInt(settings.dns.accountId) !== NaN
-      && settings.dns.accessToken !== ''
-    ) {
-      remote.dns.validate.request.send()
-    }
+  async function validateSettings() {
+    validateDns(state, settings, remote)
   }
 
-  remote.settings.handler = () => validateSettings()
-  remote.dns.validate.response.handler = () => state.set(state.OK)
-  remote.dns.validate.error.handler = message => state.set(state.NOT_OK, { error: message.error })
+  remote.settings.handler = async () => await validateSettings()
 </script>
 
   <h3 id='dns'>DNS Settings</h3>

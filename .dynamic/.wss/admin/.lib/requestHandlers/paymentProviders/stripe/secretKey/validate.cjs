@@ -15,8 +15,8 @@ module.exports = async (remote, message) => {
   try {
     balance = await stripe.balance.retrieve()
   } catch (error) {
-    return remote.paymentProviders.stripe.secretKey.validate.response.send({ ok: false, modeId: message.modeId, error })
+    return remote.paymentProviders.stripe.secretKey.validate.request.respond(message, { ok: false, modeId: message.modeId, error })
   }
 
-  remote.paymentProviders.stripe.secretKey.validate.response.send({ ok: true, modeId: message.modeId })
+  remote.paymentProviders.stripe.secretKey.validate.request.respond(message, { ok: true, modeId: message.modeId })
 }
