@@ -28,62 +28,33 @@
   const productState = new ServiceState()
   const webhookState = new ServiceState()
 
-  let productLink
-  let priceLink
-  let webhookLink
-
   let stripe
 
-  async function validateStripeObjects() {
-    console.log('~~~ validateStripeObjects ~~~')
+  async function getStripeObjects() {
+    console.log('~~~ getStripeObjects ~~~')
 
-    // Don’t fire off another validation request if one is already active.
-    if (stripeObjectsState.is(stripeObjectsState.PROCESSING)) {
-      console.log('============ stripe object validation request active, not firing new one =============')
+    if (stripeObjectsState.is(stripeObjectsState.OK)) {
+      // TODO: Ensure this doesn’t result in stale data.
+      console.log('============ Already have Stripe objects. Not requesting again. =============')
       return
     }
 
-    stripeObjectsState.set(stripeObjectsState.UNKNOWN)
-    if (model.productId === '' || model.priceId === '' || model.webhookId === '') {
-      stripeObjectsState.set(stripeObjectsState.PROCESSING)
+    stripeObjectsState.set(stripeObjectsState.PROCESSING)
 
-      console.log('MODE ID', model.id)
-
-      let product
-      productState.set(productState.PROCESSING)
-      try {
-        price = await remote.paymentProviders.stripe.products.create.request.await({modeId: model.id})
-      } catch (error) {
-        productState.set(productState.NOT_OK)
-        console.log('Product error', error)
-        return
-      }
-      productState.set(productState.OK)
-      console.log('product', product)
-
-      // let price
-      // priceState.set(priceState.PROCESSING)
-      // try {
-      //   price = await remote.paymentProviders.stripe.prices.create.request.await({modeId: model.id})
-      // } catch (error) {
-      //   priceState.set(priceState.NOT_OK)
-      //   console.log('Price error', error)
-      //   return
-      // }
-      // priceState.set(priceState.OK)
-      // console.log('price', price)
-
-      // const product = await remote.paymentProviders.stripe.products.create({modeId: model.id})
-
-      // const webhook = await remote.paymentProviders.stripe.webhooks.create({modeId: model.id})
-
+    try {
+      const objects = await remote.paymentProviders.stripe.objects.get.request.await({modeId: model.id})
+      console.log('Got stripe objects', objects)
+      stripeObjectsState.set(stripeObjectsState.OK, { objects })
+    } catch (error) {
+      stripeObjectsState.set(stripeObjectsState.NOT_OK, { error })
+      console.log('Error getting Stripe objects', error)
     }
   }
 
   function validateKeys () {
     if (publishableKeyState.is(publishableKeyState.OK) && secretKeyState.is(secretKeyState.OK)) {
       keysState.set(keysState.OK)
-      validateStripeObjects()
+      getStripeObjects()
     } else if (publishableKeyState.is(publishableKeyState.NOT_OK) || (secretKeyState.is(secretKeyState.NOT_OK))) {
       keysState.set(keysState.NOT_OK)
     } else {
@@ -170,19 +141,36 @@
 {#if $keysState.is(keysState.OK)}
   <details open transition:slide>
     <summary><StatusMessage state={stripeObjectsState}>Stripe Objects</StatusMessage></summary>
-      <p>These objects are automatically configured in Stripe for you.</p>
+      {#if $stripeObjectsState.is(stripeObjectsState.OK)}
+        <p>These objects were automatically configured for you in your Stripe account.</p>
 
-      <ul class='serverCreationProgress'>
-        <li>
-          <StatusMessage state={productState}>Product</StatusMessage>
-        </li>
-        <li>
-          <StatusMessage state={priceState}>Price</StatusMessage>
-        </li>
-        <li>
-          <StatusMessage state={webhookState}>Webhook</StatusMessage>
-        </li>
-      </ul>
+        <h3>Product</h3>
+
+        {stripeObjectsState.OK.product}
+
+        <h3>Price</h3>
+
+        {stripeObjectsState.OK.price}
+
+        <h3>Webhook</h3>
+
+        {stripeObjectsState.OK.webhook}
+      {/if}
+
+      {#if $stripeObjectsState.is(stripeObjectsState.NOT_OK)}
+        <p>There was an error while attempting to create your Stripe objects:</p>
+        <p>{stripeObjectsState.NOT_OK.error}</p>
+      {/if}
+
+      {#if $stripeObjectsState.is(stripeObjectsState.PROCESSING)}
+        <p>Your Stripe objects are being created…</p>
+
+        <ul class='serverCreationProgress'>
+          <li><StatusMessage state={productState}>Product</StatusMessage></li>
+          <li><StatusMessage state={priceState}>Price</StatusMessage></li>
+          <li><StatusMessage state={webhookState}>Webhook</StatusMessage></li>
+        </ul>
+      {/if}
   </details>
 {/if}
 
