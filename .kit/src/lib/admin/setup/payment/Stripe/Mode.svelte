@@ -4,7 +4,6 @@
   import SensitiveTextInput from '$lib/SensitiveTextInput.svelte'
   import StatusMessage from '$lib/admin/setup/StatusMessage.svelte'
   import ServiceState from '$lib/admin/setup/ServiceState.js'
-  import validateDns from '$lib/admin/setup/validateDns.js'
 
   import Remote from '@small-tech/remote'
 
@@ -19,8 +18,6 @@
 
   let state = new ServiceState()
 
-  let dnsState = new ServiceState()
-
   const keysState = new ServiceState()
   const publishableKeyState = new ServiceState()
   const secretKeyState = new ServiceState()
@@ -32,6 +29,14 @@
   const webhookState = new ServiceState()
 
   let stripe
+
+  // Since the publishable key and the secret key may be validated
+  // separately, this ties their cumulative state together.
+  $: if ($publishableKeyState.is(publishableKeyState.OK) && $secretKeyState.is(secretKeyState.OK)) {
+    keysState.set(keysState.OK)
+  } else if ($publishableKeyState.is(publishableKeyState.NOT_OK) || $secretKeyState.is(secretKeyState.NOT_OK)) {
+    keysState.set(keysState.NOT_OK)
+  }
 
   async function getStripeObjects() {
     console.log('~~~ getStripeObjects ~~~')
@@ -68,6 +73,8 @@
     if (secretKeyState.is(secretKeyState.NOT_OK)) {
       return keysState.set(keysState.NOT_OK)
     }
+
+    keysState.set(keysState.OK)
   }
 
   async function validatePublishableKey() {
@@ -124,22 +131,21 @@
 
   onMount(async () => {
     console.log(`Stripe Mode component: settings loaded. Validating settings for mode ${model.id}`)
-    // validateSettings()
-
-    // await validateDns(dnsState, settings, remote)
-
+    validateSettings()
   })
 </script>
 
 <h4>{model.title}</h4>
 <p>Your Stripe account will be automatically configured once you add your Stripe keys.</p>
 
+<pre><StatusMessage state={keysState}>Keys</StatusMessage></pre>
+
 <label for={`${model.id}PublishableKey`}><StatusMessage state={publishableKeyState}>Publishable key</StatusMessage></label>
 
-<input id={`${model.id}PublishableKey`} type='text' bind:value={model.publishableKey} on:input={validatePublishableKey()}/>
+<input id={`${model.id}PublishableKey`} type='text' bind:value={model.publishableKey} on:input={validatePublishableKey}/>
 
 <label for={`${model.id}SecretKey`}><StatusMessage state={secretKeyState}>Secret key</StatusMessage></label>
-<SensitiveTextInput id={`${model.id}SecretKey`} bind:value={model.secretKey} on:input={validateSecretKey()}/>
+<SensitiveTextInput id={`${model.id}SecretKey`} bind:value={model.secretKey} on:input={validateSecretKey}/>
 
 {#if $keysState.is(keysState.OK)}
   <details open transition:slide>
