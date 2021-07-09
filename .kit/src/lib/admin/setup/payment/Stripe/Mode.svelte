@@ -191,7 +191,17 @@
 
         <h3>Product</h3>
 
-        <a href='{`${stripeDashboardBaseUrl}/products/${stripeObjectsState.OK.product.id}`}'>View the product in your Stripe dashboard.</a>
+        <img class='productImage' src={stripeObjectsState.OK.product.images[0]} alt='Product logo'/>
+
+        <h4 style='font-size:2em; margin: 0; padding: 0;'>{stripeObjectsState.OK.product.name}</h4>
+
+        <p style='font-size: 1.25em; margin: 0; margin-bottom: 2em; clear: right;'>{stripeObjectsState.OK.product.description}</p>
+
+        <p>This {stripeObjectsState.OK.product.livemode === false ? '(test)' : ''} product is {stripeObjectsState.OK.product.active ? 'active' : 'not active.'} and was created on {Date(stripeObjectsState.OK.product.created)} {stripeObjectsState.OK.product.created === stripeObjectsState.OK.product.updated ? '' : ` and last updated on ${Date(stripeObjectsState.OK.product.updated)}`}.</p>
+
+        <p>It will appear on statements as “{stripeObjectsState.OK.product.statement_descriptor}” when purchased.</p>
+
+        <p><a href='{`${stripeDashboardBaseUrl}/products/${stripeObjectsState.OK.product.id}`}'>View product in Stripe dashboard.</a>.</p>
 
         <h3>Price</h3>
 
@@ -249,5 +259,13 @@
     font-size: 1.5em;
     line-height: 1.5;
     margin: 0;
+  }
+
+  .productImage {
+    width: 5em;
+    /* border: 1px solid grey; */
+    padding: 0.5em;
+    float: left;
+    margin-right: 2em;
   }
 </style>
