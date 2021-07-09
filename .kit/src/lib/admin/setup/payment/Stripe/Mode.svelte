@@ -11,6 +11,11 @@
 
   import { slide } from 'svelte/transition'
 
+  import {
+    currencyDetailsForCurrencyCode,
+    zeroDecimalCurrencies
+  } from '$lib/StripeCurrencies.js'
+
   export let model
 
   export let socket
@@ -115,6 +120,17 @@
     }
   }
 
+  function formatStripePriceForDisplay(currencyCode, priceInStripeUnits) {
+    const priceInDisplayUnits = zeroDecimalCurrencies.includes(currencyCode) ? priceInStripeUnits : priceInStripeUnits / 100
+
+    // Format the minimum currency requirement for display to human beings.
+    const currencyDetails = currencyDetailsForCurrencyCode(currencyCode)
+    let formattedPrice = currencyDetails.template
+    formattedPrice = formattedPrice.replace('$', currencyDetails.symbol)
+    formattedPrice = formattedPrice.replace('1',priceInDisplayUnits)
+    return formattedPrice
+  }
+
   async function validatePublishableKey() {
     publishableKeyState.set(publishableKeyState.PROCESSING)
 
@@ -189,11 +205,11 @@
       {#if $stripeObjectsState.is(stripeObjectsState.OK)}
         <p>These objects were automatically configured for you in your Stripe account.</p>
 
-        <h3>Product</h3>
+        <h3 style='font-size: 2em; margin-bottom: 0.5em;'>Product</h3>
 
         <img class='productImage' src={stripeObjectsState.OK.product.images[0]} alt='Product logo'/>
 
-        <h4 style='font-size:2em; margin: 0; padding: 0;'>{stripeObjectsState.OK.product.name}</h4>
+        <h4 style='font-size:2em; margin: 0; margin-bottom: 0.125em; padding: 0; font-weight: normal;'>{stripeObjectsState.OK.product.name}</h4>
 
         <p style='font-size: 1.25em; margin: 0; margin-bottom: 2em; clear: right;'>{stripeObjectsState.OK.product.description}</p>
 
@@ -201,15 +217,25 @@
 
         <p>It will appear on statements as “{stripeObjectsState.OK.product.statement_descriptor}” when purchased.</p>
 
-        <p><a href='{`${stripeDashboardBaseUrl}/products/${stripeObjectsState.OK.product.id}`}'>View product in Stripe dashboard.</a>.</p>
+        <p>Stripe will automatically calculate taxes using the <a href='https://stripe.com/docs/tax/tax-codes'>tax code</a> for {stripeObjectsState.OK.product.tax_code === 'txcd_10103000' ? 'Software as a service (SaaS)' : stripeObjectsState.OK.product.tax_code} if you have <a href='https://stripe.com/docs/tax'>Stripe Tax</a> enabled (currently invite-only).</p>
 
-        <h3>Price</h3>
+        <p><a href='{`${stripeDashboardBaseUrl}/products/${stripeObjectsState.OK.product.id}`}'>View product in Stripe dashboard.</a></p>
 
-        <a href='{`${stripeDashboardBaseUrl}/prices/${stripeObjectsState.OK.price.id}`}'>View the price in your Stripe dashboard.</a>
+        <h3 style='font-size: 2em; margin-bottom: 0;'>Price</h3>
 
-        <h3>Webhook</h3>
+        <p><strong>{formatStripePriceForDisplay(stripeObjectsState.OK.price.currency, stripeObjectsState.OK.price.unit_amount)}</strong> (tax {stripeObjectsState.OK.price.tax_behavior}) {stripeObjectsState.OK.price.type}
+          {
+            stripeObjectsState.OK.price.type === 'recurring' ?
+              `(every ${stripeObjectsState.OK.price.recurring.interval_count === 1 ? '' :
+                stripeObjectsState.OK.price.recurring.interval_count} ${stripeObjectsState.OK.price.recurring.interval}${stripeObjectsState.OK.price.recurring.interval_count === 1 ? '' : 's'})`
+            : ''
+          }.</p>
 
-        <a href='{`${stripeDashboardBaseUrl}/webhooks/${stripeObjectsState.OK.webhook.id}`}'>View the webhook in your Stripe dashboard.</a>
+        <p><a href='{`${stripeDashboardBaseUrl}/prices/${stripeObjectsState.OK.price.id}`}'>View the price in your Stripe dashboard.</a></p>
+
+        <h3 style='font-size: 2em; margin-bottom: 0;'>Webhook</h3>
+
+        <p><a href='{`${stripeDashboardBaseUrl}/webhooks/${stripeObjectsState.OK.webhook.id}`}'>View the webhook in your Stripe dashboard.</a></p>
 
       {/if}
 
