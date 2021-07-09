@@ -235,6 +235,14 @@
 
         <h3 style='font-size: 2em; margin-bottom: 0;'>Webhook</h3>
 
+        <p>Stripe will call <strong>{stripeObjectsState.OK.webhook.url}</strong> on the following events:</p>
+
+        <ul>
+          {#each stripeObjectsState.OK.webhook.enabled_events as event}
+            <li>{event.replace(/\./g, ' ')}</li>
+          {/each}
+        </ul>
+
         <p><a href='{`${stripeDashboardBaseUrl}/webhooks/${stripeObjectsState.OK.webhook.id}`}'>View the webhook in your Stripe dashboard.</a></p>
 
       {/if}
