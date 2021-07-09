@@ -15,7 +15,9 @@ module.exports = async (remote, message) => {
     apiVersion: '2020-08-27'
   })
 
-  let product, price, webhook = null
+  let product = null
+  let price = null
+  let webhook = null
 
   // Before we can create Stripe objects, the DNS settings and domain
   // must be valid. TODO: implementing this check here so that we’re thorough,
@@ -42,8 +44,8 @@ module.exports = async (remote, message) => {
   if (stripeDetails.productId === '') {
     // Product does not exist. Attempt to create it.
     console.log('[Stripe: getObjects] Product does not exist. Attempting to create it…')
+    remote.paymentProviders.stripe.objects.get.progress.processing.product.send({ mode })
     try {
-      remote.paymentProviders.stripe.objects.get.progress.creatingProduct.send()
       product = await createProduct(domain, stripe)
     } catch (error) {
       console.log('[Stripe: getObjects] Error: product creation failed', error)
@@ -51,13 +53,14 @@ module.exports = async (remote, message) => {
     }
     console.log('[Stripe: getObjects] Product creation succeeded. Product id:', product.id)
     stripeDetails.productId = product.id
+    remote.paymentProviders.stripe.objects.get.progress.ok.product.send({ mode })
   }
 
   if (stripeDetails.priceId === '') {
     // Price does not exist. Attempt to create it.
     console.log('[Stripe: getObjects] Price does not exist. Attempting to create it…')
+    remote.paymentProviders.stripe.objects.get.progress.processing.price.send({ mode })
     try {
-      remote.paymentProviders.stripe.objects.get.progress.creatingPrice.send()
       price = await createPrice(domain, stripe)
     } catch (error) {
       console.log('[Stripe: getObjects] Error: price creation failed', error)
@@ -65,13 +68,14 @@ module.exports = async (remote, message) => {
     }
     console.log('[Stripe: getObjects] Price creation succeeded. Price id:', price.id)
     stripeDetails.priceId = price.id
+    remote.paymentProviders.stripe.objects.get.progress.ok.price.send({ mode })
   }
 
   if (stripeDetails.webhookId === '') {
     // Webhook does not exist. Attempt to create it.
     console.log('[Stripe: getObjects] Webhook does not exist. Attempting to create it…')
+    remote.paymentProviders.stripe.objects.get.progress.processing.webhook.send({ mode })
     try {
-      remote.paymentProviders.stripe.objects.get.progress.creatingWebhook.send()
       webhook = await createWebhook(domain, webhookUrl, stripe)
     } catch (error) {
       console.log('[Stripe: getObjects] Error: Webhook creation failed', error)
@@ -79,6 +83,7 @@ module.exports = async (remote, message) => {
     }
     console.log('[Stripe: getObjects] Webhook creation succeeded. Webhook id:', webhook.id)
     stripeDetails.webhookId = webhook.id
+    remote.paymentProviders.stripe.objects.get.progress.ok.webhook.send({ mode })
   }
 
   // At this point, the Stripe object IDs should exist in the database
@@ -87,6 +92,7 @@ module.exports = async (remote, message) => {
 
   if (product === null) {
     console.log('[Stripe: getObjects] Product not loaded. Attempting to load. Id: ', stripeDetails.productId)
+    remote.paymentProviders.stripe.objects.get.progress.processing.product.send({ mode })
     try {
       product = await stripe.products.retrieve(stripeDetails.productId)
     } catch (error) {
@@ -102,10 +108,12 @@ module.exports = async (remote, message) => {
       console.log('[Stripe: getObjects] Product created. Product id:', product.id)
     }
     console.log('[Stripe: getObjects] Product loaded. Product id:', product.id)
+    remote.paymentProviders.stripe.objects.get.progress.ok.product.send({ mode })
   }
 
   if (price === null) {
     console.log('[Stripe: getObjects] Price not loaded. Attempting to load. Id: ', stripeDetails.priceId)
+    remote.paymentProviders.stripe.objects.get.progress.processing.price.send({ mode })
     try {
       price = await stripe.prices.retrieve(stripeDetails.priceId)
     } catch (error) {
@@ -120,10 +128,12 @@ module.exports = async (remote, message) => {
       console.log('[Stripe: getObjects] Price created. Price id:', price.id)
     }
     console.log('[Stripe: getObjects] Price loaded. Price id:', product.id)
+    remote.paymentProviders.stripe.objects.get.progress.ok.price.send({ mode })
   }
 
   if (webhook === null) {
     console.log('[Stripe: getObjects] Webhook not loaded. Attempting to load. Id: ', stripeDetails.webhookId)
+    remote.paymentProviders.stripe.objects.get.progress.processing.webhook.send({ mode })
     try {
       webhook = await stripe.webhookEndpoints.retrieve(stripeDetails.webhookId)
     } catch (error) {
@@ -138,11 +148,12 @@ module.exports = async (remote, message) => {
       console.log('[Stripe: getObjects] Webhook created. Webhook id:', webhook.id)
     }
     console.log('[Stripe: getObjects] Webhook loaded. Webhook id:', webhook.id)
+    remote.paymentProviders.stripe.objects.get.progress.ok.webhook.send({ mode })
   }
 
   // OK, if we made it here, all should be good and we have the Stripe objects to return.
   console.log('[Stripe: getObjects] All good. Returning Stripe objects.')
-  remote.paymentProviders.stripe.objects.get.request.respond(message, { product, price, webhook})
+  remote.paymentProviders.stripe.objects.get.request.respond(message, { product, price, webhook })
 }
 
 function productIdFromDomain(domain) {

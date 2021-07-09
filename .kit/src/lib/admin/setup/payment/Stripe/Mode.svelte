@@ -28,6 +28,9 @@
   const productState = new ServiceState()
   const webhookState = new ServiceState()
 
+  const stripeDashboardBaseUrl = `https://dashboard.stripe.com${model.id === 'test' ? `/test` : ``}`
+  console.log('stripeDashboardBaseUrl', stripeDashboardBaseUrl)
+
   let stripe
 
   // Since the publishable key and the secret key may be validated
@@ -62,8 +65,8 @@
         stripeObjectsState.set($stripeObjectsState.NOT_OK, { error: response.error })
         return
       } else {
-        console.log('Got stripe objects', objects)
-        stripeObjectsState.set(stripeObjectsState.OK, { objects })
+        console.log('Got stripe objects', response)
+        stripeObjectsState.set(stripeObjectsState.OK, response)
       }
     } catch (error) {
       stripeObjectsState.set(stripeObjectsState.NOT_OK, { error })
@@ -73,14 +76,26 @@
 
   // Remote event handlers.
 
-  remote.paymentProviders.stripe.objects.get.progress.creatingProduct.handler =
+  remote.paymentProviders.stripe.objects.get.progress.processing.product.handler =
     () => productState.set(productState.PROCESSING)
 
-  remote.paymentProviders.stripe.objects.get.progress.creatingPrice.handler =
+  remote.paymentProviders.stripe.objects.get.progress.processing.price.handler =
     () => priceState.set(priceState.PROCESSING)
 
-  remote.paymentProviders.stripe.objects.get.progress.creatingWebhook.handler =
+  remote.paymentProviders.stripe.objects.get.progress.processing.webhook.handler =
     () => webhookState.set(webhookState.PROCESSING)
+
+  remote.paymentProviders.stripe.objects.get.progress.ok.product.handler =
+    () => productState.set(productState.OK)
+
+  remote.paymentProviders.stripe.objects.get.progress.ok.price.handler =
+    () => priceState.set(priceState.OK)
+
+  remote.paymentProviders.stripe.objects.get.progress.ok.webhook.handler =
+    () => webhookState.set(webhookState.OK)
+
+  // Note: we do not have individual error handlers since an error on one causes
+  // ===== a general error that is displayed separately.
 
   // Validation.
 
@@ -161,8 +176,6 @@
 <h4>{model.title}</h4>
 <p>Your Stripe account will be automatically configured once you add your Stripe keys.</p>
 
-<pre><StatusMessage state={keysState}>Keys</StatusMessage></pre>
-
 <label for={`${model.id}PublishableKey`}><StatusMessage state={publishableKeyState}>Publishable key</StatusMessage></label>
 
 <input id={`${model.id}PublishableKey`} type='text' bind:value={model.publishableKey} on:input={validatePublishableKey}/>
@@ -178,15 +191,16 @@
 
         <h3>Product</h3>
 
-        {stripeObjectsState.OK.product}
+        <a href='{`${stripeDashboardBaseUrl}/products/${stripeObjectsState.OK.product.id}`}'>View the product in your Stripe dashboard.</a>
 
         <h3>Price</h3>
 
-        {stripeObjectsState.OK.price}
+        <a href='{`${stripeDashboardBaseUrl}/prices/${stripeObjectsState.OK.price.id}`}'>View the price in your Stripe dashboard.</a>
 
         <h3>Webhook</h3>
 
-        {stripeObjectsState.OK.webhook}
+        <a href='{`${stripeDashboardBaseUrl}/webhooks/${stripeObjectsState.OK.webhook.id}`}'>View the webhook in your Stripe dashboard.</a>
+
       {/if}
 
       {#if $stripeObjectsState.is(stripeObjectsState.NOT_OK)}
