@@ -40,12 +40,12 @@
 
   // When the keys are valid, attempt to load the Stripe objects.
   $: if ($keysState.is(keysState.OK)) {
-    // console.log('Key state is OK, attempting to get Stripe objects…')
-    // getStripeObjects()
+    console.log('Key state is OK, attempting to get Stripe objects…')
+    getStripeObjects()
   }
 
   async function getStripeObjects() {
-    console.log('~~~ getStripeObjects ~~~')
+    console.log(`~~~ getStripeObjects for mode ${model.id} ~~~`)
 
     if (stripeObjectsState.is(stripeObjectsState.OK)) {
       // TODO: Ensure this doesn’t result in stale data.
@@ -56,12 +56,18 @@
     stripeObjectsState.set(stripeObjectsState.PROCESSING)
 
     try {
-      const objects = await remote.paymentProviders.stripe.objects.get.request.await({modeId: model.id})
-      console.log('Got stripe objects', objects)
-      stripeObjectsState.set(stripeObjectsState.OK, { objects })
+      const response = await remote.paymentProviders.stripe.objects.get.request.await({modeId: model.id})
+      if (response.error) {
+        console.error('Error getting Stripe objects', response.error)
+        stripeObjectsState.set($stripeObjectsState.NOT_OK, { error: response.error })
+        return
+      } else {
+        console.log('Got stripe objects', objects)
+        stripeObjectsState.set(stripeObjectsState.OK, { objects })
+      }
     } catch (error) {
       stripeObjectsState.set(stripeObjectsState.NOT_OK, { error })
-      console.log('Error getting Stripe objects', error)
+      console.log('Error in call to get Stripe objects', error)
     }
   }
 
@@ -84,16 +90,14 @@
     await validatePublishableKey()
 
     if (publishableKeyState.is(publishableKeyState.NOT_OK)) {
-      return keysState.set(keysState.NOT_OK)
+      return
     }
 
     await validateSecretKey()
 
     if (secretKeyState.is(secretKeyState.NOT_OK)) {
-      return keysState.set(keysState.NOT_OK)
+      return
     }
-
-    keysState.set(keysState.OK)
   }
 
   async function validatePublishableKey() {
@@ -186,8 +190,17 @@
       {/if}
 
       {#if $stripeObjectsState.is(stripeObjectsState.NOT_OK)}
-        <p>There was an error while attempting to create your Stripe objects:</p>
-        <p>{stripeObjectsState.NOT_OK.error}</p>
+        <h3 style='color: red;'>Error: {stripeObjectsState.NOT_OK.error.raw.message}</h3>
+        <p>Could not create your Stripe objects.</p>
+        <ul>
+          <li><strong>Error type:</strong> {stripeObjectsState.NOT_OK.error.raw.type.replace(/_/g, ' ')}</li>
+          <li><strong>Error code:</strong> <a href='{stripeObjectsState.NOT_OK.error.doc_url}'>{stripeObjectsState.NOT_OK.error.raw.code.replace(/_/g, ' ')}</a></li>
+          {#if stripeObjectsState.NOT_OK.error.raw.param}
+            <li><strong>Affected parameter:</strong> {stripeObjectsState.NOT_OK.error.raw.param}</li>
+          {/if}
+          <li><strong>Status code:</strong> {stripeObjectsState.NOT_OK.error.raw.statusCode}</li>
+          <li><strong>Request ID:</strong> {stripeObjectsState.NOT_OK.error.raw.requestId}</li>
+        </ul>
       {/if}
 
       {#if $stripeObjectsState.is(stripeObjectsState.PROCESSING)}
@@ -217,7 +230,7 @@
     border-bottom: 2px solid grey;
   }
 
-  ul {
+  ul.serverCreationProgress {
     list-style-type: none;
     font-size: 1.5em;
     line-height: 1.5;
