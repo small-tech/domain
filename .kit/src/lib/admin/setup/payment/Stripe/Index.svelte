@@ -14,7 +14,10 @@
 
   import {
     alphabeticallySortedCurrencyDetails,
-    additionalCurrenciesSupportedInUnitedArabEmirates
+    additionalCurrenciesSupportedInUnitedArabEmirates,
+    currencyDetailsForCurrencyCode,
+    minimumChargeAmountsInWholeCurrencyUnits,
+    zeroDecimalCurrencies
   } from '$lib/StripeCurrencies.js'
 
   export let settings
@@ -33,13 +36,27 @@
     live: new ServiceState()
   }
 
-  let stripePrice = model.price
-  let previousStripePrice = stripePrice
-  let formattedMinimumPrice
+  // Convert the price from Stripe units based on whether it is in
+  // a zero-decimal currency or not. For more details, see:
+  // https://stripe.com/docs/currencies#zero-decimal
+  let price = zeroDecimalCurrencies.includes(model.currency) ? model.price : model.price / 100
+  let previousPrice = price
+
+  // See https://stripe.com/docs/currencies#minimum-and-maximum-charge-amounts
+  let minimumPriceForCurrency
+  let formattedMinimumPriceForCurrency
+
   let stripeCurrencyOnlyValidInUnitedArabEmirates = false
-  let minimumStripePriceForCurrency = 1
 
   $: stripeCurrencyOnlyValidInUnitedArabEmirates = additionalCurrenciesSupportedInUnitedArabEmirates.includes(model.currency)
+  $: minimumPriceForCurrency = minimumChargeAmountsInWholeCurrencyUnits[model.currency] === undefined ? 1 : minimumChargeAmountsInWholeCurrencyUnits[model.currency]
+  $: {
+      const currencyDetails = currencyDetailsForCurrencyCode(model.currency)
+      let output = currencyDetails.template
+      output = output.replace('$', currencyDetails.symbol)
+      output = output.replace('1', minimumPriceForCurrency)
+      formattedMinimumPriceForCurrency = output
+  }
 
   // Domain and DNS settings must be configured correctly before you can
   // set up Stripe. Check every time the view becomes active.
@@ -51,26 +68,43 @@
     validateDns(dnsState, settings, remote)
   }
 
-  function priceValidator(node, value) {
-    return {
-      update(value) {
-				stripePrice = value === null || value < node.min ? previousStripePrice : parseInt(value)
-        previousStripePrice = stripePrice
-        model.price = stripePrice
-      }
+  function handleCurrencyChange() {
+    // If Stripe has specified a minimum price for a currency, use that.
+    // If not, we default to 1. (TODO: Talk to Stripe about what to do about this
+    // for currencies not included in the table at
+    // https://stripe.com/docs/currencies#minimum-and-maximum-charge-amounts)
+    minimumPriceForCurrency = minimumChargeAmountsInWholeCurrencyUnits[model.currency] === undefined ? 1 : minimumChargeAmountsInWholeCurrencyUnits[model.currency]
+
+    // Format the minimum currency requirement for display to human beings.
+    const currencyDetails = currencyDetailsForCurrencyCode(model.currency)
+      let output = currencyDetails.template
+      output = output.replace('$', currencyDetails.symbol)
+      output = output.replace('1', minimumPriceForCurrency)
+      formattedMinimumPriceForCurrency = output
+
+    // Check if the price that’s set meets the minimum price requirement
+    // and fix and persist it if it doesn’t.
+    if (price < minimumPriceForCurrency) {
+      price = minimumPriceForCurrency
+      validatePrice()
     }
   }
 
-  // TODO: Implement this in index and then remove from here.
-  // $: {
-  //   if (stripeCurrency) {
-  //     const currencyDetails = currencyDetailsForCurrencyCode(stripeCurrency)
-  //     let output = currencyDetails.template
-  //     output = output.replace('$', currencyDetails.symbol)
-  //     output = output.replace('1', minimumStripePriceForCurrency)
-  //     formattedMinimumPrice = output
-  //   }
-  // }
+  function validatePrice() {
+    // Ensure the price is always valid (an integer and > the minimum allowed for the currency).
+    price = price === null ? previousPrice : price < minimumPriceForCurrency ? minimumPriceForCurrency : parseInt(price)
+
+    if (price === previousPrice) {
+      return
+    }
+
+    previousPrice = price
+
+    // Save the price in Stripe units based on whether it is in
+    // a zero-decimal currency or not. For more details, see:
+    // https://stripe.com/docs/currencies#zero-decimal
+    model.price = zeroDecimalCurrencies.includes(model.currency) ? price : price * 100
+  }
 </script>
 
 {#if $dnsState.is(dnsState.UNKNOWN) || dnsState.is(dnsState.PROCESSING)}
@@ -102,7 +136,7 @@
 
   <label for='currency'>Currency</label>
 
-  <select id='currency' bind:value={model.currency}>
+  <select id='currency' bind:value={model.currency} on:change={handleCurrencyChange}>
     {#each alphabeticallySortedCurrencyDetails as currency, index}
       <option value={currency.code} selected={currency.code === 'eur'}>{currency.label}</option>
     {/each}
@@ -112,8 +146,8 @@
     <p><small><strong>* This currency is only supported if your organisation is set to United Arab Emirates in Stripe.</strong> For more information, please see the <a href='https://stripe.com/docs/currencies'>supported currencies</a> section of the Stripe documentation.</small></p>
   {/if}
 
-  <label for='price'>Price/month</label>
-  <input id='price' type='number' bind:value={stripePrice} use:priceValidator={stripePrice} step='1' min='1' autocomplete='off'/>
+  <label for='price'>Price/month <small>(<a href='https://stripe.com/docs/currencies#minimum-and-maximum-charge-amounts'>Minimum:</a> {formattedMinimumPriceForCurrency})</small></label>
+  <input id='price' type='number' bind:value={price} on:input={validatePrice} step='1' min='{minimumPriceForCurrency}' autocomplete='off'/>
 
   <label for='mode'>Mode</label>
   <Switch id='mode' on:change={event => settings.payment.providers[2].mode = event.detail.checked ? 'live' : 'test'} checked={settings.payment.providers[2].mode === 'live'} handleDiameter='' width=75>
