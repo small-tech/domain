@@ -219,7 +219,7 @@
 
         <p>Stripe will automatically calculate taxes using the <a href='https://stripe.com/docs/tax/tax-codes'>tax code</a> for {stripeObjectsState.OK.product.tax_code === 'txcd_10103000' ? 'Software as a service (SaaS)' : stripeObjectsState.OK.product.tax_code} if you have <a href='https://stripe.com/docs/tax'>Stripe Tax</a> enabled (currently invite-only).</p>
 
-        <p><a href='{`${stripeDashboardBaseUrl}/products/${stripeObjectsState.OK.product.id}`}'>View product in Stripe dashboard.</a></p>
+        <p style='font-size: 1.25em;'><a href='{`${stripeDashboardBaseUrl}/products/${stripeObjectsState.OK.product.id}`}'>View product in Stripe dashboard.</a></p>
 
         <h3 style='font-size: 2em; margin-bottom: 0;'>Price</h3>
 
@@ -231,7 +231,7 @@
             : ''
           }.</p>
 
-        <p><a href='{`${stripeDashboardBaseUrl}/prices/${stripeObjectsState.OK.price.id}`}'>View the price in your Stripe dashboard.</a></p>
+        <p style='font-size: 1.25em;'><a href='{`${stripeDashboardBaseUrl}/prices/${stripeObjectsState.OK.price.id}`}'>View the price in your Stripe dashboard.</a></p>
 
         <h3 style='font-size: 2em; margin-bottom: 0;'>Webhook</h3>
 
@@ -243,7 +243,7 @@
           {/each}
         </ul>
 
-        <p><a href='{`${stripeDashboardBaseUrl}/webhooks/${stripeObjectsState.OK.webhook.id}`}'>View the webhook in your Stripe dashboard.</a></p>
+        <p style='font-size: 1.25em;'><a href='{`${stripeDashboardBaseUrl}/webhooks/${stripeObjectsState.OK.webhook.id}`}'>View the webhook in your Stripe dashboard.</a></p>
 
       {/if}
 
