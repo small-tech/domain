@@ -24,7 +24,7 @@ module.exports = {
       {
         name: 'Stripe',
         currency: 'eur',
-        price: 10,
+        price: 1000,
         modes: ['test', 'live'],
         mode: 'test',
         modeDetails: [
