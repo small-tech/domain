@@ -37,6 +37,7 @@ module.exports = async (remote, message) => {
   if (stripeDetails.productId === '') {
     // Product does not exist. Attempt to create it.
     try {
+      remote.paymentProviders.stripe.objects.get.progress.creatingProduct.send()
       product = await createProduct(domain, stripe)
     } catch (error) {
       return remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
@@ -47,6 +48,7 @@ module.exports = async (remote, message) => {
   if (stripeDetails.priceId === '') {
     // Price does not exist. Attempt to create it.
     try {
+      remote.paymentProviders.stripe.objects.get.progress.creatingPrice.send()
       price = await createPrice(domain, stripe)
     } catch (error) {
       return remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
@@ -57,6 +59,7 @@ module.exports = async (remote, message) => {
   if (stripeDetails.webhookId === '') {
     // Webhook does not exist. Attempt to create it.
     try {
+      remote.paymentProviders.stripe.objects.get.progress.creatingWebhook.send()
       webhook = await createWebhook(domain, webhookUrl, stripe)
     } catch (error) {
       return remote.paymentProviders.stripe.objects.get.request.respond(message, { error })
@@ -145,7 +148,7 @@ async function createPrice(domain, stripe) {
 
     // TODO: Ensure this is in Stripe units.
     unit_amount: db.settings.payment.price,
-    product_id: `prod_small-web_${domain}`,
+    product: `prod_small-web_${domain}`,
     nickname: `Price for ${domain} (monthly)`,
     recurring: {
       interval: 'month'
