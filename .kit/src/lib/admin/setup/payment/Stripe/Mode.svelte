@@ -38,6 +38,12 @@
     keysState.set(keysState.NOT_OK)
   }
 
+  // When the keys are valid, attempt to load the Stripe objects.
+  $: if ($keysState.is(keysState.OK)) {
+    // console.log('Key state is OK, attempting to get Stripe objects…')
+    // getStripeObjects()
+  }
+
   async function getStripeObjects() {
     console.log('~~~ getStripeObjects ~~~')
 
@@ -58,6 +64,19 @@
       console.log('Error getting Stripe objects', error)
     }
   }
+
+  // Remote event handlers.
+
+  remote.paymentProviders.stripe.objects.get.progress.creatingProduct.handler =
+    () => productState.set(productState.PROCESSING)
+
+  remote.paymentProviders.stripe.objects.get.progress.creatingPrice.handler =
+    () => priceState.set(priceState.PROCESSING)
+
+  remote.paymentProviders.stripe.objects.get.progress.creatingWebhook.handler =
+    () => webhookState.set(webhookState.PROCESSING)
+
+  // Validation.
 
   async function validateKeys () {
     keysState.set(keysState.PROCESSING)
