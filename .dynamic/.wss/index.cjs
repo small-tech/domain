@@ -34,6 +34,9 @@ module.exports = function (client, request) {
           quantity: 1
         }
       ],
+      // TODO: Instead of using the domain, pass the domain from the client here
+      // ===== so that it also works when testing from localhost, etc.
+      // TODO: Implement these endpoints.
       success_url: `https://${db.settings.dns.domain}/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://${db.settings.dns.domain}/stripe/cancelled`
     })

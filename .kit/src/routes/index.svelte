@@ -59,6 +59,7 @@
   onMount(() => {
     mounted = true
     const baseUrl = document.location.hostname
+    console.log(`wss://${baseUrl}/`)
     ws = new WebSocket(`wss://${baseUrl}/`)
     remote = new Remote(ws)
   })
