@@ -67,6 +67,10 @@
   }
 </script>
 
+{#if config.payment.mode === 'test'}
+  <div class='testMode'>Test Mode</div>
+{/if}
+
 <main class='site'>
   {#if !serverError}
     <form>
@@ -118,6 +122,11 @@
 <!-- <SvelteToast /> -->
 
 <style>
+
+  :global(body) {
+    margin: 0;
+    padding: 0;
+  }
 
   aside {
     font-size: 1.5em;
@@ -216,6 +225,18 @@
 
   button:focus {
     background-color: hsl(158, 72%, 29%) !important;
+  }
+
+  .testMode {
+    font-size: 1.25em;
+    position: static;
+    x: 0;
+    y: 0;
+    padding-top: 0.5em;
+    height: 2em;
+    color: white;
+    background-color: red;
+    text-align: center;
   }
 
   #server-error h1 {
