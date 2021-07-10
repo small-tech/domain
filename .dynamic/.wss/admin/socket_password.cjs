@@ -32,7 +32,7 @@ module.exports = function (client, request) {
 
   const remote = new Remote(client)
 
-  // Note using Remote here as we have unique routing requirements for requests.
+  // Not using Remote here as we have unique routing requirements for requests.
   client.on('message', async data => {
     const message = JSON.parse(data)
 
