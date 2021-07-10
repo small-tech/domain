@@ -34,9 +34,10 @@ module.exports = (request, response) => {
   }
 
   if (settings.payment.provider === 2 /* Stripe */) {
-    settings.payment.mode = db.settings.payment.mode,
-    settings.payment.currency = db.settings.payment.currency,
-    settings.payment.price = db.settings.payment.price
+    const stripe = db.settings.payment.providers[2]
+    settings.payment.mode = stripe.mode,
+    settings.payment.currency = stripe.currency,
+    settings.payment.price = stripe.price
   }
 
   response.json(settings)
