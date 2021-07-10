@@ -28,6 +28,8 @@
   export let config
   export let serverError
 
+  import Remote from '@small-tech/remote'
+
   import DomainChecker from '$lib/DomainChecker.svelte'
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
   import Modal from '$lib/Modal.svelte'
@@ -35,7 +37,7 @@
   import stretchy from '$lib/stretchy.js'
   import { goto } from '$app/navigation'
 
-  import {browser} from '$app/env'
+  import { browser } from '$app/env'
 
   if (browser) {
     stretchy()
@@ -51,18 +53,33 @@
   const paymentIsToken = config.payment.provider === PAYMENT_PROVIDERS.token
   const paymentIsStripe = config.payment.provider === PAYMENT_PROVIDERS.stripe
 
+  let ws
   let mounted = false
+  let remote
   onMount(() => {
     mounted = true
+    const baseUrl = document.location.hostname
+    ws = new WebSocket(`wss://${baseUrl}/`)
+    remote = new Remote(ws)
   })
 
   let domain = ''
 
   console.log(config)
 
-  function handleButton() {
+  async function handleButton() {
     if (paymentIsNone) {
-      goto('/admin')
+      return goto('/admin')
+    }
+
+    if (paymentIsStripe) {
+      const response = await remote.create.checkout.session.request.await()
+      console.log('>>>> Got response', response)
+      if (response.error) {
+        // TODO: handle error
+      } else {
+        window.location = response.url
+      }
     }
   }
 </script>
