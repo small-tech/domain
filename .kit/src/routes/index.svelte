@@ -267,7 +267,7 @@
 
   input[type='text'] {
     display: inline-block;
-    width: 5em;
+    width: 3.75em;
     font-size: 1em;
     text-align: right;
     font-weight: 600;
