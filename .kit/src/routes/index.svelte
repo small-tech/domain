@@ -261,6 +261,10 @@
     color: #1CAC78;
   }
 
+  select option {
+    font-size: 0.5em;
+  }
+
   input[type='text'] {
     display: inline-block;
     width: 5em;
