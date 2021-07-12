@@ -25,9 +25,6 @@
 </script>
 
 <script>
-  export let config
-  export let serverError
-
   import Remote from '@small-tech/remote'
 
   import DomainChecker from '$lib/DomainChecker.svelte'
@@ -38,6 +35,13 @@
   import { goto } from '$app/navigation'
 
   import { browser } from '$app/env'
+
+  export let config
+  export let serverError
+
+
+  let domain = ''
+  let app
 
   if (browser) {
     stretchy()
@@ -56,15 +60,44 @@
   let ws
   let mounted = false
   let remote
-  onMount(() => {
-    mounted = true
-    const baseUrl = document.location.hostname
-    console.log(`wss://${baseUrl}/`)
-    ws = new WebSocket(`wss://${baseUrl}/`)
-    remote = new Remote(ws)
-  })
+  let baseUrl
 
-  let domain = ''
+  onMount(() => {
+    console.log('==== onmount ====')
+    mounted = true
+    baseUrl = document.location.host
+    const  hostname = document.location.hostname
+    console.log(`wss://${hostname}/`)
+    ws = new WebSocket(`wss://${hostname}/`)
+    remote = new Remote(ws)
+
+    // Check if this is a load triggered as a return url from
+    // a provider. Currently, the only supported return urls are
+    // for Stripe.
+
+    const params = new URLSearchParams(document.location.search)
+    const provider = params.get('from')
+    if (provider) {
+      const action = params.get('action')
+      if (action === 'back' || action === 'subscribe') {
+        const sessionId = params.get('session_id')
+        domain = params.get('domain')
+        app = params.get('app')
+
+        console.log('>>>>', provider, action, domain, app, sessionId)
+
+        if (action === 'cancel') {
+
+        }
+
+      } else {
+        console.warn('Unknown Stripe action recieved, ignoring.', action)
+      }
+
+    } else {
+      console.warn('Unknown provider in params, ignoring.', provider)
+    }
+  })
 
   console.log(config)
 
@@ -74,7 +107,12 @@
     }
 
     if (paymentIsStripe) {
-      const response = await remote.create.checkout.session.request.await()
+      console.log('Asking', baseUrl)
+      const response = await remote.create.checkout.session.request.await({
+        baseUrl,
+        domain,
+        app
+      })
       console.log('>>>> Got response', response)
       if (response.error) {
         // TODO: handle error
@@ -104,7 +142,14 @@
           <p>Please <a href='mailto:{config.org.email}'>contact your administrator</a> for help in setting up your own place or use a public domain like <a href='https://small-web.org'>small-web.org</a>.</p>
         </aside>
       {:else}
-        <p>I {#if paymentIsToken}have a token and I{/if} want my own <select><option value='Place'>Place</option><option value='Site.js'>Site.js</option><option value='Owncast'>Owncast</option></select> at <span class='domain'><input type='text' placeholder='domain'>.{config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
+        <p>I {#if paymentIsToken}have a token and I{/if} want my own
+          <select bind:value={app}>
+            <option value='Place'>Place</option>
+            <option value='Site.js'>Site.js</option>
+            <option value='Owncast'>Owncast</option>
+          </select>
+          at
+          <span class='domain'><input type='text' placeholder='domain' bind:value={domain}>.{config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
        {/if}
        <button on:click|preventDefault={handleButton}>{#if paymentIsNone}Admin panel{:else}Get started!{/if}</button>
     </form>

@@ -4,7 +4,7 @@
 
   export let show = false
   export let hasCloseButton = true
-  export let hasActionButton = true
+  export let hasActionButton = false
   export let title = 'Modal'
   export let url
 

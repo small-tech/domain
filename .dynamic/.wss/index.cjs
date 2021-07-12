@@ -12,6 +12,10 @@ module.exports = function (client, request) {
   remote.create.checkout.session.request.handler = async message => {
     console.log('>>> Create checkout session called with', message)
 
+    const baseUrl = message.baseUrl === 'localhost:3000' ? `http://${message.baseUrl}` : `https://${message.baseUrl}`
+
+    console.log('baseUrl', baseUrl)
+
     if (db.settings.payment.provider !== STRIPE) {
       return remote.create.checkout.session.request.respond(message, {error: 'Payment provider is not Stripe.'})
     }
@@ -37,8 +41,8 @@ module.exports = function (client, request) {
       // TODO: Instead of using the domain, pass the domain from the client here
       // ===== so that it also works when testing from localhost, etc.
       // TODO: Implement these endpoints.
-      success_url: `https://${db.settings.dns.domain}/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://${db.settings.dns.domain}/stripe/cancelled`
+      success_url: `${baseUrl}/?from=stripe&action=subscribe&domain=${message.domain}&app=${message.app}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/?from=stripe&action=back&domain=${message.domain}&app=${message.app}&session_id={CHECKOUT_SESSION_ID}`
     })
 
     remote.create.checkout.session.request.respond(message, { url: session.url })
