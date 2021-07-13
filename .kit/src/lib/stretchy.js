@@ -129,7 +129,7 @@ var _ = self.Stretchy = {
 
 			if (option.offsetWidth > 0) {
 				// HACK: the additional 30 stops it clipping. – Aral.
-				element.style.width = option.offsetWidth + 30 + "px";
+				// element.style.width = option.offsetWidth + 30 + "px";
 
 				if (!cs[appearance] || cs[appearance] !== "none") {
 					// Account for arrow

@@ -2,6 +2,8 @@
   export async function load({page, fetch}) {
     const response = await fetch('ssr/config')
 
+    console.log('page', page)
+
     if (response.status !== 200) {
       const details = await response.text()
 
@@ -16,11 +18,17 @@
     }
 
     const config = await (response).json()
-    return {
+
+    console.log('page.query.app', page.query.get('app'))
+
+    const result = {
       props: {
-        config
+        config,
+        domain: page.query.get('domain') || '',
+        app: page.query.get('app') || 'Place'
       }
     }
+    return result
   }
 </script>
 
@@ -39,12 +47,11 @@
   export let config
   export let serverError
 
-
-  let domain = ''
-  let app
+  export let domain
+  export let app
 
   if (browser) {
-    stretchy()
+    // stretchy()
   }
 
   const PAYMENT_PROVIDERS = {
@@ -75,28 +82,28 @@
     // a provider. Currently, the only supported return urls are
     // for Stripe.
 
-    const params = new URLSearchParams(document.location.search)
-    const provider = params.get('from')
-    if (provider) {
-      const action = params.get('action')
-      if (action === 'back' || action === 'subscribe') {
-        const sessionId = params.get('session_id')
-        domain = params.get('domain')
-        app = params.get('app')
+    // const params = new URLSearchParams(document.location.search)
+    // const provider = params.get('from')
+    // if (provider) {
+    //   const action = params.get('action')
+    //   if (action === 'back' || action === 'subscribe') {
+    //     const sessionId = params.get('session_id')
+    //     domain = params.get('domain')
+    //     app = params.get('app')
 
-        console.log('>>>>', provider, action, domain, app, sessionId)
+    //     console.log('>>>>', provider, action, domain, app, sessionId)
 
-        if (action === 'cancel') {
+    //     if (action === 'cancel') {
 
-        }
+    //     }
 
-      } else {
-        console.warn('Unknown Stripe action recieved, ignoring.', action)
-      }
+    //   } else {
+    //     console.warn('Unknown Stripe action recieved, ignoring.', action)
+    //   }
 
-    } else {
-      console.warn('Unknown provider in params, ignoring.', provider)
-    }
+    // } else {
+    //   console.warn('Unknown provider in params, ignoring.', provider)
+    // }
   })
 
   console.log(config)
@@ -149,7 +156,8 @@
             <option value='Owncast'>Owncast</option>
           </select>
           at
-          <span class='domain'><input type='text' placeholder='domain' bind:value={domain}>.{config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
+          <!-- <span class='domain'><input type='text' placeholder='domain' bind:value={domain}>.{config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p> -->
+          <span class='domain' contenteditable='true' placeholder='domain' bind:textContent={domain}/>.{config.dns.domain}{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
        {/if}
        <button on:click|preventDefault={handleButton}>{#if paymentIsNone}Admin panel{:else}Get started!{/if}</button>
     </form>
@@ -185,6 +193,12 @@
 <!-- <SvelteToast /> -->
 
 <style>
+
+  /* Content editable area placeholder hack */
+  [contenteditable=true]:empty::before {
+    content: attr(placeholder);
+    opacity: 0.6;
+  }
 
   :global(body) {
     margin: 0;
@@ -244,7 +258,7 @@
     margin-bottom: 0.75em;
   }
 
-  select, input[type='text'] {
+  select, .domain {
     border: 0;
     border-bottom: 3px solid black;
     border-radius: 0;
@@ -265,18 +279,19 @@
     font-size: 0.5em;
   }
 
-  input[type='text'] {
+  .domain {
     display: inline-block;
-    width: 3.75em;
     font-size: 1em;
     text-align: right;
-    font-weight: 600;
+    font-weight: 500;
     color: #1CAC78;
     height: 1.5em;
     padding: 0;
+    caret-color: rgba(0,0,0,0.5);
+    caret-shape: block;
   }
 
-  input:focus, button:focus, textarea:focus, select:focus {
+  input:focus, button:focus, textarea:focus, select:focus, [contenteditable]:focus {
     outline: none;
   }
 
