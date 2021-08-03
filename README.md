@@ -2,6 +2,10 @@
 
 __Work-in-progress (not ready for use).__
 
+__NodeKit branch.__
+
+(Note: NoteKit does not exist yet. This is a fictive port prior to implement it. Once implemented, Domain will be using NodeKit instead of SvelteKit.)
+
 Domain enables people to seamlessly get started with their own place on the [Small Web](https://small-tech.org/research-and-development) in under a minute.
 
 You can use Domain to run a Small Web Domain as a commercial activity (e.g., charging €10/month for a Small Web place on small-web.org), a public good (e.g., a city providing free Small Web places to its citizens via tokens), or on a hyperlocal or more intimate level (e.g., providing Small Web places for your neighbourhood or your own family via a private instance).
