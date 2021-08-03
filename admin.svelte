@@ -1,29 +1,10 @@
-<script context='module'>
-  // TODO: this is ugly, refactor.
-  export async function load({page, fetch}) {
-    const response = await fetch('ssr/config')
+<get>
+  import getConfig from './getConfig.js'
 
-    if (response.status !== 200) {
-      const details = await response.text()
-
-      return {
-        props: {
-          serverError: {
-            details
-          },
-          config: {site: {}, dns: {}, payment: {}, psl: {}}
-        }
-      }
-    }
-
-    const config = await (response).json()
-    return {
-      props: {
-        config
-      }
-    }
+  export async request => {
+    return getConfig()
   }
-</script>
+</get>
 
 <script>
   // @hmr:keep-all
@@ -42,8 +23,8 @@
   import { Buffer } from 'buffer'
   globalThis.Buffer = Buffer
 
-  // This property is set by the module script.
-  export let config
+  // This property is set by NodeKit.
+  export let data
 
   let errorMessage = null
   let password = null
@@ -102,7 +83,7 @@
 </script>
 
 <main>
-  <h1>{config.dns.domain} admin</h1>
+  <h1>{data.config.dns.domain} admin</h1>
 
   {#if !signedIn}
     <form on:submit|preventDefault>
@@ -138,8 +119,8 @@
 
   <footer>
     <!--<p><strong>Like this? <a href='https://small-tech.org/fund-us'>Help fund the folks who make it.</a></strong></p>-->
-    <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Domain run by <a href='{config.org.site}'>{config.org.name}.</a>
-      {#if config.payment.provider !== PaymentProviders.none}
+    <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Domain run by <a href='{data.config.org.site}'>{data.config.org.name}.</a>
+      {#if data.config.payment.provider !== PaymentProviders.none}
         <br>
         <!-- TODO: populate links. -->
         <a href=''>Terms of Service</a>.

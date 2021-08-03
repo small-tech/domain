@@ -1,36 +1,15 @@
-<script context='module'>
-  export async function load({page, fetch}) {
-    const response = await fetch('ssr/config')
+<get>
+  import getConfig from './getConfig.js'
 
-    console.log('page', page)
-
-    if (response.status !== 200) {
-      const details = await response.text()
-
-      return {
-        props: {
-          serverError: {
-            details
-          },
-          config: {site: {}, dns: {}, payment: {}, psl: {}}
-        }
-      }
+  export async request => {
+    const config = getConfig()
+    return {
+      config,
+      domain: request.query.url || ''
+      app: request.query.app || 'Place'
     }
-
-    const config = await (response).json()
-
-    console.log('page.query.app', page.query.get('app'))
-
-    const result = {
-      props: {
-        config,
-        domain: page.query.get('domain') || '',
-        app: page.query.get('app') || 'Place'
-      }
-    }
-    return result
   }
-</script>
+</get>
 
 <script>
   import Remote from '@small-tech/remote'
@@ -44,15 +23,12 @@
 
   import { browser } from '$app/env'
 
-  export let config
-  export let serverError
+  export let serverError // ??? still necesary with NodeKit?
 
-  export let domain
-  export let app
-
-  if (browser) {
-    // stretchy()
-  }
+  // This is the data that’s automatically populated during
+  // server-side render by NodeKit. (It’s what’s returned
+  // from the <get></get> section, above.)
+  export let data
 
   const PAYMENT_PROVIDERS = {
     none: 0,
@@ -60,9 +36,9 @@
     stripe: 2
   }
 
-  const paymentIsNone = config.payment.provider === PAYMENT_PROVIDERS.none
-  const paymentIsToken = config.payment.provider === PAYMENT_PROVIDERS.token
-  const paymentIsStripe = config.payment.provider === PAYMENT_PROVIDERS.stripe
+  const paymentIsNone = data.config.payment.provider === PAYMENT_PROVIDERS.none
+  const paymentIsToken = data.config.payment.provider === PAYMENT_PROVIDERS.token
+  const paymentIsStripe = data.config.payment.provider === PAYMENT_PROVIDERS.stripe
 
   let ws
   let mounted = false
@@ -106,7 +82,7 @@
     // }
   })
 
-  console.log(config)
+  console.log(data.config)
 
   async function handleButton() {
     if (paymentIsNone) {
@@ -117,8 +93,8 @@
       console.log('Asking', baseUrl)
       const response = await remote.create.checkout.session.request.await({
         baseUrl,
-        domain,
-        app
+        data.domain,
+        data.app
       })
       console.log('>>>> Got response', response)
       if (response.error) {
@@ -130,7 +106,7 @@
   }
 </script>
 
-{#if config.payment.mode === 'test'}
+{#if data.config.payment.mode === 'test'}
   <div class='testMode'>Test Mode</div>
 {/if}
 
@@ -143,21 +119,21 @@
         https://github.com/sveltejs/svelte/issues/6381
       -->
       {#if paymentIsNone}
-        <p>{config.dns.domain}</p>
+        <p>{data.config.dns.domain}</p>
         <aside>
           <p><strong>This is a private instance.</strong></p>
-          <p>Please <a href='mailto:{config.org.email}'>contact your administrator</a> for help in setting up your own place or use a public domain like <a href='https://small-web.org'>small-web.org</a>.</p>
+          <p>Please <a href='mailto:{data.config.org.email}'>contact your administrator</a> for help in setting up your own place or use a public domain like <a href='https://small-web.org'>small-web.org</a>.</p>
         </aside>
       {:else}
         <p>I {#if paymentIsToken}have a token and I{/if} want my own
-          <select bind:value={app}>
+          <select bind:value={data.app}>
             <option value='Place'>Place</option>
             <option value='Site.js'>Site.js</option>
             <option value='Owncast'>Owncast</option>
           </select>
           at
-          <!-- <span class='domain'><input type='text' placeholder='domain' bind:value={domain}>.{config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p> -->
-          <span class='domain' contenteditable='true' placeholder='domain' bind:textContent={domain}/>.{config.dns.domain}{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
+          <!-- <span class='domain'><input type='text' placeholder='domain' bind:value={domain}>.{data.config.dns.domain}</span>{#if paymentIsStripe}&#8197;for €10/month{/if}.</p> -->
+          <span class='domain' contenteditable='true' placeholder='domain' bind:textContent={data.domain}/>.{data.config.dns.domain}{#if paymentIsStripe}&#8197;for €10/month{/if}.</p>
        {/if}
        <button on:click|preventDefault={handleButton}>{#if paymentIsNone}Admin panel{:else}Get started!{/if}</button>
     </form>
@@ -166,12 +142,12 @@
     <p class='sign-in'>Already have a place? <a href=''>Sign in.</a></p>
 
     {#if !paymentIsNone}
-      <p><strong>Need help?</strong> Email Laura and Aral at <a href='mailto:{config.org.email}'>{config.org.email}.</a></p>
+      <p><strong>Need help?</strong> Email Laura and Aral at <a href='mailto:{data.config.org.email}'>{data.config.org.email}.</a></p>
     {/if}
 
     <footer>
       <!--<p><strong>Like this? <a href='https://small-tech.org/fund-us'>Help fund the folks who make it.</a></strong></p>-->
-      <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Domain run by <a href='{config.org.site}'>{config.org.name}.</a>
+      <p>This is a <a href='https://small-tech.org/research-and-development'>Small Web</a> Domain run by <a href='{data.config.org.site}'>{data.config.org.name}.</a>
         {#if !paymentIsNone}
           <br>
           <a href=''>Terms of Service</a>.
