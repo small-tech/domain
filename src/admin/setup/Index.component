@@ -3,19 +3,19 @@
 
   import Remote from '@small-tech/remote'
 
-  import StatusMessage from './StatusMessage.svelte'
+  import StatusMessage from './StatusMessage.component'
   import ServiceState from './ServiceState.js'
 
   import DataProxy from '$lib/JSDB/DataProxy'
   import { TabbedInterface, TabList, Tab, TabPanel } from '$lib/TabbedInterface'
 
   // Setup panels.
-  import Organisation from '$lib/admin/setup/Organisation.svelte'
-  import Apps from '$lib/admin/setup/Apps.svelte'
-  import PSL from '$lib/admin/setup/PSL.svelte'
-  import DNS from '$lib/admin/setup/DNS.svelte'
-  import VPS from '$lib/admin/setup/VPS.svelte'
-  import Payment from '$lib/admin/setup/payment/Index.svelte'
+  import Organisation from './Organisation.component'
+  import Apps from './Apps.component'
+  import PSL from './PSL.component'
+  import DNS from './DNS.component'
+  import VPS from './VPS.component'
+  import Payment from './payment/Index.component'
 
   export let socket
   const remote = new Remote(socket)
