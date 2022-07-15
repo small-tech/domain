@@ -2,7 +2,7 @@
 
 __Work-in-progress (not ready for use).__
 
-Domain enables people to seamlessly get started with their own place on the [Small Web](https://small-tech.org/research-and-development) in under a minute.
+Domain is a free and open web hosting platform for the Small Web that enables people to seamlessly get started with their own place on the [Small Web](https://small-tech.org/research-and-development) in under a minute.
 
 You can use Domain to run a Small Web Domain as a commercial activity (e.g., charging €10/month for a Small Web place on small-web.org), a public good (e.g., a city providing free Small Web places to its citizens via tokens), or on a hyperlocal or more intimate level (e.g., providing Small Web places for your neighbourhood or your own family via a private instance).
 
